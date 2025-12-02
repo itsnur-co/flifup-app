@@ -1,7 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/colors';
+import { StyleSheet, TouchableOpacity, ViewStyle, Image } from 'react-native';
 
 interface SocialButtonProps {
   provider: 'google' | 'facebook';
@@ -21,9 +19,9 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
   const getIcon = () => {
     switch (provider) {
       case 'google':
-        return 'logo-google';
+        return require('@/assets/icons/search.png');
       case 'facebook':
-        return 'logo-facebook';
+        return require('@/assets/icons/facebook.png');
     }
   };
 
@@ -33,7 +31,7 @@ export const SocialButton: React.FC<SocialButtonProps> = ({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Ionicons name={getIcon()} size={24} color={Colors.ui.white} />
+      <Image source={getIcon()} style={styles.icon} />
     </TouchableOpacity>
   );
 };
@@ -48,5 +46,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
 });

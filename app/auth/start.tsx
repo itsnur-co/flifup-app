@@ -1,17 +1,17 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  StatusBar,
-  Dimensions,
-} from 'react-native';
+import { PrimaryButton } from '@/components/buttons';
+import { Logo } from '@/components/logo';
+import { Colors } from '@/constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
-import { Logo } from '@/components/logo';
-import { PrimaryButton } from '@/components/buttons';
-import { Colors } from '@/constants/colors';
+import React from 'react';
+import {
+  Dimensions,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -83,8 +83,7 @@ export default function AuthStartScreen() {
             />
           </View>
 
-          {/* Indicator */}
-          <View style={styles.indicator} />
+
         </Animated.View>
       </LinearGradient>
     </View>

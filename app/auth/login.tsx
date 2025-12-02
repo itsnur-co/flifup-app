@@ -215,8 +215,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Bottom Indicator */}
-            <View style={styles.bottomIndicator} />
+
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
