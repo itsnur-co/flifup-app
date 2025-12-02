@@ -6,19 +6,44 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  initialRouteName: 'splash',
 };
 
+/**
+ * Root Layout Component
+ * Configures navigation stack and theme
+ */
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack screenOptions={{ headerShown: false }}>
+        {/* Splash Screen - Initial Route */}
+        <Stack.Screen
+          name="splash"
+          options={{
+            headerShown: false,
+            animation: 'fade',
+          }}
+        />
+
+        {/* Auth Flow */}
+        <Stack.Screen
+          name="auth/start"
+          options={{
+            headerShown: false,
+            animation: 'fade',
+          }}
+        />
+
+        {/* Main App Tabs */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+        {/* Modal Screens */}
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </ThemeProvider>
   );
 }
