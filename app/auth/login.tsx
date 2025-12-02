@@ -93,8 +93,7 @@ export default function LoginScreen() {
    * Handles forgot password action
    */
   const handleForgotPassword = () => {
-    // TODO: Navigate to forgot password screen
-    console.log('Forgot password');
+    router.push('/auth/forgot-password');
   };
 
   /**
