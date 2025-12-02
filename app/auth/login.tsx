@@ -109,8 +109,7 @@ export default function LoginScreen() {
    * Navigates to sign up screen
    */
   const handleSignUp = () => {
-    // TODO: Navigate to sign up screen
-    console.log('Navigate to Sign Up');
+    router.push('/auth/signup');
   };
 
   return (
@@ -188,10 +187,11 @@ export default function LoginScreen() {
 
             {/* Sign In Button */}
             <PrimaryButton
-              title="Sign Up"
+              title="Sign In"
               onPress={handleSignIn}
               loading={isLoading}
               style={styles.signInButton}
+              textStyle={styles.signInButtonText}
             />
 
             {/* Social Sign In Divider */}
@@ -278,7 +278,11 @@ const styles = StyleSheet.create({
     color: Colors.ui.text.secondary,
   },
   signInButton: {
+    backgroundColor: Colors.primary,
     marginBottom: 24,
+  },
+  signInButtonText: {
+    color: Colors.ui.white,
   },
   dividerContainer: {
     flexDirection: 'row',

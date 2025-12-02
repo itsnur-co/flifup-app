@@ -34,6 +34,14 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
 }) => {
   const isFilled = variant === 'filled';
 
+  // Determine loading indicator color based on text color
+  const getLoadingColor = () => {
+    if (textStyle && typeof textStyle === 'object' && 'color' in textStyle) {
+      return textStyle.color as string;
+    }
+    return isFilled ? Colors.background.dark : Colors.ui.white;
+  };
+
   return (
     <TouchableOpacity
       style={[
@@ -47,9 +55,7 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator
-          color={isFilled ? Colors.primary : Colors.ui.white}
-        />
+        <ActivityIndicator color={getLoadingColor()} />
       ) : (
         <Text
           style={[

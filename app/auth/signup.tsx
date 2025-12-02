@@ -283,6 +283,7 @@ export default function SignUpScreen() {
               onPress={handleSignUp}
               loading={isLoading}
               style={styles.signUpButton}
+              textStyle={styles.signUpButtonText}
             />
 
             {/* Social Sign Up Divider */}
@@ -381,9 +382,11 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     backgroundColor: Colors.primary,
-    color: Colors.ui.white,
     marginBottom: 24,
     marginTop: 16,
+  },
+  signUpButtonText: {
+    color: Colors.ui.white,
   },
   dividerContainer: {
     flexDirection: 'row',
