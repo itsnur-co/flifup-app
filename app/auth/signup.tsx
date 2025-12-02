@@ -39,6 +39,7 @@ export default function SignUpScreen() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [errors, setErrors] = useState<{
     fullName?: string;
     emailOrPhone?: string;
@@ -231,31 +232,35 @@ export default function SignUpScreen() {
                 setPassword(text);
                 setErrors((prev) => ({ ...prev, password: undefined }));
               }}
+              onFocus={() => setIsPasswordFocused(true)}
+              onBlur={() => setIsPasswordFocused(false)}
               error={errors.password}
               isPassword
               autoCapitalize="none"
             />
 
             {/* Password Strength Indicator */}
-            {password.length > 0 && (
+            {isPasswordFocused && password.length > 0 && (
               <PasswordStrengthIndicator strength={passwordStrength} />
             )}
 
             {/* Password Requirements */}
-            <View style={styles.requirementsContainer}>
-              <PasswordRequirement
-                text="8 characters minimum"
-                met={passwordRequirements.hasMinLength}
-              />
-              <PasswordRequirement
-                text="a number"
-                met={passwordRequirements.hasNumber}
-              />
-              <PasswordRequirement
-                text="a symbol"
-                met={passwordRequirements.hasSymbol}
-              />
-            </View>
+            {isPasswordFocused && (
+              <View style={styles.requirementsContainer}>
+                <PasswordRequirement
+                  text="8 characters minimum"
+                  met={passwordRequirements.hasMinLength}
+                />
+                <PasswordRequirement
+                  text="a number"
+                  met={passwordRequirements.hasNumber}
+                />
+                <PasswordRequirement
+                  text="a symbol"
+                  met={passwordRequirements.hasSymbol}
+                />
+              </View>
+            )}
 
             {/* Terms and Conditions Checkbox */}
             <View style={styles.termsContainer}>
