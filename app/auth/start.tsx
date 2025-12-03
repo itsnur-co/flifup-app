@@ -32,7 +32,7 @@ export default function AuthStartScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.gradient.primaryFull.start} />
 
       {/* Gradient Background */}
       <LinearGradient

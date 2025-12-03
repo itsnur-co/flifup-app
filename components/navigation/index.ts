@@ -1,1 +1,1 @@
-export { TopBar } from './TopBar';
+export { ScreenHeader } from './screen-header';

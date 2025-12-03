@@ -28,6 +28,34 @@ export default function AuthLayout() {
           animation: 'slide_from_right',
         }}
       />
+      <Stack.Screen
+        name="forgot-password"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="verification"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="create-new-password"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="password-reset-success"
+        options={{
+          headerShown: false,
+          animation: 'fade',
+        }}
+      />
     </Stack>
   );
 }

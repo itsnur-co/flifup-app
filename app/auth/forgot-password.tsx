@@ -1,22 +1,18 @@
 import { PrimaryButton } from '@/components/buttons';
 import { TextInput } from '@/components/inputs';
-import { Logo } from '@/components/logo';
+import { ScreenHeader } from '@/components/navigation';
 import { Colors } from '@/constants/colors';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 /**
  * Forgot Password Screen
@@ -85,47 +81,18 @@ export default function ForgotPasswordScreen() {
     }
   };
 
-  /**
-   * Handles back navigation
-   */
-  const handleBack = () => {
-    router.back();
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <ScreenHeader title='Forgot Password?' backgroundColor={Colors.primary} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+        <View style={styles.scrollContent}
         >
-          {/* Top Gradient Header */}
-          <Animated.View entering={FadeInUp.duration(800).delay(200)}>
-            <LinearGradient
-              colors={[Colors.gradient.primaryFull.start, Colors.gradient.primaryFull.end]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.headerGradient}
-            >
-              {/* Back Button */}
-              <TouchableOpacity
-                onPress={handleBack}
-                style={styles.backButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="chevron-back" size={28} color={Colors.ui.white} />
-              </TouchableOpacity>
 
-              {/* Title */}
-              <Text style={styles.headerTitle}>Forgot Password?</Text>
-            </LinearGradient>
-          </Animated.View>
 
           {/* Form Container */}
           <Animated.View
@@ -134,23 +101,28 @@ export default function ForgotPasswordScreen() {
           >
             {/* Description */}
             <Text style={styles.description}>
-              Enter you Email address or Phone number and we will send you code
+              Enter you Email address or Phone number and{'\n'}we will send you code
             </Text>
 
             {/* Email/Phone Input */}
-            <TextInput
-              label="Email / Phone"
-              placeholder="Enter your User Email or Phone"
-              value={emailOrPhone}
-              onChangeText={(text) => {
-                setEmailOrPhone(text);
-                setError(undefined);
-              }}
-              error={error}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <View style={styles.inputSection}>
+              <TextInput
+                label="Email / Phone"
+                placeholder="Enter your User Email or Phone"
+                value={emailOrPhone}
+                onChangeText={(text) => {
+                  setEmailOrPhone(text);
+                  setError(undefined);
+                }}
+                error={error}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Spacer to push button to bottom */}
+            <View style={styles.spacer} />
 
             {/* Send OTP Button */}
             <PrimaryButton
@@ -161,7 +133,7 @@ export default function ForgotPasswordScreen() {
               textStyle={styles.sendButtonText}
             />
           </Animated.View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -178,48 +150,32 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 100,
-    paddingHorizontal: 24,
-    position: 'relative',
-  },
-  backButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.ui.white,
-    textAlign: 'center',
-  },
+
   formContainer: {
     flex: 1,
     backgroundColor: Colors.background.dark,
-    marginTop: -60,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 24,
+    paddingTop: 32,
+    paddingBottom: 32,
   },
+
   description: {
-    fontSize: 16,
-    color: Colors.ui.text.secondary,
+    fontSize: 14,
+    color: "gray",
     textAlign: 'center',
     marginBottom: 40,
     lineHeight: 24,
-    paddingHorizontal: 20,
+
+  },
+  inputSection: {
+    marginBottom: 16,
+  },
+  spacer: {
+    flex: 1,
+    minHeight: 200,
   },
   sendButton: {
     backgroundColor: Colors.primary,
-    marginTop: 300,
   },
   sendButtonText: {
     color: Colors.ui.white,

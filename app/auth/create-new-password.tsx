@@ -4,6 +4,7 @@ import {
   PasswordStrengthIndicator,
   TextInput,
 } from '@/components/inputs';
+import { ScreenHeader } from '@/components/navigation';
 import { Colors } from '@/constants/colors';
 import {
   calculatePasswordStrength,
@@ -19,11 +20,9 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 
 /**
  * Create New Password Screen
@@ -97,22 +96,14 @@ export default function CreateNewPasswordScreen() {
 
       console.log('Reset password:', { password });
 
-      // Navigate to login screen with success message
-      router.replace('/auth/login');
-      // TODO: Show success toast/alert
+      // Navigate to password reset success screen
+      router.push('/auth/password-reset-success');
     } catch (error) {
       console.error('Reset password error:', error);
       setErrors({ password: 'Failed to reset password. Please try again.' });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  /**
-   * Handles back navigation
-   */
-  const handleBack = () => {
-    router.back();
   };
 
   return (
@@ -128,7 +119,7 @@ export default function CreateNewPasswordScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Top Gradient Header */}
+          {/* Top Gradient Header with TopBar */}
           <Animated.View entering={FadeInUp.duration(800).delay(200)}>
             <LinearGradient
               colors={[Colors.gradient.primaryFull.start, Colors.gradient.primaryFull.end]}
@@ -136,17 +127,9 @@ export default function CreateNewPasswordScreen() {
               end={{ x: 1, y: 1 }}
               style={styles.headerGradient}
             >
-              {/* Back Button */}
-              <TouchableOpacity
-                onPress={handleBack}
-                style={styles.backButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="chevron-back" size={28} color={Colors.ui.white} />
-              </TouchableOpacity>
-
-              {/* Title */}
-              <Text style={styles.headerTitle}>Create New Password</Text>
+              <ScreenHeader
+                title="Create New Password"
+              />
             </LinearGradient>
           </Animated.View>
 
@@ -157,7 +140,7 @@ export default function CreateNewPasswordScreen() {
           >
             {/* Description */}
             <Text style={styles.description}>
-              Your password must be different from previous used password
+              Your password must be different from{'\n'}previous used password
             </Text>
 
             {/* Password Input */}
@@ -236,43 +219,28 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 100,
-    paddingHorizontal: 24,
-    position: 'relative',
+    paddingBottom: 60,
   },
-  backButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.ui.white,
-    textAlign: 'center',
+  topBar: {
+    paddingTop: 48,
+    paddingBottom: 24,
   },
   formContainer: {
     flex: 1,
     backgroundColor: Colors.background.dark,
-    marginTop: -60,
+    marginTop: -32,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 24,
+    paddingTop: 32,
+    paddingBottom: 32,
   },
   description: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.ui.text.secondary,
     textAlign: 'center',
     marginBottom: 32,
-    lineHeight: 20,
-    paddingHorizontal: 10,
+    lineHeight: 24,
   },
   requirementsContainer: {
     marginBottom: 24,

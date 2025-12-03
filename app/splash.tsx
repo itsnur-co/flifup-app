@@ -1,4 +1,4 @@
-import { LoadingSpinner, RoadLinesSVG } from '@/components/animations';
+import { RoadLinesSVG } from '@/components/animations';
 import { Logo } from '@/components/logo';
 import { Colors } from '@/constants/colors';
 import { useRouter } from 'expo-router';
@@ -98,13 +98,11 @@ export default function SplashScreen() {
     opacity: circleOpacity.value,
   }));
 
-  const spinnerStyle = useAnimatedStyle(() => ({
-    opacity: spinnerOpacity.value,
-  }));
+
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background.dark} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background.primary} />
 
       {/* Animated Road Lines SVG */}
       <RoadLinesSVG width={SCREEN_WIDTH} height={SCREEN_HEIGHT} />
@@ -120,10 +118,7 @@ export default function SplashScreen() {
         </Animated.View>
       </View>
 
-      {/* Loading Spinner */}
-      <Animated.View style={[styles.spinnerContainer, spinnerStyle]}>
-        <LoadingSpinner size={8} color={Colors.primary} variant="circular" />
-      </Animated.View>
+
     </View>
   );
 }

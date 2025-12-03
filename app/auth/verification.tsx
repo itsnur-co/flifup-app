@@ -1,9 +1,9 @@
 import { PrimaryButton } from '@/components/buttons';
 import { OTPInput } from '@/components/inputs';
+import { ScreenHeader } from '@/components/navigation';
 import { Colors } from '@/constants/colors';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -14,8 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 /**
  * Verification Screen
@@ -29,7 +28,7 @@ export default function VerificationScreen() {
   // State
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [timer, setTimer] = useState(60); // 60 seconds countdown
+  const [timer, setTimer] = useState(56); // Initial countdown from Figma
   const [canResend, setCanResend] = useState(false);
 
   // Timer countdown
@@ -111,16 +110,13 @@ export default function VerificationScreen() {
     }
   };
 
-  /**
-   * Handles back navigation
-   */
-  const handleBack = () => {
-    router.back();
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <ScreenHeader
+        title="Verification"
+        backgroundColor={Colors.primary}
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -131,27 +127,7 @@ export default function VerificationScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Top Gradient Header */}
-          <Animated.View entering={FadeInUp.duration(800).delay(200)}>
-            <LinearGradient
-              colors={[Colors.gradient.primaryFull.start, Colors.gradient.primaryFull.end]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.headerGradient}
-            >
-              {/* Back Button */}
-              <TouchableOpacity
-                onPress={handleBack}
-                style={styles.backButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="chevron-back" size={28} color={Colors.ui.white} />
-              </TouchableOpacity>
 
-              {/* Title */}
-              <Text style={styles.headerTitle}>Verification</Text>
-            </LinearGradient>
-          </Animated.View>
 
           {/* Form Container */}
           <Animated.View
@@ -194,6 +170,9 @@ export default function VerificationScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Spacer to push button down */}
+            <View style={styles.spacer} />
+
             {/* Next Button */}
             <PrimaryButton
               title="Next"
@@ -222,65 +201,52 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 100,
-    paddingHorizontal: 24,
-    position: 'relative',
+    paddingBottom: 60,
   },
-  backButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.ui.white,
-    textAlign: 'center',
+  topBar: {
+    paddingTop: 48,
+    paddingBottom: 24,
   },
   formContainer: {
     flex: 1,
     backgroundColor: Colors.background.dark,
-    marginTop: -60,
+    marginTop: -32,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 24,
+    paddingTop: 32,
+    paddingBottom: 32,
+    minHeight: 500,
   },
   description: {
     fontSize: 16,
     color: Colors.ui.text.secondary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
     lineHeight: 24,
   },
   email: {
-    fontSize: 16,
+    fontSize: 18,
     color: Colors.ui.white,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 24,
   },
   otpContainer: {
-    marginVertical: 24,
+    marginTop: 16,
+    marginBottom: 24,
   },
   timer: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
     color: Colors.ui.white,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   resendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 180,
   },
   resendText: {
     fontSize: 14,
@@ -293,6 +259,10 @@ const styles = StyleSheet.create({
   },
   resendLinkDisabled: {
     opacity: 0.5,
+  },
+  spacer: {
+    flex: 1,
+    minHeight: 100,
   },
   nextButton: {
     backgroundColor: Colors.primary,
