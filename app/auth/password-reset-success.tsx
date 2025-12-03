@@ -1,7 +1,6 @@
 import { PrimaryButton } from '@/components/buttons';
 import { Colors } from '@/constants/colors';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -10,7 +9,6 @@ import {
     Text,
     View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 /**
  * Password Reset Success Screen
@@ -32,66 +30,28 @@ export default function PasswordResetSuccessScreen() {
             <StatusBar barStyle="light-content" backgroundColor={Colors.background.dark} />
 
             <View style={styles.content}>
-                {/* Visual Illustration with Decorative Elements */}
-                <Animated.View
-                    entering={FadeInUp.duration(1000).delay(200)}
+
+
+                <Image
+                    source={require("@/assets/visuals /succssfully-reset-password-visual.png")}
                     style={styles.visualContainer}
-                >
-                    {/* Star decoration - top left */}
-                    <Animated.View
-                        entering={FadeIn.duration(800).delay(600)}
-                        style={styles.starDecoration}
-                    >
-                        <Text style={styles.starIcon}>⭐</Text>
-                    </Animated.View>
+                    contentFit="contain"
+                />
 
-                    {/* Circle decoration - bottom left */}
-                    <Animated.View
-                        entering={FadeIn.duration(800).delay(800)}
-                        style={styles.dotDecorationLeft}
-                    >
-                        <View style={styles.greenDot} />
-                    </Animated.View>
-
-                    {/* Circle decoration - bottom right */}
-                    <Animated.View
-                        entering={FadeIn.duration(800).delay(700)}
-                        style={styles.dotDecorationRight}
-                    >
-                        <View style={styles.greenDotOutline} />
-                    </Animated.View>
-
-                    {/* Main Visual - Gradient Circle with Shield Icon */}
-                    <LinearGradient
-                        colors={[Colors.gradient.primaryFull.start, Colors.gradient.primaryFull.end]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.gradientCircle}
-                    >
-                        <View style={styles.innerCircle}>
-                            <Ionicons
-                                name="shield-checkmark-outline"
-                                size={40}
-                                color={Colors.primary}
-                            />
-                        </View>
-                    </LinearGradient>
-                </Animated.View>
 
                 {/* Success Message */}
-                <Animated.View
-                    entering={FadeInDown.duration(800).delay(400)}
+                <View
                     style={styles.messageContainer}
                 >
                     <Text style={styles.title}>Password Changed</Text>
                     <Text style={styles.description}>
-                        Password changed succesfully, you can login{'\n'}again with new password
+                        Password changed succesfully, you can login again with new password
                     </Text>
-                </Animated.View>
+                </View>
 
                 {/* Login Button */}
-                <Animated.View
-                    entering={FadeInDown.duration(800).delay(600)}
+                <View
+
                     style={styles.buttonContainer}
                 >
                     <PrimaryButton
@@ -100,7 +60,7 @@ export default function PasswordResetSuccessScreen() {
                         style={styles.loginButton}
                         textStyle={styles.loginButtonText}
                     />
-                </Animated.View>
+                </View>
             </View>
         </View>
     );
@@ -113,7 +73,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: 24,
+        paddingHorizontal: 14,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -195,7 +155,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     description: {
-        fontSize: 16,
+        fontSize: 14,
         color: Colors.ui.text.secondary,
         textAlign: 'center',
         lineHeight: 24,

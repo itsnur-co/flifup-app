@@ -10,7 +10,6 @@ import {
   calculatePasswordStrength,
   getPasswordRequirements,
 } from '@/utils/passwordValidation';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
@@ -22,7 +21,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 /**
  * Create New Password Screen
@@ -109,6 +108,7 @@ export default function CreateNewPasswordScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <ScreenHeader title='Create New Password' backgroundColor={Colors.primary} style={{ marginTop: 8 }} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -119,20 +119,6 @@ export default function CreateNewPasswordScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Top Gradient Header with TopBar */}
-          <Animated.View entering={FadeInUp.duration(800).delay(200)}>
-            <LinearGradient
-              colors={[Colors.gradient.primaryFull.start, Colors.gradient.primaryFull.end]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.headerGradient}
-            >
-              <ScreenHeader
-                title="Create New Password"
-              />
-            </LinearGradient>
-          </Animated.View>
-
           {/* Form Container */}
           <Animated.View
             entering={FadeInDown.duration(800).delay(400)}
@@ -231,11 +217,12 @@ const styles = StyleSheet.create({
     marginTop: -32,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
     paddingTop: 32,
     paddingBottom: 32,
   },
   description: {
+    marginTop: 16,
     fontSize: 16,
     color: Colors.ui.text.secondary,
     textAlign: 'center',

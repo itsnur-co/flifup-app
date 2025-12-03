@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   headerGradient: {
     paddingTop: 60,
     paddingBottom: 64,
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     marginTop: -30,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
     paddingTop: 22,
     paddingBottom: 24,
   },
