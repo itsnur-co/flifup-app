@@ -113,7 +113,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.gradient.primaryToSecondary.start} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -148,8 +148,8 @@ export default function LoginScreen() {
 
             {/* Email/Phone Input */}
             <TextInput
-              label="Email / Phone"
-              placeholder="Enter your User Email or Phone"
+              label="Email"
+              placeholder="Enter your User Email"
               value={emailOrPhone}
               onChangeText={(text) => {
                 setEmailOrPhone(text);
@@ -257,15 +257,15 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 22,
     paddingBottom: 24,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: 500,
     color: Colors.ui.white,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 46,
   },
   forgotPasswordContainer: {
     alignSelf: 'flex-end',

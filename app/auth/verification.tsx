@@ -116,6 +116,7 @@ export default function VerificationScreen() {
       <ScreenHeader
         title="Verification"
         backgroundColor={Colors.primary}
+        style={{ marginTop: 8 }}
       />
 
       <KeyboardAvoidingView
@@ -213,22 +214,23 @@ const styles = StyleSheet.create({
     marginTop: -32,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
     paddingTop: 32,
     paddingBottom: 32,
     minHeight: 500,
   },
   description: {
+    marginTop: 24,
+    fontWeight: '500',
     fontSize: 16,
-    color: Colors.ui.text.secondary,
+    color: Colors.ui.white,
     textAlign: 'center',
-    marginBottom: 4,
     lineHeight: 24,
   },
   email: {
     fontSize: 18,
     color: Colors.ui.white,
-    fontWeight: '600',
+    fontWeight: 500,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -241,9 +243,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.ui.white,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   resendContainer: {
+
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

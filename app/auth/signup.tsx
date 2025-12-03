@@ -161,7 +161,7 @@ export default function SignUpScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.gradient.primaryFull.end} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.gradient.primaryToSecondary.start} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -210,8 +210,8 @@ export default function SignUpScreen() {
 
             {/* Email/Phone Input */}
             <TextInput
-              label="Email / Phone"
-              placeholder="Enter your User Email or Phone"
+              label="Email"
+              placeholder="Enter your User Email"
               value={emailOrPhone}
               onChangeText={(text) => {
                 setEmailOrPhone(text);
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   headerGradient: {
     paddingTop: 60,
     paddingBottom: 64,
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -353,15 +353,15 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 22,
     paddingBottom: 24,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: 500,
     color: Colors.ui.white,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 46,
   },
   requirementsContainer: {
     marginBottom: 24,
@@ -376,8 +376,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   termsLink: {
-    color: Colors.primary,
-    fontWeight: '600',
+    color: Colors.background.primary,
+    fontWeight: 500,
   },
   termsError: {
     fontSize: 12,

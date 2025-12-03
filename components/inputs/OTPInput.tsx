@@ -1,12 +1,12 @@
-import React, { useRef, useState, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  ViewStyle,
-  Keyboard,
-} from 'react-native';
 import { Colors } from '@/constants/colors';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Keyboard,
+  StyleSheet,
+  TextInput,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 interface OTPInputProps {
   length?: number;
@@ -160,17 +160,16 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: Colors.ui.strock,
+    backgroundColor: Colors.background.dark,
     justifyContent: 'center',
     alignItems: 'center',
   },
   inputWrapperFocused: {
     borderColor: Colors.primary,
-    backgroundColor: 'rgba(144, 57, 255, 0.1)',
   },
   input: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '600',
     color: Colors.ui.text.secondary,
     textAlign: 'center',

@@ -47,13 +47,15 @@ export const Colors = {
 
   // Background colors
   background: {
-    dark: '#1A1A1D',
+    dark: '#191B1F',
     primary: '#9039FF',
     secondary: '#2DFDFF',
   },
 
   // UI colors
   ui: {
+    strock: '#2A2E31',
+    placeholder: '#6B7280',
     white: '#FFFFFF',
     black: '#000000',
     border: '#E5E7EB',

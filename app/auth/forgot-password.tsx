@@ -84,7 +84,7 @@ export default function ForgotPasswordScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
-      <ScreenHeader title='Forgot Password?' backgroundColor={Colors.primary} />
+      <ScreenHeader title='Forgot Password?' backgroundColor={Colors.primary} style={{ marginTop: 8 }} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -107,8 +107,8 @@ export default function ForgotPasswordScreen() {
             {/* Email/Phone Input */}
             <View style={styles.inputSection}>
               <TextInput
-                label="Email / Phone"
-                placeholder="Enter your User Email or Phone"
+                label="Email"
+                placeholder="Enter your User Email"
                 value={emailOrPhone}
                 onChangeText={(text) => {
                   setEmailOrPhone(text);
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   formContainer: {
     flex: 1,
     backgroundColor: Colors.background.dark,
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
     paddingTop: 32,
     paddingBottom: 32,
   },

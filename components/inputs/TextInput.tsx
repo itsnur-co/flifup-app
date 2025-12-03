@@ -1,15 +1,15 @@
+import { Colors } from '@/constants/colors';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
   TextInput as RNTextInput,
-  Text,
   StyleSheet,
-  TouchableOpacity,
+  Text,
   TextInputProps,
+  TouchableOpacity,
+  View,
   ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/colors';
 
 interface CustomTextInputProps extends TextInputProps {
   label: string;
@@ -78,34 +78,38 @@ export const TextInput: React.FC<CustomTextInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   label: {
-    fontSize: 16,
+    zIndex: 1,
+    position: 'absolute',
+    top: -12,
+    left: 12,
+    paddingHorizontal: 4,
+    backgroundColor: Colors.background.dark,
+    fontSize: 14,
     fontWeight: '500',
     color: Colors.ui.white,
-    marginBottom: 8,
   },
   inputContainer: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: Colors.ui.strock,
     paddingHorizontal: 16,
-    height: 56,
+    height: 60,
   },
   inputContainerFocused: {
-    borderColor: Colors.primary,
-    backgroundColor: 'rgba(144, 57, 255, 0.1)',
+    borderColor: Colors.ui.white,
   },
   inputContainerError: {
     borderColor: '#FF4444',
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.ui.white,
     paddingVertical: 0,
   },
