@@ -2,6 +2,8 @@ import { PrimaryButton, SocialButton } from '@/components/buttons';
 import { TextInput } from '@/components/inputs';
 import { Logo } from '@/components/logo';
 import { Colors } from '@/constants/colors';
+import { authService } from '@/services/api/auth.service';
+import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -14,6 +16,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
@@ -24,6 +27,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
  */
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuth();
 
   // Form state
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -74,16 +78,28 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual authentication logic
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await authService.login({
+        email: emailOrPhone.trim(),
+        password,
+      });
 
-      console.log('Sign in with:', { emailOrPhone, password });
+      if (response.error) {
+        setErrors({ emailOrPhone: response.error });
+        Alert.alert('Login Failed', response.error);
+        return;
+      }
 
-      // Navigate to main app
-      // router.replace('/(tabs)');
+      if (response.data) {
+        // Update auth context
+        login(response.data.user);
+
+        // Navigate to main app
+        router.replace('/(tabs)');
+      }
     } catch (error) {
       console.error('Sign in error:', error);
       setErrors({ emailOrPhone: 'Invalid credentials. Please try again.' });
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

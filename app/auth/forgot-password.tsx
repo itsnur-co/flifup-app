@@ -2,6 +2,7 @@ import { PrimaryButton } from '@/components/buttons';
 import { TextInput } from '@/components/inputs';
 import { ScreenHeader } from '@/components/navigation';
 import { Colors } from '@/constants/colors';
+import { authService } from '@/services/api/auth.service';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -10,7 +11,8 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View
+  View,
+  Alert,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -63,19 +65,40 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual OTP send logic
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      console.log('Send OTP to:', emailOrPhone);
-
-      // Navigate to verification screen with email/phone
-      router.push({
-        pathname: '/auth/verification',
-        params: { contact: emailOrPhone },
+      const response = await authService.forgotPassword({
+        email: emailOrPhone.trim(),
       });
+
+      if (response.error) {
+        setError(response.error);
+        Alert.alert('Failed', response.error);
+        return;
+      }
+
+      if (response.data) {
+        Alert.alert(
+          'OTP Sent',
+          `A verification code has been sent to ${emailOrPhone}. Please check your email.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.push({
+                  pathname: '/auth/verification',
+                  params: {
+                    contact: emailOrPhone.trim(),
+                    type: 'password-reset',
+                  },
+                });
+              },
+            },
+          ]
+        );
+      }
     } catch (error) {
       console.error('Send OTP error:', error);
       setError('Failed to send OTP. Please try again.');
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

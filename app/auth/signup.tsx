@@ -11,6 +11,7 @@ import {
   calculatePasswordStrength,
   getPasswordRequirements,
 } from '@/utils/passwordValidation';
+import { authService } from '@/services/api/auth.service';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -23,6 +24,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
@@ -97,10 +99,12 @@ export default function SignUpScreen() {
       newErrors.password = 'Password is required';
     } else if (!passwordRequirements.hasMinLength) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (!passwordRequirements.hasUppercase) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
+    } else if (!passwordRequirements.hasLowercase) {
+      newErrors.password = 'Password must contain at least one lowercase letter';
     } else if (!passwordRequirements.hasNumber) {
       newErrors.password = 'Password must contain at least one number';
-    } else if (!passwordRequirements.hasSymbol) {
-      newErrors.password = 'Password must contain at least one symbol';
     }
 
     // Terms validation
@@ -121,16 +125,39 @@ export default function SignUpScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual registration logic
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await authService.initiateSignup({
+        fullName: fullName.trim(),
+        email: emailOrPhone.trim(),
+        password,
+      });
 
-      console.log('Sign up with:', { fullName, emailOrPhone, password });
+      if (response.error) {
+        setErrors({ emailOrPhone: response.error });
+        Alert.alert('Signup Failed', response.error);
+        return;
+      }
 
-      // Navigate to main app or verification screen
-      // router.replace('/(tabs)');
+      if (response.data) {
+        Alert.alert(
+          'OTP Sent',
+          `A verification code has been sent to ${emailOrPhone}. Please check your email.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.push({
+                  pathname: '/auth/email-verification',
+                  params: { email: emailOrPhone.trim() },
+                });
+              },
+            },
+          ]
+        );
+      }
     } catch (error) {
       console.error('Sign up error:', error);
       setErrors({ emailOrPhone: 'Registration failed. Please try again.' });
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -252,12 +279,16 @@ export default function SignUpScreen() {
                   met={passwordRequirements.hasMinLength}
                 />
                 <PasswordRequirement
-                  text="a number"
-                  met={passwordRequirements.hasNumber}
+                  text="an uppercase letter"
+                  met={passwordRequirements.hasUppercase}
                 />
                 <PasswordRequirement
-                  text="a symbol"
-                  met={passwordRequirements.hasSymbol}
+                  text="a lowercase letter"
+                  met={passwordRequirements.hasLowercase}
+                />
+                <PasswordRequirement
+                  text="a number"
+                  met={passwordRequirements.hasNumber}
                 />
               </View>
             )}

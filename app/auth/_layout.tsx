@@ -56,6 +56,13 @@ export default function AuthLayout() {
           animation: 'fade',
         }}
       />
+      <Stack.Screen
+        name="email-verification"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack>
   );
 }

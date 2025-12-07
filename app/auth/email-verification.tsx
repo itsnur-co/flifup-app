@@ -3,6 +3,7 @@ import { OTPInput } from '@/components/inputs';
 import { ScreenHeader } from '@/components/navigation';
 import { Colors } from '@/constants/colors';
 import { authService } from '@/services/api/auth.service';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -19,14 +20,14 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 /**
- * Verification Screen
- * Handles OTP verification for password reset
+ * Email Verification Screen
+ * Handles OTP verification for signup (email verification)
  */
-export default function VerificationScreen() {
+export default function EmailVerificationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const contact = params.contact as string || 'your email';
-  const type = params.type as string || 'password-reset'; // 'password-reset' or 'signup'
+  const email = params.email as string || '';
+  const { login } = useAuth();
 
   // State
   const [otp, setOtp] = useState('');
@@ -34,7 +35,6 @@ export default function VerificationScreen() {
   const [timer, setTimer] = useState(600); // 10 minutes in seconds
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState<string | undefined>();
-  const [resetToken, setResetToken] = useState<string | null>(null);
 
   // Timer countdown
   useEffect(() => {
@@ -82,8 +82,8 @@ export default function VerificationScreen() {
     setError(undefined);
 
     try {
-      const response = await authService.verifyOtp({
-        email: contact,
+      const response = await authService.verifySignupOtp({
+        email,
         otp,
       });
 
@@ -94,20 +94,18 @@ export default function VerificationScreen() {
       }
 
       if (response.data) {
-        // Store reset token for password reset
-        setResetToken(response.data.resetToken);
+        // User is now logged in, update auth context
+        login(response.data.user);
 
         Alert.alert(
           'Success',
-          'OTP verified successfully. Please create a new password.',
+          'Your account has been created successfully!',
           [
             {
               text: 'OK',
               onPress: () => {
-                router.push({
-                  pathname: '/auth/create-new-password',
-                  params: { resetToken: response.data.resetToken },
-                });
+                // Navigate to main app
+                router.replace('/(tabs)');
               },
             },
           ]
@@ -129,16 +127,23 @@ export default function VerificationScreen() {
     if (!canResend) return;
 
     try {
-      const response = await authService.forgotPassword({
-        email: contact,
-      });
-
-      if (response.error) {
-        Alert.alert('Failed', response.error);
-        return;
-      }
-
-      Alert.alert('Success', 'OTP has been resent to your email.');
+      // Extract email from signup to resend OTP
+      // Note: This would require calling initiate-signup again
+      // For now, we'll just show a message
+      Alert.alert(
+        'Resend OTP',
+        'To resend OTP, please go back and try signing up again.',
+        [
+          {
+            text: 'Go Back',
+            onPress: () => router.back(),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
 
       // Reset timer
       setTimer(600);
@@ -167,8 +172,6 @@ export default function VerificationScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-
-
           {/* Form Container */}
           <Animated.View
             entering={FadeInDown.duration(800).delay(400)}
@@ -178,7 +181,7 @@ export default function VerificationScreen() {
             <Text style={styles.description}>
               We've sent a verification code to your email
             </Text>
-            <Text style={styles.email}>{contact}</Text>
+            <Text style={styles.email}>{email}</Text>
 
             {/* OTP Input */}
             <OTPInput
@@ -218,7 +221,7 @@ export default function VerificationScreen() {
 
             {/* Next Button */}
             <PrimaryButton
-              title="Next"
+              title="Verify & Create Account"
               onPress={handleVerify}
               loading={isLoading}
               disabled={otp.length !== 4}
@@ -243,13 +246,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  headerGradient: {
-    paddingBottom: 60,
-  },
-  topBar: {
-    paddingTop: 48,
-    paddingBottom: 24,
-  },
   formContainer: {
     flex: 1,
     backgroundColor: Colors.background.dark,
@@ -272,7 +268,7 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 18,
     color: Colors.ui.white,
-    fontWeight: 500,
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -294,7 +290,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   resendContainer: {
-
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

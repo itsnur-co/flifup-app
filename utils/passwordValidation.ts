@@ -6,7 +6,8 @@
 export interface PasswordRequirements {
   hasMinLength: boolean;
   hasNumber: boolean;
-  hasSymbol: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
 }
 
 /**
@@ -46,12 +47,14 @@ export const hasLowercase = (password: string): boolean => {
 
 /**
  * Gets all password requirements status
+ * Based on API requirements: min 8 chars, 1 uppercase, 1 lowercase, 1 number
  */
 export const getPasswordRequirements = (password: string): PasswordRequirements => {
   return {
     hasMinLength: hasMinimumLength(password),
     hasNumber: hasNumber(password),
-    hasSymbol: hasSymbol(password),
+    hasUppercase: hasUppercase(password),
+    hasLowercase: hasLowercase(password),
   };
 };
 
@@ -80,10 +83,16 @@ export const calculatePasswordStrength = (password: string): number => {
 
 /**
  * Checks if password meets all basic requirements
+ * Based on API requirements: min 8 chars, 1 uppercase, 1 lowercase, 1 number
  */
 export const isPasswordValid = (password: string): boolean => {
   const requirements = getPasswordRequirements(password);
-  return requirements.hasMinLength && requirements.hasNumber && requirements.hasSymbol;
+  return (
+    requirements.hasMinLength &&
+    requirements.hasNumber &&
+    requirements.hasUppercase &&
+    requirements.hasLowercase
+  );
 };
 
 /**

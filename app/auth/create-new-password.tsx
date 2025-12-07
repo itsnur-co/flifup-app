@@ -10,7 +10,8 @@ import {
   calculatePasswordStrength,
   getPasswordRequirements,
 } from '@/utils/passwordValidation';
-import { useRouter } from 'expo-router';
+import { authService } from '@/services/api/auth.service';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -20,6 +21,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -29,6 +31,8 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
  */
 export default function CreateNewPasswordScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const resetToken = params.resetToken as string || '';
 
   // Form state
   const [password, setPassword] = useState('');
@@ -64,10 +68,12 @@ export default function CreateNewPasswordScreen() {
       newErrors.password = 'Password is required';
     } else if (!passwordRequirements.hasMinLength) {
       newErrors.password = 'Password must be at least 8 characters';
+    } else if (!passwordRequirements.hasUppercase) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
+    } else if (!passwordRequirements.hasLowercase) {
+      newErrors.password = 'Password must contain at least one lowercase letter';
     } else if (!passwordRequirements.hasNumber) {
       newErrors.password = 'Password must contain at least one number';
-    } else if (!passwordRequirements.hasSymbol) {
-      newErrors.password = 'Password must contain at least one symbol';
     }
 
     // Confirm password validation
@@ -87,19 +93,44 @@ export default function CreateNewPasswordScreen() {
   const handleResetPassword = async () => {
     if (!validateForm()) return;
 
+    if (!resetToken) {
+      Alert.alert('Error', 'Reset token is missing. Please try again.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual password reset logic
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await authService.resetPassword({
+        resetToken,
+        newPassword: password,
+        confirmPassword,
+      });
 
-      console.log('Reset password:', { password });
+      if (response.error) {
+        setErrors({ password: response.error });
+        Alert.alert('Reset Failed', response.error);
+        return;
+      }
 
-      // Navigate to password reset success screen
-      router.push('/auth/password-reset-success');
+      if (response.data) {
+        Alert.alert(
+          'Success',
+          'Your password has been reset successfully. Please login with your new password.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.push('/auth/password-reset-success');
+              },
+            },
+          ]
+        );
+      }
     } catch (error) {
       console.error('Reset password error:', error);
       setErrors({ password: 'Failed to reset password. Please try again.' });
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -169,12 +200,16 @@ export default function CreateNewPasswordScreen() {
                 met={passwordRequirements.hasMinLength}
               />
               <PasswordRequirement
-                text="a number"
-                met={passwordRequirements.hasNumber}
+                text="an uppercase letter"
+                met={passwordRequirements.hasUppercase}
               />
               <PasswordRequirement
-                text="a symbol"
-                met={passwordRequirements.hasSymbol}
+                text="a lowercase letter"
+                met={passwordRequirements.hasLowercase}
+              />
+              <PasswordRequirement
+                text="a number"
+                met={passwordRequirements.hasNumber}
               />
             </View>
 
