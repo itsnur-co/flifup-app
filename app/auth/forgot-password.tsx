@@ -1,20 +1,19 @@
-import { PrimaryButton } from '@/components/buttons';
-import { TextInput } from '@/components/inputs';
-import { ScreenHeader } from '@/components/navigation';
-import { Colors } from '@/constants/colors';
-import { authService } from '@/services/api/auth.service';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { PrimaryButton } from "@/components/buttons";
+import { TextInput } from "@/components/inputs";
+import { ScreenHeader } from "@/components/navigation";
+import { Colors } from "@/constants/colors";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   StyleSheet,
   Text,
   View,
-  Alert,
-} from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+} from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 /**
  * Forgot Password Screen
@@ -24,7 +23,7 @@ export default function ForgotPasswordScreen() {
   const router = useRouter();
 
   // Form state
-  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState("");
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,22 +32,22 @@ export default function ForgotPasswordScreen() {
    */
   const validateInput = (): boolean => {
     if (!emailOrPhone.trim()) {
-      setError('Email or phone is required');
+      setError("Email or phone is required");
       return false;
     }
 
-    if (emailOrPhone.includes('@')) {
+    if (emailOrPhone.includes("@")) {
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailOrPhone)) {
-        setError('Please enter a valid email');
+        setError("Please enter a valid email");
         return false;
       }
     } else {
       // Phone validation
       const phoneRegex = /^\d{10,15}$/;
-      if (!phoneRegex.test(emailOrPhone.replace(/\s/g, ''))) {
-        setError('Please enter a valid phone number');
+      if (!phoneRegex.test(emailOrPhone.replace(/\s/g, ""))) {
+        setError("Please enter a valid phone number");
         return false;
       }
     }
@@ -65,40 +64,42 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
 
     try {
-      const response = await authService.forgotPassword({
-        email: emailOrPhone.trim(),
-      });
+      // TODO: API temporarily disconnected for frontend development
+      // const response = await authService.forgotPassword({
+      //   email: emailOrPhone.trim(),
+      // });
 
-      if (response.error) {
-        setError(response.error);
-        Alert.alert('Failed', response.error);
-        return;
-      }
+      // if (response.error) {
+      //   setError(response.error);
+      //   Alert.alert('Failed', response.error);
+      //   return;
+      // }
 
-      if (response.data) {
-        Alert.alert(
-          'OTP Sent',
-          `A verification code has been sent to ${emailOrPhone}. Please check your email.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                router.push({
-                  pathname: '/auth/verification',
-                  params: {
-                    contact: emailOrPhone.trim(),
-                    type: 'password-reset',
-                  },
-                });
-              },
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      Alert.alert(
+        "OTP Sent",
+        `A verification code has been sent to ${emailOrPhone}. Please check your email.`,
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              router.push({
+                pathname: "/auth/verification",
+                params: {
+                  contact: emailOrPhone.trim(),
+                  type: "password-reset",
+                },
+              });
             },
-          ]
-        );
-      }
+          },
+        ]
+      );
     } catch (error) {
-      console.error('Send OTP error:', error);
-      setError('Failed to send OTP. Please try again.');
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      console.error("Send OTP error:", error);
+      setError("Failed to send OTP. Please try again.");
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -107,16 +108,17 @@ export default function ForgotPasswordScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
-      <ScreenHeader title='Forgot Password?' backgroundColor={Colors.primary} style={{ marginTop: 8 }} />
+      <ScreenHeader
+        title="Forgot Password?"
+        backgroundColor={Colors.primary}
+        style={{ marginTop: 8 }}
+      />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <View style={styles.scrollContent}
-        >
-
-
+        <View style={styles.scrollContent}>
           {/* Form Container */}
           <Animated.View
             entering={FadeInDown.duration(800).delay(400)}
@@ -124,7 +126,8 @@ export default function ForgotPasswordScreen() {
           >
             {/* Description */}
             <Text style={styles.description}>
-              Enter you Email address or Phone number and{'\n'}we will send you code
+              Enter you Email address or Phone number and{"\n"}we will send you
+              code
             </Text>
 
             {/* Email/Phone Input */}
@@ -185,10 +188,9 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     color: "gray",
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 40,
     lineHeight: 24,
-
   },
   inputSection: {
     marginBottom: 16,

@@ -1,19 +1,19 @@
-import { PrimaryButton } from '@/components/buttons';
+import { PrimaryButton } from "@/components/buttons";
 import {
   PasswordRequirement,
   PasswordStrengthIndicator,
   TextInput,
-} from '@/components/inputs';
-import { ScreenHeader } from '@/components/navigation';
-import { Colors } from '@/constants/colors';
+} from "@/components/inputs";
+import { ScreenHeader } from "@/components/navigation";
+import { Colors } from "@/constants/colors";
 import {
   calculatePasswordStrength,
   getPasswordRequirements,
-} from '@/utils/passwordValidation';
-import { authService } from '@/services/api/auth.service';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+} from "@/utils/passwordValidation";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -21,9 +21,8 @@ import {
   StyleSheet,
   Text,
   View,
-  Alert,
-} from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+} from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 /**
  * Create New Password Screen
@@ -32,11 +31,11 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 export default function CreateNewPasswordScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const resetToken = params.resetToken as string || '';
+  const resetToken = (params.resetToken as string) || "";
 
   // Form state
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<{
     password?: string;
     confirmPassword?: string;
@@ -65,22 +64,24 @@ export default function CreateNewPasswordScreen() {
 
     // Password validation
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (!passwordRequirements.hasMinLength) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
     } else if (!passwordRequirements.hasUppercase) {
-      newErrors.password = 'Password must contain at least one uppercase letter';
+      newErrors.password =
+        "Password must contain at least one uppercase letter";
     } else if (!passwordRequirements.hasLowercase) {
-      newErrors.password = 'Password must contain at least one lowercase letter';
+      newErrors.password =
+        "Password must contain at least one lowercase letter";
     } else if (!passwordRequirements.hasNumber) {
-      newErrors.password = 'Password must contain at least one number';
+      newErrors.password = "Password must contain at least one number";
     }
 
     // Confirm password validation
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = "Please confirm your password";
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -94,43 +95,45 @@ export default function CreateNewPasswordScreen() {
     if (!validateForm()) return;
 
     if (!resetToken) {
-      Alert.alert('Error', 'Reset token is missing. Please try again.');
+      Alert.alert("Error", "Reset token is missing. Please try again.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await authService.resetPassword({
-        resetToken,
-        newPassword: password,
-        confirmPassword,
-      });
+      // TODO: API temporarily disconnected for frontend development
+      // const response = await authService.resetPassword({
+      //   resetToken,
+      //   newPassword: password,
+      //   confirmPassword,
+      // });
 
-      if (response.error) {
-        setErrors({ password: response.error });
-        Alert.alert('Reset Failed', response.error);
-        return;
-      }
+      // if (response.error) {
+      //   setErrors({ password: response.error });
+      //   Alert.alert('Reset Failed', response.error);
+      //   return;
+      // }
 
-      if (response.data) {
-        Alert.alert(
-          'Success',
-          'Your password has been reset successfully. Please login with your new password.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                router.push('/auth/password-reset-success');
-              },
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      Alert.alert(
+        "Success",
+        "Your password has been reset successfully. Please login with your new password.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              router.push("/auth/password-reset-success");
             },
-          ]
-        );
-      }
+          },
+        ]
+      );
     } catch (error) {
-      console.error('Reset password error:', error);
-      setErrors({ password: 'Failed to reset password. Please try again.' });
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      console.error("Reset password error:", error);
+      setErrors({ password: "Failed to reset password. Please try again." });
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -139,10 +142,14 @@ export default function CreateNewPasswordScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
-      <ScreenHeader title='Create New Password' backgroundColor={Colors.primary} style={{ marginTop: 8 }} />
+      <ScreenHeader
+        title="Create New Password"
+        backgroundColor={Colors.primary}
+        style={{ marginTop: 8 }}
+      />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView
@@ -157,7 +164,7 @@ export default function CreateNewPasswordScreen() {
           >
             {/* Description */}
             <Text style={styles.description}>
-              Your password must be different from{'\n'}previous used password
+              Your password must be different from{"\n"}previous used password
             </Text>
 
             {/* Password Input */}
@@ -260,7 +267,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: Colors.ui.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 32,
     lineHeight: 24,
   },

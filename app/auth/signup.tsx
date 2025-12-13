@@ -1,21 +1,21 @@
-import { PrimaryButton, SocialButton } from '@/components/buttons';
+import { PrimaryButton, SocialButton } from "@/components/buttons";
 import {
   Checkbox,
   PasswordRequirement,
   PasswordStrengthIndicator,
   TextInput,
-} from '@/components/inputs';
-import { Logo } from '@/components/logo';
-import { Colors } from '@/constants/colors';
+} from "@/components/inputs";
+import { Logo } from "@/components/logo";
+import { Colors } from "@/constants/colors";
 import {
   calculatePasswordStrength,
   getPasswordRequirements,
-} from '@/utils/passwordValidation';
-import { authService } from '@/services/api/auth.service';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+} from "@/utils/passwordValidation";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -24,9 +24,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
-} from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 /**
  * Sign Up Screen
@@ -37,9 +36,9 @@ export default function SignUpScreen() {
   const router = useRouter();
 
   // Form state
-  const [fullName, setFullName] = useState('');
-  const [emailOrPhone, setEmailOrPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [errors, setErrors] = useState<{
@@ -74,42 +73,44 @@ export default function SignUpScreen() {
 
     // Full name validation
     if (!fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+      newErrors.fullName = "Full name is required";
     } else if (fullName.trim().length < 2) {
-      newErrors.fullName = 'Full name must be at least 2 characters';
+      newErrors.fullName = "Full name must be at least 2 characters";
     }
 
     // Email/Phone validation
     if (!emailOrPhone.trim()) {
-      newErrors.emailOrPhone = 'Email or phone is required';
-    } else if (emailOrPhone.includes('@')) {
+      newErrors.emailOrPhone = "Email or phone is required";
+    } else if (emailOrPhone.includes("@")) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailOrPhone)) {
-        newErrors.emailOrPhone = 'Please enter a valid email';
+        newErrors.emailOrPhone = "Please enter a valid email";
       }
     } else {
       const phoneRegex = /^\d{10,15}$/;
-      if (!phoneRegex.test(emailOrPhone.replace(/\s/g, ''))) {
-        newErrors.emailOrPhone = 'Please enter a valid phone number';
+      if (!phoneRegex.test(emailOrPhone.replace(/\s/g, ""))) {
+        newErrors.emailOrPhone = "Please enter a valid phone number";
       }
     }
 
     // Password validation
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (!passwordRequirements.hasMinLength) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
     } else if (!passwordRequirements.hasUppercase) {
-      newErrors.password = 'Password must contain at least one uppercase letter';
+      newErrors.password =
+        "Password must contain at least one uppercase letter";
     } else if (!passwordRequirements.hasLowercase) {
-      newErrors.password = 'Password must contain at least one lowercase letter';
+      newErrors.password =
+        "Password must contain at least one lowercase letter";
     } else if (!passwordRequirements.hasNumber) {
-      newErrors.password = 'Password must contain at least one number';
+      newErrors.password = "Password must contain at least one number";
     }
 
     // Terms validation
     if (!agreeToTerms) {
-      newErrors.terms = 'You must agree to the Terms of Service';
+      newErrors.terms = "You must agree to the Terms of Service";
     }
 
     setErrors(newErrors);
@@ -125,39 +126,42 @@ export default function SignUpScreen() {
     setIsLoading(true);
 
     try {
-      const response = await authService.initiateSignup({
-        fullName: fullName.trim(),
-        email: emailOrPhone.trim(),
-        password,
-      });
+      // TODO: API temporarily disconnected for frontend development
+      // const response = await authService.initiateSignup({
+      //   fullName: fullName.trim(),
+      //   email: emailOrPhone.trim(),
+      //   password,
+      // });
 
-      if (response.error) {
-        setErrors({ emailOrPhone: response.error });
-        Alert.alert('Signup Failed', response.error);
-        return;
-      }
+      // if (response.error) {
+      //   setErrors({ emailOrPhone: response.error });
+      //   Alert.alert('Signup Failed', response.error);
+      //   return;
+      // }
 
-      if (response.data) {
-        Alert.alert(
-          'OTP Sent',
-          `A verification code has been sent to ${emailOrPhone}. Please check your email.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                router.push({
-                  pathname: '/auth/email-verification',
-                  params: { email: emailOrPhone.trim() },
-                });
-              },
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock success response
+      Alert.alert(
+        "OTP Sent",
+        `A verification code has been sent to ${emailOrPhone}. Please check your email.`,
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              router.push({
+                pathname: "/auth/email-verification",
+                params: { email: emailOrPhone.trim() },
+              });
             },
-          ]
-        );
-      }
+          },
+        ]
+      );
     } catch (error) {
-      console.error('Sign up error:', error);
-      setErrors({ emailOrPhone: 'Registration failed. Please try again.' });
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      console.error("Sign up error:", error);
+      setErrors({ emailOrPhone: "Registration failed. Please try again." });
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +170,7 @@ export default function SignUpScreen() {
   /**
    * Handles social sign up
    */
-  const handleSocialSignUp = (provider: 'google' | 'facebook') => {
+  const handleSocialSignUp = (provider: "google" | "facebook") => {
     // TODO: Implement social authentication
     console.log(`Sign up with ${provider}`);
   };
@@ -175,7 +179,7 @@ export default function SignUpScreen() {
    * Navigates to sign in screen
    */
   const handleSignIn = () => {
-    router.push('/auth/login');
+    router.push("/auth/login");
   };
 
   /**
@@ -183,15 +187,18 @@ export default function SignUpScreen() {
    */
   const handleTermsPress = () => {
     // TODO: Open terms of service screen or modal
-    console.log('Open Terms of Service');
+    console.log("Open Terms of Service");
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.gradient.primaryToSecondary.start} />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={Colors.gradient.primaryToSecondary.start}
+      />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView
@@ -202,7 +209,10 @@ export default function SignUpScreen() {
           {/* Top Gradient Section with Logo */}
           <Animated.View entering={FadeInUp.duration(800).delay(200)}>
             <LinearGradient
-              colors={[Colors.gradient.primaryFull.start, Colors.gradient.primaryFull.end]}
+              colors={[
+                Colors.gradient.primaryFull.start,
+                Colors.gradient.primaryFull.end,
+              ]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.headerGradient}
@@ -303,7 +313,7 @@ export default function SignUpScreen() {
                 }}
                 labelComponent={
                   <Text style={styles.termsText}>
-                    Yes, I understand and agree to the{' '}
+                    Yes, I understand and agree to the{" "}
                     <Text style={styles.termsLink} onPress={handleTermsPress}>
                       Terms of Service
                     </Text>
@@ -311,7 +321,9 @@ export default function SignUpScreen() {
                 }
               />
             </View>
-            {errors.terms && <Text style={styles.termsError}>{errors.terms}</Text>}
+            {errors.terms && (
+              <Text style={styles.termsError}>{errors.terms}</Text>
+            )}
 
             {/* Sign Up Button */}
             <PrimaryButton
@@ -331,8 +343,14 @@ export default function SignUpScreen() {
 
             {/* Social Sign Up Buttons */}
             <View style={styles.socialButtonsContainer}>
-              <SocialButton provider="facebook" onPress={() => handleSocialSignUp('facebook')} />
-              <SocialButton provider="google" onPress={() => handleSocialSignUp('google')} />
+              <SocialButton
+                provider="facebook"
+                onPress={() => handleSocialSignUp("facebook")}
+              />
+              <SocialButton
+                provider="google"
+                onPress={() => handleSocialSignUp("google")}
+              />
             </View>
 
             {/* Sign In Link */}
@@ -366,14 +384,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 12,
   },
   brandName: {
     fontSize: 40,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.ui.white,
     letterSpacing: 0.5,
   },
@@ -391,7 +409,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 500,
     color: Colors.ui.white,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 46,
   },
   requirementsContainer: {
@@ -412,7 +430,7 @@ const styles = StyleSheet.create({
   },
   termsError: {
     fontSize: 12,
-    color: '#FF4444',
+    color: "#FF4444",
     marginBottom: 16,
     marginLeft: 4,
   },
@@ -425,14 +443,14 @@ const styles = StyleSheet.create({
     color: Colors.ui.white,
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 24,
   },
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   dividerText: {
     fontSize: 14,
@@ -440,15 +458,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 16,
     marginBottom: 32,
   },
   signInContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 24,
   },
   signInText: {
@@ -458,6 +476,6 @@ const styles = StyleSheet.create({
   signInLink: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

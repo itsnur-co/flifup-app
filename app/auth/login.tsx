@@ -1,13 +1,13 @@
-import { PrimaryButton, SocialButton } from '@/components/buttons';
-import { TextInput } from '@/components/inputs';
-import { Logo } from '@/components/logo';
-import { Colors } from '@/constants/colors';
-import { authService } from '@/services/api/auth.service';
-import { useAuth } from '@/contexts/AuthContext';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { PrimaryButton, SocialButton } from "@/components/buttons";
+import { TextInput } from "@/components/inputs";
+import { Logo } from "@/components/logo";
+import { Colors } from "@/constants/colors";
+import { useAuth } from "@/contexts/AuthContext";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,9 +16,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert,
-} from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+} from "react-native";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 
 /**
  * Login Screen
@@ -30,9 +29,12 @@ export default function LoginScreen() {
   const { login } = useAuth();
 
   // Form state
-  const [emailOrPhone, setEmailOrPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ emailOrPhone?: string; password?: string }>({});
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{
+    emailOrPhone?: string;
+    password?: string;
+  }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   /**
@@ -43,26 +45,26 @@ export default function LoginScreen() {
 
     // Email/Phone validation
     if (!emailOrPhone.trim()) {
-      newErrors.emailOrPhone = 'Email or phone is required';
-    } else if (emailOrPhone.includes('@')) {
+      newErrors.emailOrPhone = "Email or phone is required";
+    } else if (emailOrPhone.includes("@")) {
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailOrPhone)) {
-        newErrors.emailOrPhone = 'Please enter a valid email';
+        newErrors.emailOrPhone = "Please enter a valid email";
       }
     } else {
       // Basic phone validation (digits only, 10-15 characters)
       const phoneRegex = /^\d{10,15}$/;
-      if (!phoneRegex.test(emailOrPhone.replace(/\s/g, ''))) {
-        newErrors.emailOrPhone = 'Please enter a valid phone number';
+      if (!phoneRegex.test(emailOrPhone.replace(/\s/g, ""))) {
+        newErrors.emailOrPhone = "Please enter a valid phone number";
       }
     }
 
     // Password validation
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -78,28 +80,27 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      const response = await authService.login({
-        email: emailOrPhone.trim(),
-        password,
-      });
+      // TODO: API temporarily disconnected for frontend development
+      // const response = await authService.login({
+      //   email: emailOrPhone.trim(),
+      //   password,
+      // });
 
-      if (response.error) {
-        setErrors({ emailOrPhone: response.error });
-        Alert.alert('Login Failed', response.error);
-        return;
-      }
+      // if (response.error) {
+      //   setErrors({ emailOrPhone: response.error });
+      //   Alert.alert('Login Failed', response.error);
+      //   return;
+      // }
 
-      if (response.data) {
-        // Update auth context
-        login(response.data.user);
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Navigate to main app
-        router.replace('/(tabs)');
-      }
+      // Mock success - navigate to tabs
+      router.replace("/(tabs)");
     } catch (error) {
-      console.error('Sign in error:', error);
-      setErrors({ emailOrPhone: 'Invalid credentials. Please try again.' });
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      console.error("Sign in error:", error);
+      setErrors({ emailOrPhone: "Invalid credentials. Please try again." });
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -109,13 +110,13 @@ export default function LoginScreen() {
    * Handles forgot password action
    */
   const handleForgotPassword = () => {
-    router.push('/auth/forgot-password');
+    router.push("/auth/forgot-password");
   };
 
   /**
    * Handles social sign in
    */
-  const handleSocialSignIn = (provider: 'google' | 'facebook') => {
+  const handleSocialSignIn = (provider: "google" | "facebook") => {
     // TODO: Implement social authentication
     console.log(`Sign in with ${provider}`);
   };
@@ -124,15 +125,18 @@ export default function LoginScreen() {
    * Navigates to sign up screen
    */
   const handleSignUp = () => {
-    router.push('/auth/signup');
+    router.push("/auth/signup");
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.gradient.primaryToSecondary.start} />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={Colors.gradient.primaryToSecondary.start}
+      />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView
@@ -143,7 +147,10 @@ export default function LoginScreen() {
           {/* Top Gradient Section with Logo */}
           <Animated.View entering={FadeInUp.duration(800).delay(200)}>
             <LinearGradient
-              colors={[Colors.gradient.primaryFull.start, Colors.gradient.primaryFull.end]}
+              colors={[
+                Colors.gradient.primaryFull.start,
+                Colors.gradient.primaryFull.end,
+              ]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.headerGradient}
@@ -218,19 +225,25 @@ export default function LoginScreen() {
 
             {/* Social Sign In Buttons */}
             <View style={styles.socialButtonsContainer}>
-              <SocialButton provider="facebook" onPress={() => handleSocialSignIn('facebook')} />
-              <SocialButton provider="google" onPress={() => handleSocialSignIn('google')} />
+              <SocialButton
+                provider="facebook"
+                onPress={() => handleSocialSignIn("facebook")}
+              />
+              <SocialButton
+                provider="google"
+                onPress={() => handleSocialSignIn("google")}
+              />
             </View>
 
             {/* Sign Up Link */}
             <View style={styles.signUpContainer}>
-              <Text style={styles.signUpText}>Don&apos;t have an account? </Text>
+              <Text style={styles.signUpText}>
+                Don&apos;t have an account?{" "}
+              </Text>
               <TouchableOpacity onPress={handleSignUp} activeOpacity={0.7}>
                 <Text style={styles.signUpLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
-
-
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -255,14 +268,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 12,
   },
   brandName: {
     fontSize: 40,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.ui.white,
     letterSpacing: 0.5,
   },
@@ -280,11 +293,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 500,
     color: Colors.ui.white,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 46,
   },
   forgotPasswordContainer: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginBottom: 24,
   },
   forgotPasswordText: {
@@ -299,14 +312,14 @@ const styles = StyleSheet.create({
     color: Colors.ui.white,
   },
   dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 24,
   },
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   dividerText: {
     fontSize: 14,
@@ -314,15 +327,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 16,
     marginBottom: 32,
   },
   signUpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 24,
   },
   signUpText: {
@@ -332,14 +345,14 @@ const styles = StyleSheet.create({
   signUpLink: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   bottomIndicator: {
     width: 134,
     height: 5,
     backgroundColor: Colors.ui.white,
     borderRadius: 3,
-    alignSelf: 'center',
+    alignSelf: "center",
     opacity: 0.8,
   },
 });
