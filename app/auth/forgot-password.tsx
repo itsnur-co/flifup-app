@@ -2,6 +2,7 @@ import { PrimaryButton } from "@/components/buttons";
 import { TextInput } from "@/components/inputs";
 import { ScreenHeader } from "@/components/navigation";
 import { Colors } from "@/constants/colors";
+import { authService } from "@/services/api/auth.service";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -64,19 +65,15 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: API temporarily disconnected for frontend development
-      // const response = await authService.forgotPassword({
-      //   email: emailOrPhone.trim(),
-      // });
+      const response = await authService.forgotPassword({
+        email: emailOrPhone.trim(),
+      });
 
-      // if (response.error) {
-      //   setError(response.error);
-      //   Alert.alert('Failed', response.error);
-      //   return;
-      // }
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (response.error) {
+        setError(response.error);
+        Alert.alert("Failed", response.error);
+        return;
+      }
 
       Alert.alert(
         "OTP Sent",

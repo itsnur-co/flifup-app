@@ -2,6 +2,7 @@ import { PrimaryButton } from "@/components/buttons";
 import { OTPInput } from "@/components/inputs";
 import { ScreenHeader } from "@/components/navigation";
 import { Colors } from "@/constants/colors";
+import { authService } from "@/services/api/auth.service";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -83,40 +84,37 @@ export default function VerificationScreen() {
     setError(undefined);
 
     try {
-      // TODO: API temporarily disconnected for frontend development
-      // const response = await authService.verifyOtp({
-      //   email: contact,
-      //   otp,
-      // });
+      const response = await authService.verifyOtp({
+        email: contact,
+        otp,
+      });
 
-      // if (response.error) {
-      //   setError(response.error);
-      //   Alert.alert('Verification Failed', response.error);
-      //   return;
-      // }
+      if (response.error) {
+        setError(response.error);
+        Alert.alert("Verification Failed", response.error);
+        return;
+      }
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (response.data) {
+        // Store reset token for password reset
+        setResetToken(response.data.resetToken);
 
-      // Mock success - create fake reset token
-      const mockResetToken = "mock-reset-token-" + Date.now();
-      setResetToken(mockResetToken);
-
-      Alert.alert(
-        "Success",
-        "OTP verified successfully. Please create a new password.",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              router.push({
-                pathname: "/auth/create-new-password",
-                params: { resetToken: mockResetToken },
-              });
+        Alert.alert(
+          "Success",
+          "OTP verified successfully. Please create a new password.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                router.push({
+                  pathname: "/auth/create-new-password",
+                  params: { resetToken: response.data.resetToken },
+                });
+              },
             },
-          },
-        ]
-      );
+          ]
+        );
+      }
     } catch (error) {
       console.error("Verify OTP error:", error);
       setError("Verification failed. Please try again.");
@@ -133,18 +131,14 @@ export default function VerificationScreen() {
     if (!canResend) return;
 
     try {
-      // TODO: API temporarily disconnected for frontend development
-      // const response = await authService.forgotPassword({
-      //   email: contact,
-      // });
+      const response = await authService.forgotPassword({
+        email: contact,
+      });
 
-      // if (response.error) {
-      //   Alert.alert('Failed', response.error);
-      //   return;
-      // }
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      if (response.error) {
+        Alert.alert("Failed", response.error);
+        return;
+      }
 
       Alert.alert("Success", "OTP has been resent to your email.");
 

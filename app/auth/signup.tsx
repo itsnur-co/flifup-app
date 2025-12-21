@@ -7,6 +7,7 @@ import {
 } from "@/components/inputs";
 import { Logo } from "@/components/logo";
 import { Colors } from "@/constants/colors";
+import { authService } from "@/services/api/auth.service";
 import {
   calculatePasswordStrength,
   getPasswordRequirements,
@@ -126,23 +127,19 @@ export default function SignUpScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: API temporarily disconnected for frontend development
-      // const response = await authService.initiateSignup({
-      //   fullName: fullName.trim(),
-      //   email: emailOrPhone.trim(),
-      //   password,
-      // });
+      const response = await authService.initiateSignup({
+        fullName: fullName.trim(),
+        email: emailOrPhone.trim(),
+        password,
+      });
 
-      // if (response.error) {
-      //   setErrors({ emailOrPhone: response.error });
-      //   Alert.alert('Signup Failed', response.error);
-      //   return;
-      // }
+      if (response.error) {
+        setErrors({ emailOrPhone: response.error });
+        Alert.alert("Signup Failed", response.error);
+        return;
+      }
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock success response
+      // Success response
       Alert.alert(
         "OTP Sent",
         `A verification code has been sent to ${emailOrPhone}. Please check your email.`,

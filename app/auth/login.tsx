@@ -3,6 +3,7 @@ import { TextInput } from "@/components/inputs";
 import { Logo } from "@/components/logo";
 import { Colors } from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
+import { authService } from "@/services/api/auth.service";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -80,22 +81,18 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: API temporarily disconnected for frontend development
-      // const response = await authService.login({
-      //   email: emailOrPhone.trim(),
-      //   password,
-      // });
+      const response = await authService.login({
+        email: emailOrPhone.trim(),
+        password,
+      });
 
-      // if (response.error) {
-      //   setErrors({ emailOrPhone: response.error });
-      //   Alert.alert('Login Failed', response.error);
-      //   return;
-      // }
+      if (response.error) {
+        setErrors({ emailOrPhone: response.error });
+        Alert.alert("Login Failed", response.error);
+        return;
+      }
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock success - navigate to tabs
+      // Success - navigate to tabs
       router.replace("/(tabs)");
     } catch (error) {
       console.error("Sign in error:", error);

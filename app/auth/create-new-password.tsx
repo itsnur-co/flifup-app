@@ -6,6 +6,7 @@ import {
 } from "@/components/inputs";
 import { ScreenHeader } from "@/components/navigation";
 import { Colors } from "@/constants/colors";
+import { authService } from "@/services/api/auth.service";
 import {
   calculatePasswordStrength,
   getPasswordRequirements,
@@ -102,21 +103,17 @@ export default function CreateNewPasswordScreen() {
     setIsLoading(true);
 
     try {
-      // TODO: API temporarily disconnected for frontend development
-      // const response = await authService.resetPassword({
-      //   resetToken,
-      //   newPassword: password,
-      //   confirmPassword,
-      // });
+      const response = await authService.resetPassword({
+        resetToken,
+        newPassword: password,
+        confirmPassword,
+      });
 
-      // if (response.error) {
-      //   setErrors({ password: response.error });
-      //   Alert.alert('Reset Failed', response.error);
-      //   return;
-      // }
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (response.error) {
+        setErrors({ password: response.error });
+        Alert.alert("Reset Failed", response.error);
+        return;
+      }
 
       Alert.alert(
         "Success",
