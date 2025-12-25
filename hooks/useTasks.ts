@@ -4,8 +4,8 @@
  * Handles CRUD operations and filtering
  */
 
-import { useCallback, useMemo, useState } from 'react';
-import { Task, TaskFormState, SubTask } from '@/types/task';
+import { Task, TaskFormState } from "@/types/task";
+import { useCallback, useMemo, useState } from "react";
 
 interface UseTasksReturn {
   tasks: Task[];
@@ -28,9 +28,7 @@ export const useTasks = (initialTasks: Task[] = []): UseTasksReturn => {
     const today = new Date().toDateString();
     return tasks.filter(
       (task) =>
-        !task.completed &&
-        task.dueDate &&
-        task.dueDate.toDateString() === today
+        !task.completed && task.dueDate && task.dueDate.toDateString() === today
     );
   }, [tasks]);
 
@@ -43,9 +41,7 @@ export const useTasks = (initialTasks: Task[] = []): UseTasksReturn => {
     const today = new Date().toDateString();
     return tasks.filter(
       (task) =>
-        !task.completed &&
-        task.dueDate &&
-        task.dueDate.toDateString() !== today
+        !task.completed && task.dueDate && task.dueDate.toDateString() !== today
     );
   }, [tasks]);
 
@@ -55,11 +51,11 @@ export const useTasks = (initialTasks: Task[] = []): UseTasksReturn => {
       id: Date.now().toString(),
       title: formState.title,
       description: formState.description,
-      dueDate: formState.dueDate,
-      dueTime: formState.dueTime,
-      category: formState.category,
+      dueDate: formState.dueDate ?? undefined,
+      dueTime: formState.dueTime ?? undefined,
+      category: formState.category ?? undefined,
       assignedPeople: formState.assignedPeople,
-      reminder: formState.reminder,
+      reminder: formState.reminder ?? undefined,
       subTasks: formState.subTasks.map((st, index) => ({
         id: `${Date.now()}-${index}`,
         title: st.title,
@@ -80,9 +76,7 @@ export const useTasks = (initialTasks: Task[] = []): UseTasksReturn => {
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
     setTasks((prev) =>
       prev.map((task) =>
-        task.id === id
-          ? { ...task, ...updates, updatedAt: new Date() }
-          : task
+        task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
       )
     );
   }, []);
