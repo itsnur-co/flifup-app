@@ -4,7 +4,7 @@
  * Dark theme design matching Figma
  */
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   Animated,
   Dimensions,
@@ -16,10 +16,10 @@ import {
   StyleSheet,
   View,
   ViewStyle,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface BottomSheetProps {
   visible: boolean;
@@ -47,8 +47,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   showHandle = true,
   containerStyle,
   contentContainerStyle,
-  backgroundColor = '#1C1C1E',
-  handleColor = '#5A5A5E',
+  backgroundColor = "#1C1C1E",
+  handleColor = "#5A5A5E",
   backdropOpacity = 0.5,
   keyboardAvoidingEnabled = true,
 }) => {
@@ -57,10 +57,13 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   const backdropAnim = useRef(new Animated.Value(0)).current;
   const currentSnapIndex = useRef(initialSnapIndex);
 
-  const getSnapPointValue = useCallback((index: number): number => {
-    const snapPoint = snapPoints[index] || snapPoints[0];
-    return SCREEN_HEIGHT * (1 - snapPoint);
-  }, [snapPoints]);
+  const getSnapPointValue = useCallback(
+    (index: number): number => {
+      const snapPoint = snapPoints[index] || snapPoints[0];
+      return SCREEN_HEIGHT * (1 - snapPoint);
+    },
+    [snapPoints]
+  );
 
   useEffect(() => {
     if (visible) {
@@ -91,12 +94,19 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         }),
       ]).start();
     }
-  }, [visible, translateY, backdropAnim, backdropOpacity, getSnapPointValue, initialSnapIndex]);
+  }, [
+    visible,
+    translateY,
+    backdropAnim,
+    backdropOpacity,
+    getSnapPointValue,
+    initialSnapIndex,
+  ]);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => enableDrag,
-      onMoveShouldSetPanResponder: (_, gestureState) => 
+      onMoveShouldSetPanResponder: (_, gestureState) =>
         enableDrag && Math.abs(gestureState.dy) > 5,
       onPanResponderMove: (_, gestureState) => {
         const currentValue = getSnapPointValue(currentSnapIndex.current);
@@ -185,7 +195,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
         {keyboardAvoidingEnabled ? (
           <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.keyboardAvoidingView}
           >
             {sheetContent}
@@ -201,24 +211,24 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   keyboardAvoidingView: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: 200,
+    minHeight: 500,
     maxHeight: SCREEN_HEIGHT * 0.95,
   },
   handleContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 12,
   },
   handle: {

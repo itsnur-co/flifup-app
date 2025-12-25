@@ -4,22 +4,22 @@
  * Matches Figma design exactly
  */
 
-import React, { useMemo, useState } from 'react';
+import { CheckIcon, SearchIcon } from "@/components/icons/TaskIcons";
+import { Avatar } from "@/components/ui/Avatar";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Colors } from "@/constants/colors";
+import { MOCK_PEOPLE } from "@/constants/mockData";
+import { Person } from "@/types/task";
+import React, { useMemo, useState } from "react";
 import {
+  FlatList,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  FlatList,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BottomSheet } from '@/components/ui/BottomSheet';
-import { Avatar } from '@/components/ui/Avatar';
-import { SearchIcon, CheckIcon } from '@/components/icons/TaskIcons';
-import { Colors } from '@/constants/colors';
-import { Person } from '@/types/task';
-import { MOCK_PEOPLE } from '@/constants/mockData';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AddPeopleSheetProps {
   visible: boolean;
@@ -37,14 +37,14 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
   availablePeople = MOCK_PEOPLE,
 }) => {
   const insets = useSafeAreaInsets();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(
     new Set(selectedPeople.map((p) => p.id))
   );
 
   const filteredPeople = useMemo(() => {
     if (!searchQuery.trim()) return availablePeople;
-    
+
     const query = searchQuery.toLowerCase();
     return availablePeople.filter(
       (person) =>
@@ -64,14 +64,16 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
   };
 
   const handleConfirm = () => {
-    const selectedPeopleList = availablePeople.filter((p) => selected.has(p.id));
+    const selectedPeopleList = availablePeople.filter((p) =>
+      selected.has(p.id)
+    );
     onConfirm(selectedPeopleList);
     onClose();
   };
 
   const renderPerson = ({ item }: { item: Person }) => {
     const isSelected = selected.has(item.id);
-    
+
     return (
       <TouchableOpacity
         style={styles.personItem}
@@ -82,21 +84,16 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
           uri={item.avatar}
           name={item.name}
           size={44}
-          borderColor={isSelected ? Colors.primary : '#3A3A3C'}
+          borderColor={isSelected ? Colors.primary : "#3A3A3C"}
           borderWidth={2}
         />
-        
+
         <View style={styles.personInfo}>
           <Text style={styles.personName}>{item.name}</Text>
           <Text style={styles.personEmail}>{item.email}</Text>
         </View>
 
-        <View
-          style={[
-            styles.checkbox,
-            isSelected && styles.checkboxSelected,
-          ]}
-        >
+        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
           {isSelected && <CheckIcon size={16} color="#FFFFFF" />}
         </View>
       </TouchableOpacity>
@@ -107,8 +104,8 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      snapPoints={[0.75]}
-      initialSnapIndex={0}
+      snapPoints={[0.95, 1]}
+      initialSnapIndex={1}
       backgroundColor="#1C1C1E"
     >
       <View style={styles.container}>
@@ -165,34 +162,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   addButton: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
   },
   searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
   searchInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 48,
@@ -201,15 +198,15 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     padding: 0,
   },
   listContent: {
     paddingHorizontal: 20,
   },
   personItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 14,
   },
   personInfo: {
@@ -218,23 +215,23 @@ const styles = StyleSheet.create({
   },
   personName: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
     marginBottom: 2,
   },
   personEmail: {
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#3A3A3C',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
+    borderColor: "#3A3A3C",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
   },
   checkboxSelected: {
     backgroundColor: Colors.primary,
@@ -242,13 +239,13 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 40,
   },
   emptyText: {
     fontSize: 15,
-    color: '#6B7280',
+    color: "#6B7280",
   },
 });
 

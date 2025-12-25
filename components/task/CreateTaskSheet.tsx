@@ -4,7 +4,26 @@
  * Matches Figma design exactly
  */
 
-import React, { useCallback, useState } from 'react';
+import {
+  BellIcon,
+  CalendarIcon,
+  CircleIcon,
+  ClockIcon,
+  DescriptionIcon,
+  PeopleIcon,
+  PlusIcon,
+  TagIcon,
+} from "@/components/icons/TaskIcons";
+import { AvatarGroup } from "@/components/ui/Avatar";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Colors } from "@/constants/colors";
+import {
+  Category,
+  DEFAULT_TASK_FORM,
+  Person,
+  TaskFormState,
+} from "@/types/task";
+import React, { useCallback, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -12,22 +31,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BottomSheet } from '@/components/ui/BottomSheet';
-import { AvatarGroup } from '@/components/ui/Avatar';
-import {
-  CircleIcon,
-  DescriptionIcon,
-  CalendarIcon,
-  ClockIcon,
-  TagIcon,
-  PeopleIcon,
-  BellIcon,
-  PlusIcon,
-} from '@/components/icons/TaskIcons';
-import { Colors } from '@/constants/colors';
-import { TaskFormState, DEFAULT_TASK_FORM, Person, Category, SubTask } from '@/types/task';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface CreateTaskSheetProps {
   visible: boolean;
@@ -85,16 +90,18 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const [formState, setFormState] = useState<TaskFormState>(DEFAULT_TASK_FORM);
-  const [subTasks, setSubTasks] = useState<{ title: string; description: string }[]>([]);
+  const [subTasks, setSubTasks] = useState<
+    { title: string; description: string }[]
+  >([]);
 
   const handleCreate = useCallback(() => {
     if (!formState.title.trim()) return;
 
     onCreateTask({
       ...formState,
-      dueDate: selectedDate,
-      dueTime: selectedTime,
-      category: selectedCategory,
+      dueDate: selectedDate ?? null,
+      dueTime: selectedTime ?? null,
+      category: selectedCategory ?? null,
       assignedPeople: selectedPeople,
       subTasks: subTasks.map((st) => ({
         title: st.title,
@@ -107,30 +114,43 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     setFormState(DEFAULT_TASK_FORM);
     setSubTasks([]);
     onClose();
-  }, [formState, selectedDate, selectedTime, selectedCategory, selectedPeople, subTasks, onCreateTask, onClose]);
+  }, [
+    formState,
+    selectedDate,
+    selectedTime,
+    selectedCategory,
+    selectedPeople,
+    subTasks,
+    onCreateTask,
+    onClose,
+  ]);
 
   const formatDate = (date: Date | null): string => {
-    if (!date) return 'No date';
+    if (!date) return "No date";
     const today = new Date();
     if (
       date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear()
     ) {
-      return 'Today';
+      return "Today";
     }
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const addSubTask = () => {
-    setSubTasks([...subTasks, { title: '', description: '' }]);
+    setSubTasks([...subTasks, { title: "", description: "" }]);
   };
 
-  const updateSubTask = (index: number, field: 'title' | 'description', value: string) => {
+  const updateSubTask = (
+    index: number,
+    field: "title" | "description",
+    value: string
+  ) => {
     const updated = [...subTasks];
     updated[index] = { ...updated[index], [field]: value };
     setSubTasks(updated);
@@ -144,8 +164,8 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      snapPoints={[0.85]}
-      initialSnapIndex={0}
+      snapPoints={[0.95, 1]}
+      initialSnapIndex={1}
       backgroundColor="#1C1C1E"
     >
       <View style={styles.container}>
@@ -212,7 +232,9 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
             icon={<CalendarIcon size={24} color={Colors.primary} />}
             onPress={onSelectDate}
           >
-            <Text style={[styles.rowText, selectedDate && styles.rowTextActive]}>
+            <Text
+              style={[styles.rowText, selectedDate && styles.rowTextActive]}
+            >
               {formatDate(selectedDate ?? null)}
             </Text>
           </FormRow>
@@ -222,8 +244,10 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
             icon={<ClockIcon size={24} color={Colors.primary} />}
             onPress={onSelectTime}
           >
-            <Text style={[styles.rowText, selectedTime && styles.rowTextActive]}>
-              {selectedTime || 'Add Time'}
+            <Text
+              style={[styles.rowText, selectedTime && styles.rowTextActive]}
+            >
+              {selectedTime || "Add Time"}
             </Text>
           </FormRow>
 
@@ -235,7 +259,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
             <Text
               style={[styles.rowText, selectedCategory && styles.rowTextActive]}
             >
-              {selectedCategory?.name || 'Add category'}
+              {selectedCategory?.name || "Add category"}
             </Text>
           </FormRow>
 
@@ -276,9 +300,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
               <>
                 <View style={styles.subTasksHeader}>
                   <Text style={styles.subTasksTitle}>Sub-tasks</Text>
-                  <Text style={styles.subTasksCount}>
-                    0/{subTasks.length}
-                  </Text>
+                  <Text style={styles.subTasksCount}>0/{subTasks.length}</Text>
                 </View>
 
                 {subTasks.map((subTask, index) => (
@@ -296,7 +318,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                         placeholderTextColor="#6B7280"
                         value={subTask.title}
                         onChangeText={(text) =>
-                          updateSubTask(index, 'title', text)
+                          updateSubTask(index, "title", text)
                         }
                       />
                       <TextInput
@@ -305,7 +327,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                         placeholderTextColor="#4B5563"
                         value={subTask.description}
                         onChangeText={(text) =>
-                          updateSubTask(index, 'description', text)
+                          updateSubTask(index, "description", text)
                         }
                       />
                     </View>
@@ -335,20 +357,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   createButton: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary,
   },
   createButtonDisabled: {
@@ -356,7 +378,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
   },
   scrollView: {
     flex: 1,
@@ -365,14 +387,14 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   formRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 14,
   },
   formRowIcon: {
     width: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
   formRowContent: {
     flex: 1,
@@ -380,48 +402,48 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     padding: 0,
   },
   descriptionInput: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     padding: 0,
     minHeight: 20,
   },
   rowText: {
     fontSize: 15,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   rowTextActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   sectionDivider: {
     height: 8,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     marginVertical: 16,
   },
   subTasksSection: {
     paddingHorizontal: 20,
   },
   subTasksHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
   },
   subTasksTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   subTasksCount: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     marginLeft: 8,
   },
   subTaskItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 16,
   },
   subTaskCheckbox: {
@@ -433,23 +455,23 @@ const styles = StyleSheet.create({
   },
   subTaskTitle: {
     fontSize: 15,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     padding: 0,
     marginBottom: 4,
   },
   subTaskDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
     padding: 0,
   },
   addSubTaskButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
   },
   addSubTaskText: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: "500",
     color: Colors.primary,
     marginLeft: 8,
   },

@@ -60,7 +60,7 @@ export const CreateButton: React.FC<CreateButtonProps> = ({
             <Image
               source={require("@/assets/icons/add.png")}
               style={
-                compact ? { width: 20, height: 20 } : { width: 28, height: 28 }
+                compact ? { width: 28, height: 28 } : { width: 28, height: 28 }
               }
             />
             {!compact && <Text style={[styles.text, textStyle]}>{label}</Text>}
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     alignItems: "center",
-    width: 185,
+    width: 144,
     justifyContent: "center",
     gap: 4,
     borderRadius: 8,
@@ -94,10 +94,18 @@ const styles = StyleSheet.create({
   },
   buttonCompact: {
     width: 56,
+    height: 56,
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 0,
     paddingVertical: 10,
     paddingHorizontal: 10,
     borderRadius: 28,
     justifyContent: "center",
+    transitionDelay: "0s",
+    transitionDuration: "0.3s",
+    transitionProperty: "all",
+    transitionTimingFunction: "ease-in-out",
   },
   text: {
     color: "#FFFFFF",

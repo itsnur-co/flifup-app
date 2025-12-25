@@ -4,27 +4,22 @@
  * Matches Figma design exactly
  */
 
-import React, { useMemo, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BottomSheet } from '@/components/ui/BottomSheet';
-import {
-  CalendarIcon,
-  SunIcon,
-  SquareIcon,
-  CouchIcon,
   ArrowRightIcon,
-  MinusCircleIcon,
+  CalendarIcon,
   CalendarPlusIcon,
   ChevronDownIcon,
-} from '@/components/icons/TaskIcons';
-import { Colors } from '@/constants/colors';
-import { DateOption, DateOptionItem } from '@/types/task';
+  CouchIcon,
+  MinusCircleIcon,
+  SquareIcon,
+  SunIcon,
+} from "@/components/icons/TaskIcons";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Colors } from "@/constants/colors";
+import { DateOption, DateOptionItem } from "@/types/task";
+import React, { useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface SelectDateSheetProps {
   visible: boolean;
@@ -35,21 +30,21 @@ interface SelectDateSheetProps {
 
 const getIconForOption = (id: DateOption, color: string) => {
   const iconProps = { size: 22, color };
-  
+
   switch (id) {
-    case 'today':
+    case "today":
       return <CalendarIcon {...iconProps} />;
-    case 'tomorrow':
+    case "tomorrow":
       return <SunIcon {...iconProps} color="#F59E0B" />;
-    case 'later-this-week':
+    case "later-this-week":
       return <SquareIcon {...iconProps} />;
-    case 'this-weekend':
+    case "this-weekend":
       return <CouchIcon {...iconProps} color="#3B82F6" />;
-    case 'next-week':
+    case "next-week":
       return <ArrowRightIcon {...iconProps} />;
-    case 'no-date':
+    case "no-date":
       return <MinusCircleIcon {...iconProps} color="#6B7280" />;
-    case 'custom':
+    case "custom":
       return <CalendarPlusIcon {...iconProps} color="#F97316" />;
     default:
       return <CalendarIcon {...iconProps} />;
@@ -65,12 +60,14 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
   const insets = useSafeAreaInsets();
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState<Date | null>(selectedDate ?? null);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(
+    selectedDate ?? null
+  );
 
   // Generate date options
   const dateOptions = useMemo((): DateOptionItem[] => {
     const today = new Date();
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     const getTomorrow = () => {
       const date = new Date(today);
@@ -94,64 +91,64 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
 
     const getNextWeek = () => {
       const date = new Date(today);
-      const daysUntilNextMonday = ((8 - today.getDay()) % 7) || 7;
+      const daysUntilNextMonday = (8 - today.getDay()) % 7 || 7;
       date.setDate(date.getDate() + daysUntilNextMonday);
       return date;
     };
 
     return [
       {
-        id: 'today',
-        label: 'Today',
-        icon: 'calendar',
+        id: "today",
+        label: "Today",
+        icon: "calendar",
         dayLabel: dayNames[today.getDay()],
         getDate: () => today,
       },
       {
-        id: 'tomorrow',
-        label: 'Tomorrow',
-        icon: 'sun',
+        id: "tomorrow",
+        label: "Tomorrow",
+        icon: "sun",
         dayLabel: dayNames[getTomorrow().getDay()],
         getDate: getTomorrow,
       },
       {
-        id: 'later-this-week',
-        label: 'Later this week',
-        icon: 'square',
+        id: "later-this-week",
+        label: "Later this week",
+        icon: "square",
         dayLabel: dayNames[getLaterThisWeek().getDay()],
         getDate: getLaterThisWeek,
       },
       {
-        id: 'this-weekend',
-        label: 'This weekend',
-        icon: 'couch',
+        id: "this-weekend",
+        label: "This weekend",
+        icon: "couch",
         dayLabel: dayNames[getThisWeekend().getDay()],
         getDate: getThisWeekend,
       },
       {
-        id: 'next-week',
-        label: 'Next week',
-        icon: 'arrow-right',
+        id: "next-week",
+        label: "Next week",
+        icon: "arrow-right",
         dayLabel: dayNames[getNextWeek().getDay()],
         getDate: getNextWeek,
       },
       {
-        id: 'no-date',
-        label: 'No date',
-        icon: 'minus-circle',
+        id: "no-date",
+        label: "No date",
+        icon: "minus-circle",
         getDate: () => null,
       },
       {
-        id: 'custom',
-        label: 'Custom',
-        icon: 'calendar-plus',
+        id: "custom",
+        label: "Custom",
+        icon: "calendar-plus",
         getDate: () => null,
       },
     ];
   }, []);
 
   const handleOptionPress = (option: DateOptionItem) => {
-    if (option.id === 'custom') {
+    if (option.id === "custom") {
       setShowCalendar(!showCalendar);
       return;
     }
@@ -163,7 +160,7 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
 
   const handleAddDate = () => {
     if (selectedDay) {
-      onSelectDate(selectedDay, 'custom');
+      onSelectDate(selectedDay, "custom");
     }
     onClose();
   };
@@ -220,15 +217,15 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
     setSelectedDay(newDate);
   };
 
-  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long' });
+  const monthName = currentMonth.toLocaleDateString("en-US", { month: "long" });
   const year = currentMonth.getFullYear();
 
   return (
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      snapPoints={showCalendar ? [0.85] : [0.6]}
-      initialSnapIndex={0}
+      snapPoints={[0.95, 1]}
+      initialSnapIndex={1}
       backgroundColor="#1C1C1E"
     >
       <View style={styles.container}>
@@ -261,7 +258,12 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
         </View>
 
         {showCalendar && (
-          <View style={[styles.calendarContainer, { paddingBottom: insets.bottom + 16 }]}>
+          <View
+            style={[
+              styles.calendarContainer,
+              { paddingBottom: insets.bottom + 16 },
+            ]}
+          >
             <View style={styles.monthSelector}>
               <TouchableOpacity style={styles.yearSelector} activeOpacity={0.7}>
                 <Text style={styles.yearText}>{year}</Text>
@@ -270,15 +272,20 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
 
               <View style={styles.monthDivider} />
 
-              <TouchableOpacity style={styles.monthDropdown} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.monthDropdown}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.monthText}>{monthName}</Text>
                 <ChevronDownIcon size={16} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.weekDaysRow}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <Text key={day} style={styles.weekDayText}>{day}</Text>
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <Text key={day} style={styles.weekDayText}>
+                  {day}
+                </Text>
               ))}
             </View>
 
@@ -288,7 +295,9 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
                   key={index}
                   style={[
                     styles.dayCell,
-                    day && isSelectedDay(day) && styles.dayCellSelected,
+                    day != null && isSelectedDay(day)
+                      ? styles.dayCellSelected
+                      : undefined,
                   ]}
                   onPress={() => day && handleDayPress(day)}
                   disabled={!day}
@@ -320,109 +329,109 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   addButton: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
   },
   optionsList: {
     paddingTop: 8,
   },
   optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
   optionIcon: {
     width: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   optionLabel: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginLeft: 12,
   },
   optionDay: {
     fontSize: 15,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   calendarContainer: {
     paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
+    borderTopColor: "#2C2C2E",
     marginTop: 8,
   },
   monthSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 20,
   },
   yearSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   yearText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
   },
   monthDivider: {
     width: 1,
     height: 20,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     marginHorizontal: 16,
   },
   monthDropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   monthText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
   },
   weekDaysRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginBottom: 12,
   },
   weekDayText: {
     fontSize: 13,
-    fontWeight: '500',
-    color: '#6B7280',
+    fontWeight: "500",
+    color: "#6B7280",
     width: 40,
-    textAlign: 'center',
+    textAlign: "center",
   },
   calendarGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   dayCell: {
-    width: '14.28%',
+    width: "14.28%",
     aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 20,
   },
   dayCellSelected: {
@@ -430,16 +439,16 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 15,
-    fontWeight: '400',
-    color: '#FFFFFF',
+    fontWeight: "400",
+    color: "#FFFFFF",
   },
   dayTextToday: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   dayTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
 });
 
