@@ -70,7 +70,7 @@ interface ScreenHeaderProps {
   title: string;
   onBack?: () => void;
   hideBackButton?: boolean;
-  rightIcon?: "more-horizontal" | "none";
+  rightIcon?: React.ReactNode | "more-horizontal" | "none";
   onRightPress?: () => void;
 }
 
@@ -112,7 +112,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     >
       <View style={styles.content}>
         {/* Back Button */}
-        {!hideBackButton ? (
+        {!hideBackButton && (
           <TouchableOpacity
             style={styles.backButton}
             onPress={onBack}
@@ -120,27 +120,29 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
           >
             {renderBackButton()}
           </TouchableOpacity>
-        ) : (
-          <View style={styles.placeholder} />
         )}
 
         {/* Title */}
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, hideBackButton && styles.titleLeftAlign]}>
+          {title}
+        </Text>
 
         {/* Right Button */}
-        {rightIcon !== "none" ? (
-          <TouchableOpacity
-            style={styles.rightButton}
-            onPress={onRightPress}
-            activeOpacity={0.7}
-          >
-            {rightIcon === "more-horizontal" && (
+        {rightIcon !== "none" && rightIcon !== undefined ? (
+          typeof rightIcon === "string" && rightIcon === "more-horizontal" ? (
+            <TouchableOpacity
+              style={styles.rightButton}
+              onPress={onRightPress}
+              activeOpacity={0.7}
+            >
               <MoreHorizontalIcon size={24} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
-        ) : (
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.rightButton}>{rightIcon}</View>
+          )
+        ) : !hideBackButton ? (
           <View style={styles.placeholder} />
-        )}
+        ) : null}
       </View>
     </LinearGradient>
   );
@@ -188,6 +190,12 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     textAlign: "center",
     letterSpacing: 0.3,
+    flex: 1,
+  },
+  titleLeftAlign: {
+    textAlign: "left",
+    fontSize: 18,
+    fontWeight: "700",
   },
   rightButton: {
     width: 44,

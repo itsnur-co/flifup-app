@@ -1,36 +1,72 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+/**
+ * Tab Layout with Custom Bottom Navigation
+ */
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import BottomTabBar, { TabName } from "@/components/navigation/BottomTabBar";
+import { Slot, usePathname, useRouter } from "expo-router";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Determine active tab from pathname
+  const getActiveTab = (): TabName => {
+    if (pathname.includes("/tasks")) return "tasks";
+    if (pathname.includes("/habit")) return "habits";
+    if (pathname.includes("/profile")) return "profile";
+    return "home";
+  };
+
+  const handleTabPress = (tab: TabName) => {
+    switch (tab) {
+      case "home":
+        router.push("/");
+        break;
+      case "tasks":
+        router.push("/tasks");
+        break;
+      case "habits":
+        router.push("/habit");
+        break;
+      case "profile":
+        router.push("/profile");
+        break;
+    }
+  };
+
+  const handleAddPress = () => {
+    // Open create modal or navigate to create screen
+    // Based on current tab, open relevant create sheet
+    const activeTab = getActiveTab();
+    if (activeTab === "tasks") {
+      // Open create task sheet
+      console.log("Create Task");
+    } else if (activeTab === "habits") {
+      // Open create habit sheet
+      console.log("Create Habit");
+    } else {
+      // Default action
+      console.log("Add new item");
+    }
+  };
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarStyle: { display: 'none' },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+    <View style={styles.container}>
+      <Slot />
+      <BottomTabBar
+        activeTab={getActiveTab()}
+        onTabPress={handleTabPress}
+        onAddPress={handleAddPress}
       />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1C1C1E",
+  },
+});

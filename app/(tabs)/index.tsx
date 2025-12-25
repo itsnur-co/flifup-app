@@ -1,8 +1,33 @@
-import BottomNavBar from "@/components/navigation/BottomNavBar";
-import React from "react";
+import { BottomTabBar } from "@/components/navigation/BottomTabBar";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
+  const [activeTab, setActiveTab] = useState<
+    "home" | "tasks" | "habits" | "profile"
+  >("home");
+
+  const handleTabPress = (tab: "home" | "tasks" | "habits" | "profile") => {
+    setActiveTab(tab);
+    // Navigate to the corresponding route
+    if (tab === "home") {
+      router.push("/");
+    } else if (tab === "tasks") {
+      router.push("/tasks");
+    } else if (tab === "habits") {
+      router.push("/habit");
+    } else if (tab === "profile") {
+      // Add profile route when ready
+      console.log("Profile navigation - route not yet defined");
+    }
+  };
+
+  const handleAddPress = () => {
+    // Handle add button press - could open a sheet to select task/habit
+    console.log("Add button pressed");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -10,7 +35,11 @@ export default function HomeScreen() {
           <Text style={styles.contentText}>Home Screen</Text>
         </View>
       </View>
-      <BottomNavBar />
+      <BottomTabBar
+        activeTab={activeTab}
+        onTabPress={handleTabPress}
+        onAddPress={handleAddPress}
+      />
     </View>
   );
 }
