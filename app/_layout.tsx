@@ -42,6 +42,12 @@ export default function RootLayout() {
           {/* Main App Tabs */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
+          {/* Tasks Screen - No bottom bar */}
+          <Stack.Screen name="tasks" options={{ headerShown: false }} />
+
+          {/* Habit Screen - No bottom bar */}
+          <Stack.Screen name="habit" options={{ headerShown: false }} />
+
           {/* Modal Screens */}
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>

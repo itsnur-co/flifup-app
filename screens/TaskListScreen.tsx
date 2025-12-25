@@ -8,6 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
@@ -30,6 +31,8 @@ import {
 } from "@/types/task";
 
 export const TaskListScreen: React.FC = () => {
+  const router = useRouter();
+
   // Task data state
   const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -163,9 +166,7 @@ export const TaskListScreen: React.FC = () => {
         {/* Header */}
         <ScreenHeader
           title="Task List"
-          useGlassmorphism
-          hideBackButton
-          style={styles.header}
+          onBack={() => router.back()}
         />
 
         {/* Calendar */}
@@ -301,9 +302,6 @@ const styles = StyleSheet.create({
   },
   backgroundGradient: {
     flex: 1,
-  },
-  header: {
-    backgroundColor: "transparent",
   },
   scrollView: {
     flex: 1,

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Circle, Rect, G } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { Gradients } from '@/constants/theme';
+import { useRouter } from 'expo-router';
 
 // Icon Components
 const HomeIcon = ({ color = '#FFFFFF', size = 24 }: { color?: string; size?: number }) => (
@@ -219,6 +220,7 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
   activeTab: controlledActiveTab,
   onTabChange
 }) => {
+  const router = useRouter();
   const [internalActiveTab, setInternalActiveTab] = useState<TabType>('add');
   const activeTab = controlledActiveTab ?? internalActiveTab;
 
@@ -226,6 +228,17 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({
     if (!controlledActiveTab) {
       setInternalActiveTab(tab);
     }
+
+    // Navigate to specific screens for tasks and habit
+    if (tab === 'tasks') {
+      router.push('/tasks');
+      return;
+    }
+    if (tab === 'layers') {
+      router.push('/habit');
+      return;
+    }
+
     onTabChange?.(tab);
   };
 

@@ -1,145 +1,204 @@
 /**
- * Reusable Screen Header Component
- * Implements consistent header design across all screens
- * Following composition pattern for flexibility
+ * Screen Header Component
+ * Reusable header with gradient background and glassmorphism back button
+ * Matches Figma design exactly
  */
 
-import { Fonts } from "@/constants/theme";
-import Feather from "@expo/vector-icons/Feather";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import React, { ReactNode } from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import React from "react";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
-export interface ScreenHeaderProps {
-    title: string;
-    subtitle?: string;
-    onBack?: () => void;
-    rightAction?: ReactNode;
-    children?: ReactNode;
-    style?: ViewStyle;
-    hideBackButton?: boolean;
-    backgroundColor?: string;
-    useGlassmorphism?: boolean;
+// Custom Chevron Left Icon (thinner stroke for elegance)
+const ChevronLeftIcon: React.FC<{ size?: number; color?: string }> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M15 18L9 12L15 6"
+      stroke={color}
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Custom More Horizontal Icon
+const MoreHorizontalIcon: React.FC<{ size?: number; color?: string }> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z"
+      fill={color}
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M19 13C19.5523 13 20 12.5523 20 12C20 11.4477 19.5523 11 19 11C18.4477 11 18 11.4477 18 12C18 12.5523 18.4477 13 19 13Z"
+      fill={color}
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M5 13C5.55228 13 6 12.5523 6 12C6 11.4477 5.55228 11 5 11C4.44772 11 4 11.4477 4 12C4 12.5523 4.44772 13 5 13Z"
+      fill={color}
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+interface ScreenHeaderProps {
+  title: string;
+  onBack?: () => void;
+  hideBackButton?: boolean;
+  rightIcon?: "more-horizontal" | "none";
+  onRightPress?: () => void;
 }
 
-
 export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
-    title,
-    subtitle,
-    onBack,
-    rightAction,
-    children,
-    style,
-    hideBackButton = false,
-    backgroundColor = "#8b5cf6",
-    useGlassmorphism = false,
+  title,
+  onBack,
+  hideBackButton = false,
+  rightIcon = "more-horizontal",
+  onRightPress,
 }) => {
-    const handleBack = () => {
-        if (onBack) {
-            onBack();
-        } else {
-            router.back();
-        }
-    };
+  const insets = useSafeAreaInsets();
 
-    const headerContent = (
-        <View style={styles.headerRow}>
-            {!hideBackButton && (
-                <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
-                    <Feather name="arrow-left" size={24} color="#fff" />
-                </TouchableOpacity>
-            )}
-
-            <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTitle}>{title}</Text>
-                {subtitle && (
-                    <Text style={styles.headerSubtitle}>{subtitle}</Text>
-                )}
-            </View>
-
-            {rightAction && <View style={styles.rightAction}>{rightAction}</View>}
-        </View>
-    );
-
-    if (useGlassmorphism) {
-        return (
-            <View style={[styles.header, styles.glassmorphismContainer, style]}>
-                {Platform.OS === 'ios' ? (
-                    <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill}>
-                        <LinearGradient
-                            colors={['rgba(255, 255, 255, 0.06)', 'rgba(255, 255, 255, 0.03)']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={StyleSheet.absoluteFill}
-                        />
-                    </BlurView>
-                ) : (
-                    <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.06)', 'rgba(255, 255, 255, 0.03)']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={StyleSheet.absoluteFill}
-                    />
-                )}
-                {headerContent}
-            </View>
-        );
+  const renderBackButton = () => {
+    if (Platform.OS === "ios") {
+      return (
+        <BlurView intensity={25} tint="light" style={styles.blurContainer}>
+          <View style={styles.blurOverlay}>
+            <ChevronLeftIcon size={22} color="#FFFFFF" />
+          </View>
+        </BlurView>
+      );
     }
 
+    // Android fallback - semi-transparent background
     return (
-        <View style={[styles.header, { backgroundColor }, style]}>
-            {headerContent}
-        </View>
+      <View style={styles.androidBackButton}>
+        <ChevronLeftIcon size={22} color="#FFFFFF" />
+      </View>
     );
+  };
+
+  return (
+    <LinearGradient
+      colors={["#9039FF", "#6C2BBF", "#1C1C1E"]}
+      locations={[0, 0.5, 1]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.container, { paddingTop: insets.top - 28 }]}
+    >
+      <View style={styles.content}>
+        {/* Back Button */}
+        {!hideBackButton ? (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
+            activeOpacity={0.7}
+          >
+            {renderBackButton()}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.placeholder} />
+        )}
+
+        {/* Title */}
+        <Text style={styles.title}>{title}</Text>
+
+        {/* Right Button */}
+        {rightIcon !== "none" ? (
+          <TouchableOpacity
+            style={styles.rightButton}
+            onPress={onRightPress}
+            activeOpacity={0.7}
+          >
+            {rightIcon === "more-horizontal" && (
+              <MoreHorizontalIcon size={24} color="#FFFFFF" />
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.placeholder} />
+        )}
+      </View>
+    </LinearGradient>
+  );
 };
 
 const styles = StyleSheet.create({
-    header: {
-        backgroundColor: "#8b5cf6",
-        paddingTop: 32,
-        paddingBottom: 14,
-        paddingHorizontal: 14,
-    },
-    glassmorphismContainer: {
-        backgroundColor: 'transparent',
-        overflow: 'hidden',
-    },
-    headerRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-    },
-    backBtn: {
-        width: 40,
-        height: 40,
-        alignItems: "center",
-        justifyContent: "center",
-        position: "absolute",
-        left: 0,
-        zIndex: 1,
-    },
-    headerTextContainer: {
-        alignItems: "center",
-    },
-    headerTitle: {
-        color: "#fff",
-        fontSize: 20,
-        fontWeight: "700",
-        fontFamily: Fonts.rounded,
-    },
-    headerSubtitle: {
-        color: "#EEE1FF",
-        fontSize: 13,
-        marginTop: 2,
-        fontFamily: Fonts.rounded,
-    },
-    rightAction: {
-        flexShrink: 0,
-    },
-    childrenContainer: {
-        marginTop: 16,
-    },
+  container: {
+    // Gradient handles the background
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    minHeight: 56,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: "hidden",
+  },
+  blurContainer: {
+    flex: 1,
+    borderRadius: 22,
+    overflow: "hidden",
+  },
+  blurOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+  },
+  androidBackButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 22,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    textAlign: "center",
+    letterSpacing: 0.3,
+  },
+  rightButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  placeholder: {
+    width: 44,
+    height: 44,
+  },
 });
+
+export default ScreenHeader;

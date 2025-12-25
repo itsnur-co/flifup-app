@@ -5,6 +5,22 @@
 export const Colors = {
   // Primary brand color
   primary: "#9039FF",
+  primaryDark: "#6C2BBF",
+  primaryLight: "#A855F7",
+
+  // Backgrounds
+  cardBackground: "#2C2C2E",
+  inputBackground: "#3A3A3C",
+
+  // Status
+  success: "#10B981",
+  warning: "#F59E0B",
+  error: "#EF4444",
+  info: "#3B82F6",
+
+  // Borders
+  border: "#3A3A3C",
+  divider: "#2C2C2E",
 
   // Secondary brand color
   secondary: "#2DFDFF",
