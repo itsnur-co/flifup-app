@@ -6,6 +6,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSound } from "@/hooks";
 
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
@@ -46,6 +47,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   onNavigateToProgress,
 }) => {
   const insets = useSafeAreaInsets();
+  const { playCompletionSound } = useSound();
 
   // Habit State
   const [habits, setHabits] = useState<Habit[]>(MOCK_HABITS);
@@ -136,6 +138,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const handleToggleHabit = useCallback(
     (habit: Habit) => {
       const dateStr = selectedDate.toISOString().split("T")[0];
+      const isCompleting = !habit.completedDates.includes(dateStr);
 
       setHabits((prev) =>
         prev.map((h) => {
@@ -153,8 +156,13 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
           };
         })
       );
+
+      // Play sound only when completing a habit (not when uncompleting)
+      if (isCompleting) {
+        playCompletionSound();
+      }
     },
-    [selectedDate]
+    [selectedDate, playCompletionSound]
   );
 
   const handleHabitMore = useCallback((habit: Habit) => {

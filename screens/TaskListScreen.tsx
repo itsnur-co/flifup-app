@@ -7,6 +7,7 @@
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { useSound } from "@/hooks";
 
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
@@ -30,6 +31,7 @@ import {
 
 export const TaskListScreen: React.FC = () => {
   const router = useRouter();
+  const { playCompletionSound } = useSound();
 
   // Task data state
   const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
@@ -108,6 +110,8 @@ export const TaskListScreen: React.FC = () => {
   }, []);
 
   const handleToggleTask = useCallback((task: Task) => {
+    const isCompleting = !task.completed;
+
     setTasks((prev) =>
       prev.map((t) =>
         t.id === task.id
@@ -115,7 +119,12 @@ export const TaskListScreen: React.FC = () => {
           : t
       )
     );
-  }, []);
+
+    // Play sound only when completing a task (not when uncompleting)
+    if (isCompleting) {
+      playCompletionSound();
+    }
+  }, [playCompletionSound]);
 
   const handleTaskPress = useCallback((task: Task) => {
     // Navigate to task detail or open edit
