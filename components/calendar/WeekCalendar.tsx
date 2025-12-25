@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#2C2C2E",
     paddingTop: 16,
-    paddingBottom: 20,
+    paddingBottom: 16,
     paddingHorizontal: 20,
   },
   header: {
@@ -219,22 +219,22 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   dayItem: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     backgroundColor: "transparent",
     borderRadius: 24,
     borderWidth: 1.2,
     borderColor: "#8D95A8",
     alignItems: "center",
     justifyContent: "space-evenly",
-    paddingVertical: 10,
+    paddingVertical: 0,
   },
   dayItemSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
   dayName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 500,
     color: "#FFFFFF",
     textTransform: "uppercase",
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     fontWeight: 500,
   },
   dayDate: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 500,
     color: "#FFFFFF",
     letterSpacing: 0,

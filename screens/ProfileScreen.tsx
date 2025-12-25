@@ -188,10 +188,10 @@ export default function ProfileScreen() {
         rightIcon={
           <View style={styles.headerActions}>
             <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
-              <NotificationFilledIcon size={18} color="#FFFFFF" />
+              <NotificationFilledIcon size={20} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
-              <ThreeDotsIcon size={18} color="#FFFFFF" />
+              <ThreeDotsIcon size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         }
@@ -200,10 +200,7 @@ export default function ProfileScreen() {
       {/* Scrollable Content */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: 100 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* User Profile Card */}
@@ -274,8 +271,8 @@ const styles = StyleSheet.create({
     marginRight: 24,
   },
   headerButton: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: 22,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.3)",
