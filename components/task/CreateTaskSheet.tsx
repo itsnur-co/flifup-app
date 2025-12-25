@@ -204,7 +204,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
             <TextInput
               style={styles.titleInput}
               placeholder="Add Title"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#fff"
               value={formState.title}
               onChangeText={(text) =>
                 setFormState((prev) => ({ ...prev, title: text }))
@@ -218,7 +218,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
             <TextInput
               style={styles.descriptionInput}
               placeholder="Description"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#fff"
               value={formState.description}
               onChangeText={(text) =>
                 setFormState((prev) => ({ ...prev, description: text }))
@@ -315,7 +315,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                       <TextInput
                         style={styles.subTaskTitle}
                         placeholder={`Sub task-${index + 1}`}
-                        placeholderTextColor="#6B7280"
+                        placeholderTextColor="#fff"
                         value={subTask.title}
                         onChangeText={(text) =>
                           updateSubTask(index, "title", text)
@@ -324,7 +324,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                       <TextInput
                         style={styles.subTaskDescription}
                         placeholder="sub Task description/ note"
-                        placeholderTextColor="#4B5563"
+                        placeholderTextColor="#fff"
                         value={subTask.description}
                         onChangeText={(text) =>
                           updateSubTask(index, "description", text)
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   },
   rowText: {
     fontSize: 15,
-    color: "#6B7280",
+    color: Colors.ui.text.secondary,
   },
   rowTextActive: {
     color: "#FFFFFF",
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   },
   subTaskDescription: {
     fontSize: 13,
-    color: "#6B7280",
+    color: Colors.ui.white,
     padding: 0,
   },
   addSubTaskButton: {
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   addSubTaskText: {
     fontSize: 15,
     fontWeight: "500",
-    color: Colors.primary,
+    color: Colors.ui.white,
     marginLeft: 8,
   },
 });

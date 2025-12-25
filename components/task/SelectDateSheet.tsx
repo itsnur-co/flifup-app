@@ -227,6 +227,7 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
       snapPoints={[0.95, 1]}
       initialSnapIndex={1}
       backgroundColor="#1C1C1E"
+      containerStyle={showCalendar ? { height: 900 } : undefined}
     >
       <View style={styles.container}>
         <View style={styles.header}>
@@ -370,14 +371,16 @@ const styles = StyleSheet.create({
   },
   optionDay: {
     fontSize: 15,
-    color: "#6B7280",
+    fontWeight: 500,
+    color: Colors.ui.white,
   },
   calendarContainer: {
+    backgroundColor: "#1C1C1E",
+    marginTop: 16,
     paddingHorizontal: 20,
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#2C2C2E",
-    marginTop: 8,
   },
   monthSelector: {
     flexDirection: "row",
@@ -419,7 +422,7 @@ const styles = StyleSheet.create({
   weekDayText: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#6B7280",
+    color: Colors.ui.white,
     width: 40,
     textAlign: "center",
   },
