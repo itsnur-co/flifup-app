@@ -108,7 +108,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
       locations={[0, 0.5, 1]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.container, { paddingTop: insets.top - 28 }]}
+      style={[styles.container, { paddingTop: insets.top - 16 }]}
     >
       <View style={styles.content}>
         {/* Back Button */}
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     minHeight: 56,
   },
   backButton: {

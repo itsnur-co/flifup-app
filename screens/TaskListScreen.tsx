@@ -4,11 +4,9 @@
  * Matches Figma design pixel-perfect
  */
 
-import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
@@ -156,142 +154,132 @@ export const TaskListScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <LinearGradient
-        colors={["#8B5CF6", "#6D28D9", "#5B21B6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.backgroundGradient}
+    <View style={styles.container}>
+      {/* Header */}
+      <ScreenHeader title="Task List" onBack={() => router.back()} />
+
+      {/* Calendar */}
+      <WeekCalendar
+        selectedDate={selectedDate}
+        onDateSelect={handleDateSelect}
+        onMonthPress={() => console.log("Month pressed")}
+        onTodayPress={() => setSelectedDate(new Date())}
+      />
+
+      {/* Tasks List */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={() => {
+          // mark compact while scrolling
+          if (scrollDebounceRef.current) {
+            clearTimeout(scrollDebounceRef.current);
+          }
+          if (!isFabCompact) setIsFabCompact(true);
+          // when user stops scrolling for 300ms, expand FAB
+          // @ts-ignore - window.setTimeout returns number in RN
+          scrollDebounceRef.current = window.setTimeout(() => {
+            setIsFabCompact(false);
+            scrollDebounceRef.current = null;
+          }, 300);
+        }}
       >
-        {/* Header */}
-        <ScreenHeader
-          title="Task List"
-          onBack={() => router.back()}
-        />
-
-        {/* Calendar */}
-        <WeekCalendar
-          selectedDate={selectedDate}
-          onDateSelect={handleDateSelect}
-          onMonthPress={() => console.log("Month pressed")}
-          onTodayPress={() => setSelectedDate(new Date())}
-        />
-
-        {/* Tasks List */}
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          scrollEventThrottle={16}
-          onScroll={() => {
-            // mark compact while scrolling
-            if (scrollDebounceRef.current) {
-              clearTimeout(scrollDebounceRef.current);
-            }
-            if (!isFabCompact) setIsFabCompact(true);
-            // when user stops scrolling for 300ms, expand FAB
-            // @ts-ignore - window.setTimeout returns number in RN
-            scrollDebounceRef.current = window.setTimeout(() => {
-              setIsFabCompact(false);
-              scrollDebounceRef.current = null;
-            }, 300);
-          }}
-        >
-          {/* Today Section */}
-          {todayTasks.length > 0 && (
-            <TaskSection
-              title="Today"
-              count={todayTasks.length}
-              tasks={todayTasks}
-              initialExpanded
-              onTaskPress={handleTaskPress}
-              onTaskToggle={handleToggleTask}
-              onTaskMore={handleTaskMore}
-            />
-          )}
-
-          {/* Completed Section */}
-          {completedTasks.length > 0 && (
-            <TaskSection
-              title="Completed"
-              count={completedTasks.length}
-              tasks={completedTasks}
-              initialExpanded
-              onTaskPress={handleTaskPress}
-              onTaskToggle={handleToggleTask}
-              onTaskMore={handleTaskMore}
-            />
-          )}
-
-          {/* Upcoming Section */}
-          {upcomingTasks.length > 0 && (
-            <TaskSection
-              title="Upcoming"
-              count={upcomingTasks.length}
-              tasks={upcomingTasks}
-              initialExpanded={false}
-              onTaskPress={handleTaskPress}
-              onTaskToggle={handleToggleTask}
-              onTaskMore={handleTaskMore}
-            />
-          )}
-
-          {/* Spacer for FAB */}
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-
-        {/* Create Task FAB */}
-        <View style={styles.fabContainer}>
-          <CreateButton
-            label="New Task"
-            onPress={openCreateTask}
-            compact={isFabCompact}
+        {/* Today Section */}
+        {todayTasks.length > 0 && (
+          <TaskSection
+            title="Today"
+            count={todayTasks.length}
+            tasks={todayTasks}
+            initialExpanded
+            onTaskPress={handleTaskPress}
+            onTaskToggle={handleToggleTask}
+            onTaskMore={handleTaskMore}
           />
-        </View>
+        )}
 
-        {/* Create Task Bottom Sheet */}
-        <CreateTaskSheet
-          visible={isCreateTaskVisible}
-          onClose={() => setIsCreateTaskVisible(false)}
-          onCreateTask={handleCreateTask}
-          onSelectDate={() => setIsSelectDateVisible(true)}
-          onSelectTime={() => console.log("Select time")}
-          onSelectCategory={() => console.log("Select category")}
-          onSelectPeople={() => setIsAddPeopleVisible(true)}
-          onSetReminder={() => console.log("Set reminder")}
-          selectedDate={taskDueDate}
-          selectedTime={taskDueTime}
-          selectedCategory={taskCategory}
-          selectedPeople={taskAssignedPeople}
-        />
+        {/* Completed Section */}
+        {completedTasks.length > 0 && (
+          <TaskSection
+            title="Completed"
+            count={completedTasks.length}
+            tasks={completedTasks}
+            initialExpanded
+            onTaskPress={handleTaskPress}
+            onTaskToggle={handleToggleTask}
+            onTaskMore={handleTaskMore}
+          />
+        )}
 
-        {/* Select Date Bottom Sheet */}
-        <SelectDateSheet
-          visible={isSelectDateVisible}
-          onClose={() => setIsSelectDateVisible(false)}
-          onSelectDate={handleSelectDate}
-          selectedDate={taskDueDate}
-        />
+        {/* Upcoming Section */}
+        {upcomingTasks.length > 0 && (
+          <TaskSection
+            title="Upcoming"
+            count={upcomingTasks.length}
+            tasks={upcomingTasks}
+            initialExpanded={false}
+            onTaskPress={handleTaskPress}
+            onTaskToggle={handleToggleTask}
+            onTaskMore={handleTaskMore}
+          />
+        )}
 
-        {/* Add People Bottom Sheet */}
-        <AddPeopleSheet
-          visible={isAddPeopleVisible}
-          onClose={() => setIsAddPeopleVisible(false)}
-          onConfirm={handleAddPeople}
-          availablePeople={MOCK_PEOPLE}
-          selectedPeople={taskAssignedPeople}
-        />
+        {/* Spacer for FAB */}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
 
-        {/* Task Options Bottom Sheet */}
-        <TaskOptionsSheet
-          visible={isTaskOptionsVisible}
-          onClose={() => setIsTaskOptionsVisible(false)}
-          task={selectedTask}
-          onEdit={handleEditTask}
-          onDelete={handleDeleteTask}
+      {/* Create Task FAB */}
+      <View style={styles.fabContainer}>
+        <CreateButton
+          label="New Task"
+          onPress={openCreateTask}
+          compact={isFabCompact}
         />
-      </LinearGradient>
-    </SafeAreaView>
+      </View>
+
+      {/* Create Task Bottom Sheet */}
+      <CreateTaskSheet
+        visible={isCreateTaskVisible}
+        onClose={() => setIsCreateTaskVisible(false)}
+        onCreateTask={handleCreateTask}
+        onSelectDate={() => setIsSelectDateVisible(true)}
+        onSelectTime={() => console.log("Select time")}
+        onSelectCategory={() => console.log("Select category")}
+        onSelectPeople={() => setIsAddPeopleVisible(true)}
+        onSetReminder={() => console.log("Set reminder")}
+        selectedDate={taskDueDate}
+        selectedTime={taskDueTime}
+        selectedCategory={taskCategory}
+        selectedPeople={taskAssignedPeople}
+      />
+
+      {/* Select Date Bottom Sheet */}
+      <SelectDateSheet
+        visible={isSelectDateVisible}
+        onClose={() => setIsSelectDateVisible(false)}
+        onSelectDate={handleSelectDate}
+        selectedDate={taskDueDate}
+      />
+
+      {/* Add People Bottom Sheet */}
+      <AddPeopleSheet
+        visible={isAddPeopleVisible}
+        onClose={() => setIsAddPeopleVisible(false)}
+        onConfirm={handleAddPeople}
+        availablePeople={MOCK_PEOPLE}
+        selectedPeople={taskAssignedPeople}
+      />
+
+      {/* Task Options Bottom Sheet */}
+      <TaskOptionsSheet
+        visible={isTaskOptionsVisible}
+        onClose={() => setIsTaskOptionsVisible(false)}
+        task={selectedTask}
+        onEdit={handleEditTask}
+        onDelete={handleDeleteTask}
+      />
+    </View>
   );
 };
 

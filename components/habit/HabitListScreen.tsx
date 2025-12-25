@@ -311,9 +311,8 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       <SelectDateSheet
         visible={showDateSheet}
         onClose={() => setShowDateSheet(false)}
-        onConfirm={(date) => setFormStartDate(date)}
-        initialDate={formStartDate || undefined}
-        title="Select Start Date"
+        onSelectDate={(date) => setFormStartDate(date)}
+        selectedDate={formStartDate}
       />
 
       {/* Add Goal Sheet */}

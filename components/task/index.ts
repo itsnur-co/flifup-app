@@ -1,10 +1,9 @@
 /**
  * Task components barrel export
  */
-export { TaskCard } from './TaskCard';
-export { TaskSection } from './TaskSection';
-export { CreateTaskSheet } from './CreateTaskSheet';
-export { SelectDateSheet } from './SelectDateSheet';
-export { AddPeopleSheet } from './AddPeopleSheet';
-export { TaskOptionsSheet } from './TaskOptionsSheet';
-export { TaskListScreen } from './TaskListScreen';
+export { AddPeopleSheet } from "./AddPeopleSheet";
+export { CreateTaskSheet } from "./CreateTaskSheet";
+export { SelectDateSheet } from "./SelectDateSheet";
+export { TaskCard } from "./TaskCard";
+export { TaskOptionsSheet } from "./TaskOptionsSheet";
+export { TaskSection } from "./TaskSection";
