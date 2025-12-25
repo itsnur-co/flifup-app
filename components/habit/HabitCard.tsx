@@ -31,84 +31,86 @@ export const HabitCard: React.FC<HabitCardProps> = ({
   onMore,
 }) => {
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      {/* Checkbox */}
-      <TouchableOpacity
-        style={styles.checkbox}
-        onPress={onToggle}
-        activeOpacity={0.7}
-      >
-        {isCompleted ? (
-          <CircleCheckIcon size={24} color={Colors.primary} />
-        ) : (
-          <CircleIcon size={24} color="#3A3A3C" />
-        )}
-      </TouchableOpacity>
-
-      {/* Content */}
-      <View style={styles.content}>
-        <Text
-          style={[styles.title, isCompleted && styles.titleCompleted]}
-          numberOfLines={1}
+    <View style={styles.container}>
+      {/* Top Row: Checkbox, Title, More Button */}
+      <View style={styles.topRow}>
+        <TouchableOpacity
+          style={styles.checkbox}
+          onPress={onToggle}
+          activeOpacity={0.7}
         >
-          {habit.name}
-        </Text>
-
-        {/* Meta Row */}
-        <View style={styles.metaRow}>
-          {/* Duration */}
-          <View style={styles.metaItem}>
-            <DurationIcon size={14} color="#8E8E93" />
-            <Text style={styles.metaText}>2 H</Text>
-          </View>
-
-          {/* Category */}
-          {habit.category && (
-            <View style={styles.metaItem}>
-              <TagIcon size={14} color="#8E8E93" />
-              <Text style={styles.metaText}>{habit.category.name}</Text>
-            </View>
+          {isCompleted ? (
+            <CircleCheckIcon size={24} color={Colors.primary} />
+          ) : (
+            <CircleIcon size={24} color="#3A3A3C" />
           )}
-        </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.titleContainer}
+          onPress={onPress}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[styles.title, isCompleted && styles.titleCompleted]}
+            numberOfLines={1}
+          >
+            {habit.name}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={onMore}
+          activeOpacity={0.7}
+        >
+          <MoreHorizontalIcon size={20} color="#8E8E93" />
+        </TouchableOpacity>
       </View>
 
-      {/* More Button */}
-      <TouchableOpacity
-        style={styles.moreButton}
-        onPress={onMore}
-        activeOpacity={0.7}
-      >
-        <MoreHorizontalIcon size={20} color="#8E8E93" />
-      </TouchableOpacity>
-    </TouchableOpacity>
+      {/* Meta Row */}
+      <View style={styles.metaRow}>
+        {/* Duration */}
+        <View style={styles.metaItem}>
+          <DurationIcon size={14} color="#8E8E93" />
+          <Text style={styles.metaText}>2 H</Text>
+        </View>
+
+        {/* Category */}
+        {habit.category && (
+          <View style={styles.metaItem}>
+            <TagIcon size={14} color="#8E8E93" />
+            <Text style={styles.metaText}>{habit.category.name}</Text>
+          </View>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#2C2C2E",
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 14,
     marginBottom: 10,
   },
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
   checkbox: {
     marginRight: 12,
   },
-  content: {
+  titleContainer: {
     flex: 1,
   },
   title: {
     fontSize: 16,
     fontWeight: "500",
     color: "#FFFFFF",
-    marginBottom: 6,
   },
   titleCompleted: {
     textDecorationLine: "line-through",
@@ -118,6 +120,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 16,
+    paddingLeft: 36,
   },
   metaItem: {
     flexDirection: "row",

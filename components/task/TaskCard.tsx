@@ -56,93 +56,93 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onPress}
+    <View
       style={[styles.container, task.completed && styles.containerCompleted, style]}
     >
-      {/* Checkbox */}
-      <TouchableOpacity
-        onPress={onToggleComplete}
-        style={styles.checkboxContainer}
-        activeOpacity={0.7}
-      >
-        {task.completed ? (
-          <CircleCheckIcon size={24} color={Colors.primary} />
-        ) : (
-          <CircleIcon size={24} color="#5A5A5E" />
-        )}
-      </TouchableOpacity>
-
-      {/* Content */}
-      <View style={styles.content}>
-        <Text
-          style={[styles.title, task.completed && styles.titleCompleted]}
-          numberOfLines={1}
+      {/* Top Row: Checkbox, Title, More Button */}
+      <View style={styles.topRow}>
+        <TouchableOpacity
+          onPress={onToggleComplete}
+          style={styles.checkboxContainer}
+          activeOpacity={0.7}
         >
-          {task.title}
-        </Text>
-
-        {/* Meta info row */}
-        <View style={styles.metaRow}>
-          {/* Duration */}
-          {task.dueTime && (
-            <View style={styles.metaItem}>
-              <ClockIcon size={14} color="#8E8E93" />
-              <Text style={styles.metaText}>2 H</Text>
-            </View>
+          {task.completed ? (
+            <CircleCheckIcon size={24} color={Colors.primary} />
+          ) : (
+            <CircleIcon size={24} color="#5A5A5E" />
           )}
+        </TouchableOpacity>
 
-          {/* Date */}
-          {task.dueDate && (
-            <View style={styles.metaItem}>
-              <CalendarIcon size={14} color="#8E8E93" />
-              <Text style={styles.metaText}>
-                {formatDate(task.dueDate)}, {task.dueTime}
-              </Text>
-            </View>
-          )}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onPress}
+          style={styles.titleContainer}
+        >
+          <Text
+            style={[styles.title, task.completed && styles.titleCompleted]}
+            numberOfLines={1}
+          >
+            {task.title}
+          </Text>
+        </TouchableOpacity>
 
-          {/* Category */}
-          {task.category && (
-            <View style={styles.metaItem}>
-              <TagIcon size={14} color="#8E8E93" />
-              <Text style={styles.metaText}>{task.category.name}</Text>
-            </View>
-          )}
-
-          {/* Assigned people */}
-          {task.assignedPeople.length > 0 && (
-            <AvatarGroup
-              avatars={task.assignedPeople.map((p) => ({
-                uri: p.avatar,
-                name: p.name,
-              }))}
-              max={3}
-              size={22}
-              overlap={6}
-              style={styles.avatarGroup}
-            />
-          )}
-        </View>
+        <TouchableOpacity
+          onPress={onMorePress}
+          style={styles.moreButton}
+          activeOpacity={0.7}
+        >
+          <MoreHorizontalIcon size={20} color="#8E8E93" />
+        </TouchableOpacity>
       </View>
 
-      {/* More button */}
-      <TouchableOpacity
-        onPress={onMorePress}
-        style={styles.moreButton}
-        activeOpacity={0.7}
-      >
-        <MoreHorizontalIcon size={20} color="#8E8E93" />
-      </TouchableOpacity>
-    </TouchableOpacity>
+      {/* Meta info row */}
+      <View style={styles.metaRow}>
+        {/* Duration */}
+        {task.dueTime && (
+          <View style={styles.metaItem}>
+            <ClockIcon size={14} color="#8E8E93" />
+            <Text style={styles.metaText}>2 H</Text>
+          </View>
+        )}
+
+        {/* Date */}
+        {task.dueDate && (
+          <View style={styles.metaItem}>
+            <CalendarIcon size={14} color="#8E8E93" />
+            <Text style={styles.metaText}>
+              {formatDate(task.dueDate)}, {task.dueTime}
+            </Text>
+          </View>
+        )}
+
+        {/* Category */}
+        {task.category && (
+          <View style={styles.metaItem}>
+            <TagIcon size={14} color="#8E8E93" />
+            <Text style={styles.metaText}>{task.category.name}</Text>
+          </View>
+        )}
+
+        {/* Assigned people */}
+        {task.assignedPeople.length > 0 && (
+          <AvatarGroup
+            avatars={task.assignedPeople.map((p) => ({
+              uri: p.avatar,
+              name: p.name,
+            }))}
+            max={3}
+            size={22}
+            overlap={6}
+            style={styles.avatarGroup}
+          />
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#2C2C2E',
     borderRadius: 12,
     padding: 16,
@@ -151,17 +151,21 @@ const styles = StyleSheet.create({
   containerCompleted: {
     opacity: 0.7,
   },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   checkboxContainer: {
     marginRight: 12,
   },
-  content: {
+  titleContainer: {
     flex: 1,
   },
   title: {
     fontSize: 16,
     fontWeight: '500',
     color: '#FFFFFF',
-    marginBottom: 6,
   },
   titleCompleted: {
     textDecorationLine: 'line-through',
@@ -172,6 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 8,
+    paddingLeft: 36,
   },
   metaItem: {
     flexDirection: 'row',
@@ -186,8 +191,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   moreButton: {
-    padding: 8,
-    marginLeft: 8,
+    padding: 4,
   },
 });
 
