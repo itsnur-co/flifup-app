@@ -4,17 +4,12 @@
  * Matches Figma design exactly
  */
 
-import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BottomSheet } from '@/components/ui/BottomSheet';
-import { EditIcon, TrashIcon } from '@/components/icons/TaskIcons';
-import { Task } from '@/types/task';
+import { EditIcon, TrashIcon } from "@/components/icons/TaskIcons";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Task } from "@/types/task";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface TaskOptionsSheetProps {
   visible: boolean;
@@ -49,8 +44,8 @@ export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      snapPoints={[0.35]}
-      initialSnapIndex={0}
+      snapPoints={[0.95, 1]}
+      initialSnapIndex={1}
       backgroundColor="#1C1C1E"
     >
       <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
@@ -99,38 +94,38 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   optionsContainer: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 12,
   },
   optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 18,
     gap: 14,
   },
   optionText: {
     fontSize: 17,
-    fontWeight: '400',
-    color: '#FFFFFF',
+    fontWeight: "400",
+    color: "#FFFFFF",
   },
   divider: {
     height: 1,
-    backgroundColor: '#3A3A3C',
+    backgroundColor: "#3A3A3C",
     marginHorizontal: 20,
   },
   cancelButton: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 16,
     paddingVertical: 18,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelText: {
     fontSize: 17,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
   },
 });
 

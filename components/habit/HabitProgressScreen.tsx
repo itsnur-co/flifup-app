@@ -115,7 +115,11 @@ export const HabitProgressScreen: React.FC<HabitProgressScreenProps> = ({
       </ScrollView>
 
       {/* Create Button */}
-      <CreateButton label="New Habit" onPress={onCreateHabit} />
+      {onCreateHabit && (
+        <View style={styles.fabContainer}>
+          <CreateButton label="New Habit" onPress={onCreateHabit} />
+        </View>
+      )}
     </View>
   );
 };
@@ -145,6 +149,17 @@ const styles = StyleSheet.create({
   },
   chartSection: {
     marginTop: 16,
+  },
+  fabContainer: {
+    position: "absolute",
+    zIndex: 9999,
+    elevation: 20,
+    bottom: 32,
+    right: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
 });
 

@@ -48,6 +48,9 @@ export default function RootLayout() {
           {/* Habit Screen - No bottom bar */}
           <Stack.Screen name="habit" options={{ headerShown: false }} />
 
+          {/* Habit Progress Screen - No bottom bar */}
+          <Stack.Screen name="habit-progress" options={{ headerShown: false }} />
+
           {/* Modal Screens */}
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
