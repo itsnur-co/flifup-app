@@ -121,8 +121,8 @@ export const AddGoalSheet: React.FC<AddGoalSheetProps> = ({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      snapPoints={[0.55]}
-      initialSnapIndex={0}
+      snapPoints={[0.95, 1]}
+      initialSnapIndex={1}
       backgroundColor="#1C1C1E"
     >
       <View style={styles.container}>
