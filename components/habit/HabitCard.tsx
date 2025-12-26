@@ -70,11 +70,23 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
       {/* Meta Row */}
       <View style={styles.metaRow}>
-        {/* Duration */}
-        <View style={styles.metaItem}>
-          <DurationIcon size={14} color="#8E8E93" />
-          <Text style={styles.metaText}>2 H</Text>
-        </View>
+        {/* Goal/Duration */}
+        {habit.goal && (
+          <View style={styles.metaItem}>
+            <DurationIcon size={14} color="#8E8E93" />
+            <Text style={styles.metaText}>
+              {habit.goal.value} {habit.goal.unit}
+            </Text>
+          </View>
+        )}
+
+        {/* Reminder */}
+        {habit.reminder && (
+          <View style={styles.metaItem}>
+            <DurationIcon size={14} color="#8E8E93" />
+            <Text style={styles.metaText}>{habit.reminder}</Text>
+          </View>
+        )}
 
         {/* Category */}
         {habit.category && (
@@ -92,9 +104,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#2C2C2E",
     borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginBottom: 10,
+    padding: 16,
+    marginBottom: 8,
   },
   topRow: {
     flexDirection: "row",
@@ -119,16 +130,18 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    flexWrap: "wrap",
+    gap: 8,
     paddingLeft: 36,
   },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 6,
+    flexShrink: 0,
   },
   metaText: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#8E8E93",
   },
   moreButton: {

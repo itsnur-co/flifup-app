@@ -15,7 +15,7 @@ import {
   AddGoalSheet,
   CategoryFilter,
   CreateHabitSheet,
-  HabitOptionsSheet,
+  HabitEditModal,
   HabitSection,
   HeaderOptionsSheet,
   RepeatSheet,
@@ -170,24 +170,24 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setShowOptionsSheet(true);
   }, []);
 
-  const handleEditHabit = useCallback((habit: Habit) => {
-    setFormRepeat(habit.repeat);
-    setFormStartDate(habit.startDate);
-    setFormGoal(habit.goal);
-    setFormCategory(habit.category);
+  const handleEditHabit = useCallback(() => {
+    if (!selectedHabit) return;
+    setFormRepeat(selectedHabit.repeat);
+    setFormStartDate(selectedHabit.startDate);
+    setFormGoal(selectedHabit.goal);
+    setFormCategory(selectedHabit.category);
     setShowCreateSheet(true);
-  }, []);
+  }, [selectedHabit]);
 
-  const handleDeleteHabit = useCallback((habit: Habit) => {
-    setHabits((prev) => prev.filter((h) => h.id !== habit.id));
-  }, []);
+  const handleDeleteHabit = useCallback(() => {
+    if (!selectedHabit) return;
+    setHabits((prev) => prev.filter((h) => h.id !== selectedHabit.id));
+  }, [selectedHabit]);
 
-  const handleHabitProgress = useCallback(
-    (habit: Habit) => {
-      onNavigateToProgress?.(habit);
-    },
-    [onNavigateToProgress]
-  );
+  const handleHabitProgress = useCallback(() => {
+    if (!selectedHabit) return;
+    onNavigateToProgress?.(selectedHabit);
+  }, [selectedHabit, onNavigateToProgress]);
 
   const handleOverallProgress = useCallback(() => {
     onNavigateToProgress?.();
@@ -340,14 +340,13 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         categories={MOCK_HABIT_CATEGORIES}
       />
 
-      {/* Habit Options Sheet */}
-      <HabitOptionsSheet
+      {/* Habit Edit Modal */}
+      <HabitEditModal
         visible={showOptionsSheet}
         onClose={() => {
           setShowOptionsSheet(false);
           setSelectedHabit(null);
         }}
-        habit={selectedHabit}
         onEdit={handleEditHabit}
         onProgress={handleHabitProgress}
         onDelete={handleDeleteHabit}

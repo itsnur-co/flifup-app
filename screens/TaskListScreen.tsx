@@ -23,7 +23,7 @@ import {
   ReminderValue,
   SelectDateSheet,
   SetReminderSheet,
-  TaskOptionsSheet,
+  TaskEditModal,
   TaskSection,
 } from "@/components/task";
 
@@ -154,15 +154,17 @@ export const TaskListScreen: React.FC = () => {
     setIsTaskOptionsVisible(true);
   }, []);
 
-  const handleEditTask = useCallback((task: Task) => {
+  const handleEditTask = useCallback(() => {
+    if (!selectedTask) return;
     // Open edit task sheet with pre-filled data
-    console.log("Edit task:", task.title);
+    console.log("Edit task:", selectedTask.title);
     // Could set states and open CreateTaskSheet in edit mode
-  }, []);
+  }, [selectedTask]);
 
-  const handleDeleteTask = useCallback((task: Task) => {
-    setTasks((prev) => prev.filter((t) => t.id !== task.id));
-  }, []);
+  const handleDeleteTask = useCallback(() => {
+    if (!selectedTask) return;
+    setTasks((prev) => prev.filter((t) => t.id !== selectedTask.id));
+  }, [selectedTask]);
 
   const handleSelectDate = useCallback(
     (date: Date | null, option: DateOption) => {
@@ -376,11 +378,10 @@ export const TaskListScreen: React.FC = () => {
         selectedPeople={taskAssignedPeople}
       />
 
-      {/* Task Options Bottom Sheet */}
-      <TaskOptionsSheet
+      {/* Task Edit Modal */}
+      <TaskEditModal
         visible={isTaskOptionsVisible}
         onClose={() => setIsTaskOptionsVisible(false)}
-        task={selectedTask}
         onEdit={handleEditTask}
         onDelete={handleDeleteTask}
       />

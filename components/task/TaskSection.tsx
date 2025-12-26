@@ -124,7 +124,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-    flex: 1,
   },
   countBadge: {
     backgroundColor: '#3A3A3C',
@@ -133,6 +132,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     minWidth: 28,
     alignItems: 'center',
+    marginLeft: 8,
   },
   countText: {
     fontSize: 13,
