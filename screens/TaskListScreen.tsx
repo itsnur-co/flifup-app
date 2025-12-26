@@ -13,9 +13,16 @@ import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
 import { ScreenHeader } from "@/components/navigation/screen-header";
 import {
+  AddCategorySheet,
+  AddCustomDateSheet,
+  AddCustomHoursSheet,
+  AddCustomMinutesSheet,
   AddPeopleSheet,
+  AddTimeSheet,
   CreateTaskSheet,
+  ReminderValue,
   SelectDateSheet,
+  SetReminderSheet,
   TaskOptionsSheet,
   TaskSection,
 } from "@/components/task";
@@ -40,8 +47,14 @@ export const TaskListScreen: React.FC = () => {
   // Modal visibility states
   const [isCreateTaskVisible, setIsCreateTaskVisible] = useState(false);
   const [isSelectDateVisible, setIsSelectDateVisible] = useState(false);
+  const [isAddCustomDateVisible, setIsAddCustomDateVisible] = useState(false);
+  const [isAddTimeVisible, setIsAddTimeVisible] = useState(false);
+  const [isAddCategoryVisible, setIsAddCategoryVisible] = useState(false);
   const [isAddPeopleVisible, setIsAddPeopleVisible] = useState(false);
   const [isTaskOptionsVisible, setIsTaskOptionsVisible] = useState(false);
+  const [isSetReminderVisible, setIsSetReminderVisible] = useState(false);
+  const [isAddCustomMinutesVisible, setIsAddCustomMinutesVisible] = useState(false);
+  const [isAddCustomHoursVisible, setIsAddCustomHoursVisible] = useState(false);
 
   // FAB compact state while scrolling
   const [isFabCompact, setIsFabCompact] = useState(false);
@@ -55,6 +68,9 @@ export const TaskListScreen: React.FC = () => {
   const [taskDueTime, setTaskDueTime] = useState<string | null>(null);
   const [taskCategory, setTaskCategory] = useState<Category | null>(null);
   const [taskAssignedPeople, setTaskAssignedPeople] = useState<Person[]>([]);
+  const [taskReminder, setTaskReminder] = useState<ReminderValue | null>(null);
+  const [customMinutes, setCustomMinutes] = useState<number[]>([]);
+  const [customHours, setCustomHours] = useState<number[]>([]);
 
   // Computed task groups
   const todayTasks = tasks.filter(
@@ -127,9 +143,11 @@ export const TaskListScreen: React.FC = () => {
   }, [playCompletionSound]);
 
   const handleTaskPress = useCallback((task: Task) => {
-    // Navigate to task detail or open edit
-    console.log("Task pressed:", task.title);
-  }, []);
+    router.push({
+      pathname: "/task-details",
+      params: { taskId: task.id },
+    });
+  }, [router]);
 
   const handleTaskMore = useCallback((task: Task) => {
     setSelectedTask(task);
@@ -154,8 +172,60 @@ export const TaskListScreen: React.FC = () => {
     []
   );
 
+  const handleOpenCustomDate = useCallback(() => {
+    setIsSelectDateVisible(false);
+    setIsAddCustomDateVisible(true);
+  }, []);
+
+  const handleCustomDateSelect = useCallback((date: Date) => {
+    setTaskDueDate(date);
+    setIsAddCustomDateVisible(false);
+  }, []);
+
   const handleAddPeople = useCallback((people: Person[]) => {
     setTaskAssignedPeople(people);
+  }, []);
+
+  const handleSelectTime = useCallback((time: string) => {
+    setTaskDueTime(time);
+    setIsAddTimeVisible(false);
+  }, []);
+
+  const handleSelectCategory = useCallback((category: Category) => {
+    setTaskCategory(category);
+    setIsAddCategoryVisible(false);
+  }, []);
+
+  const handleSetReminder = useCallback((reminder: ReminderValue) => {
+    setTaskReminder(reminder);
+    setIsSetReminderVisible(false);
+  }, []);
+
+  const handleOpenCustomMinutes = useCallback(() => {
+    setIsSetReminderVisible(false);
+    setIsAddCustomMinutesVisible(true);
+  }, []);
+
+  const handleOpenCustomHours = useCallback(() => {
+    setIsSetReminderVisible(false);
+    setIsAddCustomHoursVisible(true);
+  }, []);
+
+  const handleOpenCustomDateFromReminder = useCallback(() => {
+    setIsSetReminderVisible(false);
+    setIsAddCustomDateVisible(true);
+  }, []);
+
+  const handleAddCustomMinutes = useCallback((minutes: number) => {
+    setCustomMinutes((prev) => [...prev, minutes]);
+    setIsAddCustomMinutesVisible(false);
+    setIsSetReminderVisible(true);
+  }, []);
+
+  const handleAddCustomHours = useCallback((hours: number) => {
+    setCustomHours((prev) => [...prev, hours]);
+    setIsAddCustomHoursVisible(false);
+    setIsSetReminderVisible(true);
   }, []);
 
   const openCreateTask = () => {
@@ -253,14 +323,15 @@ export const TaskListScreen: React.FC = () => {
         onClose={() => setIsCreateTaskVisible(false)}
         onCreateTask={handleCreateTask}
         onSelectDate={() => setIsSelectDateVisible(true)}
-        onSelectTime={() => console.log("Select time")}
-        onSelectCategory={() => console.log("Select category")}
+        onSelectTime={() => setIsAddTimeVisible(true)}
+        onSelectCategory={() => setIsAddCategoryVisible(true)}
         onSelectPeople={() => setIsAddPeopleVisible(true)}
-        onSetReminder={() => console.log("Set reminder")}
+        onSetReminder={() => setIsSetReminderVisible(true)}
         selectedDate={taskDueDate}
         selectedTime={taskDueTime}
         selectedCategory={taskCategory}
         selectedPeople={taskAssignedPeople}
+        selectedReminder={taskReminder}
       />
 
       {/* Select Date Bottom Sheet */}
@@ -268,7 +339,32 @@ export const TaskListScreen: React.FC = () => {
         visible={isSelectDateVisible}
         onClose={() => setIsSelectDateVisible(false)}
         onSelectDate={handleSelectDate}
+        onOpenCustomDate={handleOpenCustomDate}
         selectedDate={taskDueDate}
+      />
+
+      {/* Add Custom Date Bottom Sheet */}
+      <AddCustomDateSheet
+        visible={isAddCustomDateVisible}
+        onClose={() => setIsAddCustomDateVisible(false)}
+        onSelectDate={handleCustomDateSelect}
+        selectedDate={taskDueDate}
+      />
+
+      {/* Add Time Bottom Sheet */}
+      <AddTimeSheet
+        visible={isAddTimeVisible}
+        onClose={() => setIsAddTimeVisible(false)}
+        onSelectTime={handleSelectTime}
+        initialTime={taskDueTime || undefined}
+      />
+
+      {/* Add Category Bottom Sheet */}
+      <AddCategorySheet
+        visible={isAddCategoryVisible}
+        onClose={() => setIsAddCategoryVisible(false)}
+        onSelectCategory={handleSelectCategory}
+        selectedCategory={taskCategory}
       />
 
       {/* Add People Bottom Sheet */}
@@ -287,6 +383,33 @@ export const TaskListScreen: React.FC = () => {
         task={selectedTask}
         onEdit={handleEditTask}
         onDelete={handleDeleteTask}
+      />
+
+      {/* Set Reminder Bottom Sheet */}
+      <SetReminderSheet
+        visible={isSetReminderVisible}
+        onClose={() => setIsSetReminderVisible(false)}
+        onSetReminder={handleSetReminder}
+        onOpenCustomMinutes={handleOpenCustomMinutes}
+        onOpenCustomHours={handleOpenCustomHours}
+        onOpenCustomDate={handleOpenCustomDateFromReminder}
+        selectedReminder={taskReminder}
+        customMinutes={customMinutes}
+        customHours={customHours}
+      />
+
+      {/* Add Custom Minutes Bottom Sheet */}
+      <AddCustomMinutesSheet
+        visible={isAddCustomMinutesVisible}
+        onClose={() => setIsAddCustomMinutesVisible(false)}
+        onAddMinutes={handleAddCustomMinutes}
+      />
+
+      {/* Add Custom Hours Bottom Sheet */}
+      <AddCustomHoursSheet
+        visible={isAddCustomHoursVisible}
+        onClose={() => setIsAddCustomHoursVisible(false)}
+        onAddHours={handleAddCustomHours}
       />
     </View>
   );

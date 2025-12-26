@@ -84,12 +84,11 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     alignItems: "center",
-    width: 144,
     justifyContent: "center",
     gap: 4,
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     opacity: 1,
   },
   buttonCompact: {

@@ -21,6 +21,7 @@ import {
   Category,
   DEFAULT_TASK_FORM,
   Person,
+  ReminderValue,
   TaskFormState,
 } from "@/types/task";
 import React, { useCallback, useState } from "react";
@@ -47,6 +48,7 @@ interface CreateTaskSheetProps {
   selectedTime?: string | null;
   selectedCategory?: Category | null;
   selectedPeople?: Person[];
+  selectedReminder?: ReminderValue | null;
 }
 
 interface FormRowProps {
@@ -87,12 +89,29 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
   selectedTime,
   selectedCategory,
   selectedPeople = [],
+  selectedReminder,
 }) => {
   const insets = useSafeAreaInsets();
   const [formState, setFormState] = useState<TaskFormState>(DEFAULT_TASK_FORM);
   const [subTasks, setSubTasks] = useState<
     { title: string; description: string }[]
   >([]);
+
+  const formatReminderText = (reminder: ReminderValue | null): string => {
+    if (!reminder) return "Set Reminder";
+
+    const { type, value } = reminder;
+
+    if (type === "minutes") {
+      return `${value} minute${value > 1 ? "s" : ""} before`;
+    } else if (type === "hours") {
+      return `${value} hour${value > 1 ? "s" : ""} before`;
+    } else if (type === "days") {
+      return `${value} day${value > 1 ? "s" : ""} before`;
+    }
+
+    return "Set Reminder";
+  };
 
   const handleCreate = useCallback(() => {
     if (!formState.title.trim()) return;
@@ -288,7 +307,11 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
             icon={<BellIcon size={24} color={Colors.primary} />}
             onPress={onSetReminder}
           >
-            <Text style={styles.rowText}>Set Reminder</Text>
+            <Text
+              style={[styles.rowText, selectedReminder && styles.rowTextActive]}
+            >
+              {formatReminderText(selectedReminder)}
+            </Text>
           </FormRow>
 
           {/* Divider */}

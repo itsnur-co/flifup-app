@@ -25,6 +25,7 @@ interface SelectDateSheetProps {
   visible: boolean;
   onClose: () => void;
   onSelectDate: (date: Date | null, option: DateOption) => void;
+  onOpenCustomDate?: () => void;
   selectedDate?: Date | null;
 }
 
@@ -55,6 +56,7 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
   visible,
   onClose,
   onSelectDate,
+  onOpenCustomDate,
   selectedDate,
 }) => {
   const insets = useSafeAreaInsets();
@@ -149,7 +151,11 @@ export const SelectDateSheet: React.FC<SelectDateSheetProps> = ({
 
   const handleOptionPress = (option: DateOptionItem) => {
     if (option.id === "custom") {
-      setShowCalendar(!showCalendar);
+      if (onOpenCustomDate) {
+        onOpenCustomDate();
+      } else {
+        setShowCalendar(!showCalendar);
+      }
       return;
     }
 
