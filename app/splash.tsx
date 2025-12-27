@@ -36,7 +36,7 @@ export default function SplashScreen() {
     // Navigate after animation completes
     const navigationTimer = setTimeout(() => {
       router.replace('/auth/start');
-    }, 4500);
+    }, 2500);
 
     return () => clearTimeout(navigationTimer);
   }, []);
@@ -44,22 +44,22 @@ export default function SplashScreen() {
   const startAnimationSequence = () => {
     // Logo fade in and scale
     logoOpacity.value = withDelay(
-      1200,
+      500,
       withTiming(1, {
-        duration: 800,
+        duration: 400,
         easing: Easing.out(Easing.ease),
       })
     );
 
     logoScale.value = withDelay(
-      1200,
+      500,
       withSequence(
         withTiming(1.1, {
-          duration: 600,
+          duration: 300,
           easing: Easing.out(Easing.back(1.5)),
         }),
         withTiming(1, {
-          duration: 300,
+          duration: 200,
           easing: Easing.inOut(Easing.ease),
         })
       )
@@ -67,23 +67,23 @@ export default function SplashScreen() {
 
     // Spinner appears
     spinnerOpacity.value = withDelay(
-      1500,
-      withTiming(1, { duration: 600 })
+      800,
+      withTiming(1, { duration: 300 })
     );
 
     // Circle expansion
     circleScale.value = withDelay(
-      3200,
+      1500,
       withTiming(20, {
-        duration: 1000,
+        duration: 800,
         easing: Easing.bezier(0.4, 0, 0.2, 1),
       })
     );
 
     circleOpacity.value = withDelay(
-      3200,
+      1500,
       withTiming(1, {
-        duration: 1000,
+        duration: 800,
       })
     );
   };
