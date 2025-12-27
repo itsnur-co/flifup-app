@@ -3,6 +3,8 @@
  * Centralized types for task management feature
  */
 
+import { RepeatConfig } from "./habit";
+
 export interface SubTask {
   id: string;
   title: string;
@@ -31,6 +33,7 @@ export interface Task {
   description?: string;
   dueDate?: Date;
   dueTime?: string;
+  repeat?: RepeatConfig;
   category?: Category;
   assignedPeople: Person[];
   reminder?: Date;
@@ -72,6 +75,7 @@ export interface TaskFormState {
   description: string;
   dueDate: Date | null;
   dueTime: string | null;
+  repeat: RepeatConfig | null;
   category: Category | null;
   assignedPeople: Person[];
   reminder: Date | null;
@@ -83,6 +87,7 @@ export const DEFAULT_TASK_FORM: TaskFormState = {
   description: '',
   dueDate: null,
   dueTime: null,
+  repeat: null,
   category: null,
   assignedPeople: [],
   reminder: null,

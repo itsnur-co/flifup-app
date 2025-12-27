@@ -21,7 +21,13 @@ import {
   RepeatSheet,
 } from "@/components/habit";
 import { ScreenHeader } from "@/components/navigation/screen-header";
-import { SelectDateSheet } from "@/components/task";
+import {
+  AddCustomHoursSheet,
+  AddCustomMinutesSheet,
+  ReminderValue,
+  SelectDateSheet,
+  SetReminderSheet,
+} from "@/components/shared";
 
 import {
   MOCK_HABITS,
@@ -66,12 +72,18 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [showHeaderOptions, setShowHeaderOptions] = useState(false);
+  const [showReminderSheet, setShowReminderSheet] = useState(false);
+  const [showCustomMinutesSheet, setShowCustomMinutesSheet] = useState(false);
+  const [showCustomHoursSheet, setShowCustomHoursSheet] = useState(false);
 
   // Form states
   const [formRepeat, setFormRepeat] = useState<RepeatConfig | undefined>();
   const [formStartDate, setFormStartDate] = useState<Date | null>(null);
   const [formGoal, setFormGoal] = useState<HabitGoal | null>(null);
   const [formCategory, setFormCategory] = useState<HabitCategory | null>(null);
+  const [formReminder, setFormReminder] = useState<ReminderValue | null>(null);
+  const [customMinutes, setCustomMinutes] = useState<number[]>([]);
+  const [customHours, setCustomHours] = useState<number[]>([]);
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
 
   // Category filter data
@@ -133,6 +145,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setFormStartDate(null);
     setFormGoal(null);
     setFormCategory(null);
+    setFormReminder(null);
   };
 
   const handleToggleHabit = useCallback(
@@ -196,6 +209,33 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const openCreateSheet = useCallback(() => {
     resetFormState();
     setShowCreateSheet(true);
+  }, []);
+
+  const handleSetReminder = useCallback((reminder: ReminderValue) => {
+    setFormReminder(reminder);
+    setShowReminderSheet(false);
+  }, []);
+
+  const handleOpenCustomMinutes = useCallback(() => {
+    setShowReminderSheet(false);
+    setShowCustomMinutesSheet(true);
+  }, []);
+
+  const handleOpenCustomHours = useCallback(() => {
+    setShowReminderSheet(false);
+    setShowCustomHoursSheet(true);
+  }, []);
+
+  const handleAddCustomMinutes = useCallback((minutes: number) => {
+    setCustomMinutes((prev) => [...prev, minutes]);
+    setShowCustomMinutesSheet(false);
+    setShowReminderSheet(true);
+  }, []);
+
+  const handleAddCustomHours = useCallback((hours: number) => {
+    setCustomHours((prev) => [...prev, hours]);
+    setShowCustomHoursSheet(false);
+    setShowReminderSheet(true);
   }, []);
 
   return (
@@ -300,11 +340,12 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         onSelectStartDate={() => setShowDateSheet(true)}
         onSelectGoal={() => setShowGoalSheet(true)}
         onSelectCategory={() => setShowCategorySheet(true)}
-        onSetReminder={() => console.log("Set reminder")}
+        onSetReminder={() => setShowReminderSheet(true)}
         selectedRepeat={formRepeat}
         selectedStartDate={formStartDate}
         selectedGoal={formGoal}
         selectedCategory={formCategory}
+        selectedReminder={formReminder}
       />
 
       {/* Repeat Sheet */}
@@ -335,7 +376,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       <AddCategorySheet
         visible={showCategorySheet}
         onClose={() => setShowCategorySheet(false)}
-        onConfirm={(category) => setFormCategory(category)}
+        onSelectCategory={(category) => setFormCategory(category)}
         selectedCategory={formCategory}
         categories={MOCK_HABIT_CATEGORIES}
       />
@@ -350,6 +391,32 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         onEdit={handleEditHabit}
         onProgress={handleHabitProgress}
         onDelete={handleDeleteHabit}
+      />
+
+      {/* Set Reminder Sheet */}
+      <SetReminderSheet
+        visible={showReminderSheet}
+        onClose={() => setShowReminderSheet(false)}
+        onSetReminder={handleSetReminder}
+        onOpenCustomMinutes={handleOpenCustomMinutes}
+        onOpenCustomHours={handleOpenCustomHours}
+        selectedReminder={formReminder}
+        customMinutes={customMinutes}
+        customHours={customHours}
+      />
+
+      {/* Add Custom Minutes Sheet */}
+      <AddCustomMinutesSheet
+        visible={showCustomMinutesSheet}
+        onClose={() => setShowCustomMinutesSheet(false)}
+        onAddMinutes={handleAddCustomMinutes}
+      />
+
+      {/* Add Custom Hours Sheet */}
+      <AddCustomHoursSheet
+        visible={showCustomHoursSheet}
+        onClose={() => setShowCustomHoursSheet(false)}
+        onAddHours={handleAddCustomHours}
       />
     </View>
   );

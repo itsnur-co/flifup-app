@@ -14,6 +14,7 @@ import {
   PlusIcon,
   TagIcon,
 } from "@/components/icons/TaskIcons";
+import { RepeatIcon } from "@/components/icons/HabitIcons";
 import { AvatarGroup } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
@@ -21,9 +22,10 @@ import {
   Category,
   DEFAULT_TASK_FORM,
   Person,
-  ReminderValue,
   TaskFormState,
 } from "@/types/task";
+import { RepeatConfig } from "@/types/habit";
+import { ReminderValue } from "@/components/shared";
 import React, { useCallback, useState } from "react";
 import {
   ScrollView,
@@ -41,11 +43,13 @@ interface CreateTaskSheetProps {
   onCreateTask: (task: TaskFormState) => void;
   onSelectDate?: () => void;
   onSelectTime?: () => void;
+  onSelectRepeat?: () => void;
   onSelectCategory?: () => void;
   onSelectPeople?: () => void;
   onSetReminder?: () => void;
   selectedDate?: Date | null;
   selectedTime?: string | null;
+  selectedRepeat?: RepeatConfig | null;
   selectedCategory?: Category | null;
   selectedPeople?: Person[];
   selectedReminder?: ReminderValue | null;
@@ -82,11 +86,13 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
   onCreateTask,
   onSelectDate,
   onSelectTime,
+  onSelectRepeat,
   onSelectCategory,
   onSelectPeople,
   onSetReminder,
   selectedDate,
   selectedTime,
+  selectedRepeat,
   selectedCategory,
   selectedPeople = [],
   selectedReminder,
@@ -97,10 +103,24 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     { title: string; description: string }[]
   >([]);
 
+  const formatRepeat = (repeat?: RepeatConfig | null): string => {
+    if (!repeat) return "Repeat";
+    if (repeat.type === "daily" && repeat.days.length > 0) {
+      return `${repeat.days.length} days/week`;
+    }
+    if (repeat.type === "monthly") {
+      return `Day ${repeat.dayOfMonth} monthly`;
+    }
+    if (repeat.type === "interval") {
+      return `Every ${repeat.everyDays} days`;
+    }
+    return "Repeat";
+  };
+
   const formatReminderText = (reminder: ReminderValue | null): string => {
     if (!reminder) return "Set Reminder";
 
-    const { type, value } = reminder;
+    const { type, value} = reminder;
 
     if (type === "minutes") {
       return `${value} minute${value > 1 ? "s" : ""} before`;
@@ -267,6 +287,18 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
               style={[styles.rowText, selectedTime && styles.rowTextActive]}
             >
               {selectedTime || "Add Time"}
+            </Text>
+          </FormRow>
+
+          {/* Repeat */}
+          <FormRow
+            icon={<RepeatIcon size={24} color={Colors.primary} />}
+            onPress={onSelectRepeat}
+          >
+            <Text
+              style={[styles.rowText, selectedRepeat && styles.rowTextActive]}
+            >
+              {formatRepeat(selectedRepeat)}
             </Text>
           </FormRow>
 

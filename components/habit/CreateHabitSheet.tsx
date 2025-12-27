@@ -12,6 +12,7 @@ import {
 } from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
+import { ReminderValue } from "@/components/shared";
 import {
   DEFAULT_HABIT_FORM,
   HabitCategory,
@@ -44,6 +45,7 @@ interface CreateHabitSheetProps {
   selectedStartDate?: Date | null;
   selectedGoal?: HabitGoal | null;
   selectedCategory?: HabitCategory | null;
+  selectedReminder?: ReminderValue | null;
 }
 
 export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
@@ -59,6 +61,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
   selectedStartDate,
   selectedGoal,
   selectedCategory,
+  selectedReminder,
 }) => {
   const insets = useSafeAreaInsets();
   const [formState, setFormState] =
@@ -111,6 +114,19 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
   const formatGoal = (goal?: HabitGoal | null): string => {
     if (!goal) return "Add Goal";
     return `${goal.value} ${goal.unit} ${goal.frequency}`;
+  };
+
+  const formatReminderText = (reminder: ReminderValue | null): string => {
+    if (!reminder) return "Set Reminder";
+    const { type, value } = reminder;
+    if (type === "minutes") {
+      return `${value} minute${value > 1 ? "s" : ""} before`;
+    } else if (type === "hours") {
+      return `${value} hour${value > 1 ? "s" : ""} before`;
+    } else if (type === "days") {
+      return `${value} day${value > 1 ? "s" : ""} before`;
+    }
+    return "Set Reminder";
   };
 
   const isValid = formState.name.trim().length > 0;
@@ -242,7 +258,14 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
             activeOpacity={0.7}
           >
             <AlarmIcon size={22} color={Colors.primary} />
-            <Text style={styles.formLabel}>Set Reminder</Text>
+            <Text
+              style={[
+                styles.formLabel,
+                selectedReminder && styles.formLabelSelected,
+              ]}
+            >
+              {formatReminderText(selectedReminder)}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.divider} />

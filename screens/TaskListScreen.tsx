@@ -14,18 +14,21 @@ import { WeekCalendar } from "@/components/calendar";
 import { ScreenHeader } from "@/components/navigation/screen-header";
 import {
   AddCategorySheet,
-  AddCustomDateSheet,
-  AddCustomHoursSheet,
-  AddCustomMinutesSheet,
   AddPeopleSheet,
   AddTimeSheet,
   CreateTaskSheet,
-  ReminderValue,
-  SelectDateSheet,
-  SetReminderSheet,
   TaskEditModal,
   TaskSection,
 } from "@/components/task";
+import {
+  AddCustomDateSheet,
+  AddCustomHoursSheet,
+  AddCustomMinutesSheet,
+  ReminderValue,
+  RepeatSheet,
+  SelectDateSheet,
+  SetReminderSheet,
+} from "@/components/shared";
 
 import { MOCK_PEOPLE, MOCK_TASKS } from "@/constants/mockData";
 import {
@@ -35,6 +38,7 @@ import {
   Task,
   TaskFormState,
 } from "@/types/task";
+import { RepeatConfig } from "@/types/habit";
 
 export const TaskListScreen: React.FC = () => {
   const router = useRouter();
@@ -52,6 +56,7 @@ export const TaskListScreen: React.FC = () => {
   const [isAddCategoryVisible, setIsAddCategoryVisible] = useState(false);
   const [isAddPeopleVisible, setIsAddPeopleVisible] = useState(false);
   const [isTaskOptionsVisible, setIsTaskOptionsVisible] = useState(false);
+  const [isRepeatVisible, setIsRepeatVisible] = useState(false);
   const [isSetReminderVisible, setIsSetReminderVisible] = useState(false);
   const [isAddCustomMinutesVisible, setIsAddCustomMinutesVisible] = useState(false);
   const [isAddCustomHoursVisible, setIsAddCustomHoursVisible] = useState(false);
@@ -66,6 +71,7 @@ export const TaskListScreen: React.FC = () => {
   // Form states for create task
   const [taskDueDate, setTaskDueDate] = useState<Date | null>(null);
   const [taskDueTime, setTaskDueTime] = useState<string | null>(null);
+  const [taskRepeat, setTaskRepeat] = useState<RepeatConfig | null>(null);
   const [taskCategory, setTaskCategory] = useState<Category | null>(null);
   const [taskAssignedPeople, setTaskAssignedPeople] = useState<Person[]>([]);
   const [taskReminder, setTaskReminder] = useState<ReminderValue | null>(null);
@@ -101,6 +107,7 @@ export const TaskListScreen: React.FC = () => {
       description: formState.description,
       dueDate: formState.dueDate ?? undefined,
       dueTime: formState.dueTime ?? undefined,
+      repeat: formState.repeat ?? undefined,
       category: formState.category ?? undefined,
       assignedPeople: formState.assignedPeople,
       reminder: formState.reminder ?? undefined,
@@ -121,6 +128,7 @@ export const TaskListScreen: React.FC = () => {
     // Reset form states
     setTaskDueDate(null);
     setTaskDueTime(null);
+    setTaskRepeat(null);
     setTaskCategory(null);
     setTaskAssignedPeople([]);
   }, []);
@@ -230,6 +238,11 @@ export const TaskListScreen: React.FC = () => {
     setIsSetReminderVisible(true);
   }, []);
 
+  const handleSelectRepeat = useCallback((repeat: RepeatConfig) => {
+    setTaskRepeat(repeat);
+    setIsRepeatVisible(false);
+  }, []);
+
   const openCreateTask = () => {
     setIsCreateTaskVisible(true);
   };
@@ -326,11 +339,13 @@ export const TaskListScreen: React.FC = () => {
         onCreateTask={handleCreateTask}
         onSelectDate={() => setIsSelectDateVisible(true)}
         onSelectTime={() => setIsAddTimeVisible(true)}
+        onSelectRepeat={() => setIsRepeatVisible(true)}
         onSelectCategory={() => setIsAddCategoryVisible(true)}
         onSelectPeople={() => setIsAddPeopleVisible(true)}
         onSetReminder={() => setIsSetReminderVisible(true)}
         selectedDate={taskDueDate}
         selectedTime={taskDueTime}
+        selectedRepeat={taskRepeat}
         selectedCategory={taskCategory}
         selectedPeople={taskAssignedPeople}
         selectedReminder={taskReminder}
@@ -376,6 +391,14 @@ export const TaskListScreen: React.FC = () => {
         onConfirm={handleAddPeople}
         availablePeople={MOCK_PEOPLE}
         selectedPeople={taskAssignedPeople}
+      />
+
+      {/* Repeat Bottom Sheet */}
+      <RepeatSheet
+        visible={isRepeatVisible}
+        onClose={() => setIsRepeatVisible(false)}
+        onConfirm={handleSelectRepeat}
+        initialValue={taskRepeat ?? undefined}
       />
 
       {/* Task Edit Modal */}
