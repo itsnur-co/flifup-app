@@ -72,7 +72,7 @@ export default function EditProfileScreen() {
         setUser(userData);
         setFullName(userData.fullName || "");
         setEmail(userData.email || "");
-        setAvatarUri(userData.avatar || null);
+        setAvatarUri(userData.profileImage || null);
       }
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -209,14 +209,14 @@ export default function EditProfileScreen() {
       if (response.error) {
         Alert.alert("Error", response.error);
         // Revert avatar on error
-        setAvatarUri(user?.avatar || null);
+        setAvatarUri(user?.profileImage || null);
         return;
       }
 
       // Update local user data with new avatar
       if (response.data?.data) {
         const updatedUser = response.data.data;
-        setAvatarUri(updatedUser.avatar || null);
+        setAvatarUri(updatedUser.profileImage || null);
         setUser(updatedUser);
         Alert.alert("Success", "Profile picture updated successfully!");
       }
@@ -224,7 +224,7 @@ export default function EditProfileScreen() {
       console.error("Avatar upload error:", error);
       Alert.alert("Error", "Failed to upload profile picture. Please try again.");
       // Revert avatar on error
-      setAvatarUri(user?.avatar || null);
+      setAvatarUri(user?.profileImage || null);
     } finally {
       setIsUploadingAvatar(false);
     }

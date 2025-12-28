@@ -69,20 +69,19 @@ export default function ProfileScreen() {
     try {
       setIsLoading(true);
 
-      // Get user data from local storage
+      // Get user data from local storage first for quick display
       const localUser = await getUserData();
       if (localUser) {
         setUser(localUser);
       }
 
-      // TODO: Uncomment when backend profile endpoint is ready
       // Then fetch fresh data from API
-      // const response = await profileService.getProfile();
-      // if (response.data && !response.error) {
-      //   setUser(response.data);
-      // } else if (response.error) {
-      //   console.error("Failed to fetch profile:", response.error);
-      // }
+      const response = await profileService.getProfile();
+      if (response.data && !response.error) {
+        setUser(response.data.data);
+      } else if (response.error) {
+        console.error("Failed to fetch profile:", response.error);
+      }
     } catch (error) {
       console.error("Error loading profile:", error);
     } finally {
@@ -279,8 +278,8 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => router.push("/edit-profile")}
           >
-            {user?.avatar ? (
-              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            {user?.profileImage ? (
+              <Image source={{ uri: user.profileImage }} style={styles.avatar} />
             ) : (
               <View style={[styles.avatar, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarPlaceholderText}>

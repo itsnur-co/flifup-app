@@ -11,7 +11,7 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
-  avatar?: string;
+  profileImage?: string;
   isActive?: boolean;
   createdAt: string;
 }
