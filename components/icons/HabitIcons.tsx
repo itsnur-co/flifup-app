@@ -1,10 +1,14 @@
 /**
  * Habit-specific Icons
  * SVG icons for Habit feature matching Figma design
+ * Using custom SVG files from assets/svg
  */
 
 import React from "react";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
+
+// Import custom SVG file
+import RepeatLineSVG from '@/assets/svg/creative-commons-nd-line.svg';
 
 interface IconProps {
   size?: number;
@@ -16,36 +20,7 @@ export const RepeatIcon: React.FC<IconProps> = ({
   size = 24,
   color = "#9039FF",
 }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M17 1L21 5L17 9"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M3 11V9C3 7.93913 3.42143 6.92172 4.17157 6.17157C4.92172 5.42143 5.93913 5 7 5H21"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M7 23L3 19L7 15"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M21 13V15C21 16.0609 20.5786 17.0783 19.8284 17.8284C19.0783 18.5786 18.0609 19 17 19H3"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <RepeatLineSVG width={size} height={size} stroke={color} fill={color} />
 );
 
 // Goal/Target Icon

@@ -21,6 +21,13 @@ import Svg, { Line, Path, Circle as SvgCircle } from "react-native-svg";
 import { ScreenHeader } from "@/components/navigation/screen-header";
 import { CreateButton } from "@/components/buttons";
 import { ChevronDownIcon } from "@/components/icons/TaskIcons";
+import {
+  Reaction1Icon,
+  Reaction2Icon,
+  Reaction3Icon,
+  Reaction4Icon,
+  Reaction5Icon
+} from "@/components/icons/JournalIcons";
 import { Colors } from "@/constants/colors";
 import { useJournals } from "@/hooks/useJournals";
 import {
@@ -42,6 +49,18 @@ const PERIOD_OPTIONS: { value: PeriodType; label: string; days: number }[] = [
   { value: "30days", label: "Last 30 days", days: 30 },
   { value: "90days", label: "Last 90 days", days: 90 },
 ];
+
+// Helper function to get reaction icon component based on mood type
+const getReactionIconByMood = (mood: MoodType) => {
+  const iconMap = {
+    VERY_HAPPY: Reaction1Icon,
+    HAPPY: Reaction2Icon,
+    NEUTRAL: Reaction3Icon,
+    SAD: Reaction4Icon,
+    VERY_SAD: Reaction5Icon,
+  };
+  return iconMap[mood];
+};
 
 const getMoodValue = (mood: MoodType): number => {
   const values: Record<MoodType, number> = {
@@ -155,13 +174,13 @@ export const JournalInsightsScreen: React.FC<JournalInsightsScreenProps> = ({
   const selectedPeriodLabel =
     PERIOD_OPTIONS.find((p) => p.value === selectedPeriod)?.label || "";
 
-  // Mood emojis for Y-axis (top to bottom: happy to sad)
-  const moodEmojis = [
-    getMoodEmoji("VERY_HAPPY"),
-    getMoodEmoji("HAPPY"),
-    getMoodEmoji("NEUTRAL"),
-    getMoodEmoji("SAD"),
-    getMoodEmoji("VERY_SAD"),
+  // Mood icon components for Y-axis (top to bottom: happy to sad)
+  const moodIcons = [
+    { mood: "VERY_HAPPY" as MoodType, Icon: Reaction1Icon },
+    { mood: "HAPPY" as MoodType, Icon: Reaction2Icon },
+    { mood: "NEUTRAL" as MoodType, Icon: Reaction3Icon },
+    { mood: "SAD" as MoodType, Icon: Reaction4Icon },
+    { mood: "VERY_SAD" as MoodType, Icon: Reaction5Icon },
   ];
 
   // Loading state
@@ -258,11 +277,11 @@ export const JournalInsightsScreen: React.FC<JournalInsightsScreenProps> = ({
 
           {dataPoints.length > 0 ? (
             <View style={styles.chartContainer}>
-              {/* Y-Axis Emojis */}
+              {/* Y-Axis Reaction Icons */}
               <View style={styles.yAxis}>
-                {moodEmojis.map((emoji, index) => (
-                  <View key={index} style={styles.emojiRow}>
-                    <Text style={styles.emoji}>{emoji}</Text>
+                {moodIcons.map(({ mood, Icon }, index) => (
+                  <View key={mood} style={styles.emojiRow}>
+                    <Icon size={32} />
                   </View>
                 ))}
               </View>
@@ -380,10 +399,13 @@ export const JournalInsightsScreen: React.FC<JournalInsightsScreenProps> = ({
               const count = insights.moodDistribution[option.value] || 0;
               const total = insights.overall.journalsWithMood || 1;
               const percentage = (count / total) * 100;
+              const ReactionIcon = getReactionIconByMood(option.value);
 
               return (
                 <View key={option.value} style={styles.distributionRow}>
-                  <Text style={styles.distributionEmoji}>{option.emoji}</Text>
+                  <View style={styles.distributionIconContainer}>
+                    {ReactionIcon && <ReactionIcon size={32} />}
+                  </View>
                   <View style={styles.distributionBarContainer}>
                     <View
                       style={[
@@ -511,10 +533,7 @@ const styles = StyleSheet.create({
   emojiRow: {
     height: CHART_HEIGHT / 5,
     justifyContent: "center",
-    alignItems: "flex-start",
-  },
-  emoji: {
-    fontSize: 20,
+    alignItems: "center",
   },
   chartArea: {
     flex: 1,
@@ -616,9 +635,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     gap: 12,
   },
-  distributionEmoji: {
-    fontSize: 20,
-    width: 28,
+  distributionIconContainer: {
+    width: 32,
+    height: 32,
+    justifyContent: "center",
+    alignItems: "center",
   },
   distributionBarContainer: {
     flex: 1,

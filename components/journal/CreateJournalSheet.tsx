@@ -15,7 +15,17 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { CircleOutlineIcon, TextIcon, LockIcon, DropdownIcon } from "@/components/icons/JournalIcons";
+import {
+  CircleOutlineIcon,
+  TextIcon,
+  LockIcon,
+  DropdownIcon,
+  Reaction1Icon,
+  Reaction2Icon,
+  Reaction3Icon,
+  Reaction4Icon,
+  Reaction5Icon
+} from "@/components/icons/JournalIcons";
 import { TagIcon } from "@/components/icons/TaskIcons";
 import { Colors } from "@/constants/colors";
 import {
@@ -37,6 +47,18 @@ interface CreateJournalSheetProps {
   journal?: Journal | null;
   onOpenCategorySheet?: () => void;
 }
+
+// Helper function to get reaction icon component
+const getReactionIcon = (emoji: string) => {
+  const iconMap = {
+    reaction1: Reaction1Icon,
+    reaction2: Reaction2Icon,
+    reaction3: Reaction3Icon,
+    reaction4: Reaction4Icon,
+    reaction5: Reaction5Icon,
+  };
+  return iconMap[emoji as keyof typeof iconMap];
+};
 
 export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
   visible,
@@ -226,19 +248,22 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
             <View style={styles.moodSection}>
               <Text style={styles.moodLabel}>Add your feelings</Text>
               <View style={styles.moodContainer}>
-                {MOOD_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.moodButton,
-                      formState.mood === option.value && styles.moodButtonSelected,
-                    ]}
-                    onPress={() => handleMoodSelect(option.value)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.moodEmoji}>{option.emoji}</Text>
-                  </TouchableOpacity>
-                ))}
+                {MOOD_OPTIONS.map((option) => {
+                  const ReactionIcon = getReactionIcon(option.emoji);
+                  return (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.moodButton,
+                        formState.mood === option.value && styles.moodButtonSelected,
+                      ]}
+                      onPress={() => handleMoodSelect(option.value)}
+                      activeOpacity={0.7}
+                    >
+                      {ReactionIcon && <ReactionIcon size={48} />}
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
         </ScrollView>
@@ -355,9 +380,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderWidth: 2,
     borderColor: "#FFFFFF",
-  },
-  moodEmoji: {
-    fontSize: 28,
   },
 });
 

@@ -154,14 +154,14 @@ export const DEFAULT_JOURNAL_FORM: JournalFormState = {
 export const MOOD_OPTIONS: MoodOption[] = [
   {
     value: "VERY_HAPPY",
-    emoji: "😁",
+    emoji: "reaction1", // Custom SVG icon
     label: "Feeling Happy",
     color: "#9039FF",
   },
-  { value: "HAPPY", emoji: "🙂", label: "Feeling Good", color: "#F59E0B" },
-  { value: "NEUTRAL", emoji: "🙄", label: "Feeling okay", color: "#6B7280" },
-  { value: "SAD", emoji: "😟", label: "Feeling Down", color: "#3B82F6" },
-  { value: "VERY_SAD", emoji: "😭", label: "Feeling Sad", color: "#EF4444" },
+  { value: "HAPPY", emoji: "reaction2", label: "Feeling Good", color: "#F59E0B" },
+  { value: "NEUTRAL", emoji: "reaction3", label: "Feeling okay", color: "#6B7280" },
+  { value: "SAD", emoji: "reaction4", label: "Feeling Down", color: "#3B82F6" },
+  { value: "VERY_SAD", emoji: "reaction5", label: "Feeling Sad", color: "#EF4444" },
 ];
 
 // Mood value mapping for calculations

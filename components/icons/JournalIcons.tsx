@@ -1,10 +1,18 @@
 /**
  * Custom SVG Icons for Journal Feature
  * Matching Figma design exactly
+ * Using custom SVG files from assets/svg/journal for reactions
  */
 
 import React from "react";
 import Svg, { Circle, Path, Rect, Line } from "react-native-svg";
+
+// Import reaction SVG files
+import Reaction1SVG from '@/assets/svg/journal/react1.svg';
+import Reaction2SVG from '@/assets/svg/journal/react2.svg';
+import Reaction3SVG from '@/assets/svg/journal/react3.svg';
+import Reaction4SVG from '@/assets/svg/journal/react4.svg';
+import Reaction5SVG from '@/assets/svg/journal/react5.svg';
 
 interface IconProps {
   size?: number;
@@ -203,6 +211,37 @@ export const CloseIcon: React.FC<IconProps> = ({
   </Svg>
 );
 
+// Reaction Icons from SVG files
+export const Reaction1Icon: React.FC<IconProps> = ({
+  size = 48,
+}) => (
+  <Reaction1SVG width={size} height={size} />
+);
+
+export const Reaction2Icon: React.FC<IconProps> = ({
+  size = 48,
+}) => (
+  <Reaction2SVG width={size} height={size} />
+);
+
+export const Reaction3Icon: React.FC<IconProps> = ({
+  size = 48,
+}) => (
+  <Reaction3SVG width={size} height={size} />
+);
+
+export const Reaction4Icon: React.FC<IconProps> = ({
+  size = 48,
+}) => (
+  <Reaction4SVG width={size} height={size} />
+);
+
+export const Reaction5Icon: React.FC<IconProps> = ({
+  size = 48,
+}) => (
+  <Reaction5SVG width={size} height={size} />
+);
+
 export default {
   JournalIcon,
   InsightIcon,
@@ -214,4 +253,9 @@ export default {
   DropdownIcon,
   CircleOutlineIcon,
   CloseIcon,
+  Reaction1Icon,
+  Reaction2Icon,
+  Reaction3Icon,
+  Reaction4Icon,
+  Reaction5Icon,
 };

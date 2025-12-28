@@ -6,8 +6,27 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { CalendarIcon, TagIcon, MoreHorizontalIcon } from "@/components/icons/TaskIcons";
+import {
+  Reaction1Icon,
+  Reaction2Icon,
+  Reaction3Icon,
+  Reaction4Icon,
+  Reaction5Icon
+} from "@/components/icons/JournalIcons";
 import { Colors } from "@/constants/colors";
-import { Journal, getMoodEmoji, getMoodLabel } from "@/types/journal";
+import { Journal, getMoodLabel, MoodType } from "@/types/journal";
+
+// Helper function to get reaction icon component based on mood type
+const getReactionIconByMood = (mood: MoodType) => {
+  const iconMap = {
+    VERY_HAPPY: Reaction1Icon,
+    HAPPY: Reaction2Icon,
+    NEUTRAL: Reaction3Icon,
+    SAD: Reaction4Icon,
+    VERY_SAD: Reaction5Icon,
+  };
+  return iconMap[mood];
+};
 
 interface JournalCardProps {
   journal: Journal;
@@ -93,12 +112,15 @@ export const JournalCard: React.FC<JournalCardProps> = ({
         )}
 
         {/* Mood */}
-        {journal.mood && (
-          <View style={styles.metaItem}>
-            <Text style={styles.moodEmoji}>{getMoodEmoji(journal.mood)}</Text>
-            <Text style={styles.metaText}>{getMoodLabel(journal.mood)}</Text>
-          </View>
-        )}
+        {journal.mood && (() => {
+          const ReactionIcon = getReactionIconByMood(journal.mood);
+          return (
+            <View style={styles.metaItem}>
+              {ReactionIcon && <ReactionIcon size={16} />}
+              <Text style={styles.metaText}>{getMoodLabel(journal.mood)}</Text>
+            </View>
+          );
+        })()}
       </View>
     </TouchableOpacity>
   );
@@ -148,9 +170,6 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 12,
     color: "#8E8E93",
-  },
-  moodEmoji: {
-    fontSize: 14,
   },
 });
 
