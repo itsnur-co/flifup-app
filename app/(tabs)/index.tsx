@@ -1,7 +1,7 @@
 import { BottomTabBar } from "@/components/navigation/BottomTabBar";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
 export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState<
@@ -33,6 +33,13 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <View style={styles.centeredContent}>
           <Text style={styles.contentText}>Home Screen</Text>
+
+          <TouchableOpacity
+            style={styles.journalButton}
+            onPress={() => router.push("/journal")}
+          >
+            <Text style={styles.journalButtonText}>📔 Journal</Text>
+          </TouchableOpacity>
         </View>
       </View>
       <BottomTabBar
@@ -59,6 +66,20 @@ const styles = StyleSheet.create({
   },
   contentText: {
     fontSize: 24,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  journalButton: {
+    marginTop: 24,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    backgroundColor: "#1C1C1E",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#2C2C2E",
+  },
+  journalButtonText: {
+    fontSize: 18,
     fontWeight: "600",
     color: "#FFFFFF",
   },
