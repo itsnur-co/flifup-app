@@ -277,7 +277,7 @@ export default function ProfileScreen() {
           <TouchableOpacity
             style={styles.profileCard}
             activeOpacity={0.7}
-            onPress={() => console.log("Edit Profile")}
+            onPress={() => router.push("/edit-profile")}
           >
             {user?.avatar ? (
               <Image source={{ uri: user.avatar }} style={styles.avatar} />
