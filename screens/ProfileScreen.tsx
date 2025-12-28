@@ -5,8 +5,9 @@
  */
 
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -15,6 +16,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { authService, User } from "@/services/api/auth.service";
+import { profileService } from "@/services/api/profile.service";
+import { getRefreshToken, getUserData } from "@/utils/storage";
+import { Colors } from "@/constants/colors";
 // Icons
 import {
   GlobeIcon,
@@ -47,17 +52,43 @@ interface MenuItem {
   isLogout?: boolean;
 }
 
-// Mock user data
-const USER = {
-  name: "Guy Hallen",
-  avatar:
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=faces",
-};
-
 export default function ProfileScreen() {
   const router = useRouter();
 
+  const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState("English");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      setIsLoading(true);
+
+      // Get user data from local storage
+      const localUser = await getUserData();
+      if (localUser) {
+        setUser(localUser);
+      }
+
+      // TODO: Uncomment when backend profile endpoint is ready
+      // Then fetch fresh data from API
+      // const response = await profileService.getProfile();
+      // if (response.data && !response.error) {
+      //   setUser(response.data);
+      // } else if (response.error) {
+      //   console.error("Failed to fetch profile:", response.error);
+      // }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle tab navigation
   const handleTabPress = (tab: TabName) => {
@@ -84,9 +115,34 @@ export default function ProfileScreen() {
       {
         text: "Logout",
         style: "destructive",
-        onPress: () => {
-          // Handle logout logic
-          console.log("Logout");
+        onPress: async () => {
+          setIsLoggingOut(true);
+          try {
+            const refreshToken = await getRefreshToken();
+
+            if (!refreshToken) {
+              // No refresh token, just clear storage and navigate
+              await authService.logout("");
+              router.replace("/auth/login");
+              return;
+            }
+
+            // Call logout API
+            const response = await authService.logout(refreshToken);
+
+            if (response.error) {
+              Alert.alert("Error", response.error);
+              setIsLoggingOut(false);
+              return;
+            }
+
+            // Navigate to login screen
+            router.replace("/auth/login");
+          } catch (error) {
+            console.error("Logout error:", error);
+            Alert.alert("Error", "Failed to logout. Please try again.");
+            setIsLoggingOut(false);
+          }
         },
       },
     ]);
@@ -181,6 +237,14 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Loading Overlay */}
+      {isLoggingOut && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Logging out...</Text>
+        </View>
+      )}
+
       {/* Header */}
       <ScreenHeader
         title="Profile"
@@ -204,15 +268,30 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* User Profile Card */}
-        <TouchableOpacity
-          style={styles.profileCard}
-          activeOpacity={0.7}
-          onPress={() => console.log("Edit Profile")}
-        >
-          <Image source={{ uri: USER.avatar }} style={styles.avatar} />
-          <Text style={styles.userName}>{USER.name}</Text>
-          <ChevronRightIcon size={24} color="#6B7280" />
-        </TouchableOpacity>
+        {isLoading ? (
+          <View style={styles.profileCard}>
+            <ActivityIndicator size="small" color={Colors.primary} />
+            <Text style={styles.loadingProfileText}>Loading profile...</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.profileCard}
+            activeOpacity={0.7}
+            onPress={() => console.log("Edit Profile")}
+          >
+            {user?.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Text style={styles.avatarPlaceholderText}>
+                  {user?.fullName?.charAt(0).toUpperCase() || "U"}
+                </Text>
+              </View>
+            )}
+            <Text style={styles.userName}>{user?.fullName || "User"}</Text>
+            <ChevronRightIcon size={24} color="#6B7280" />
+          </TouchableOpacity>
+        )}
 
         {/* General Section */}
         <View style={styles.section}>
@@ -299,6 +378,21 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
   },
+  avatarPlaceholder: {
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarPlaceholderText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  loadingProfileText: {
+    fontSize: 15,
+    color: "#8E8E93",
+    marginLeft: 12,
+  },
   userName: {
     flex: 1,
     fontSize: 18,
@@ -375,5 +469,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
     color: "#E50000",
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#FFFFFF",
+    fontWeight: "500",
   },
 });

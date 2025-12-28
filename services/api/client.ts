@@ -4,7 +4,7 @@
  */
 
 import { API_CONFIG } from './config';
-import { getAccessToken, getRefreshToken, removeTokens, setTokens } from '@/utils/storage';
+import { getAccessToken } from '@/utils/storage';
 
 export interface ApiResponse<T = any> {
   data?: T;
@@ -123,6 +123,25 @@ class HttpClient {
   ): Promise<ApiResponse<T>> {
     const options: RequestInit = {
       method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    };
+
+    if (authenticated) {
+      return this.authenticatedRequest<T>(endpoint, options);
+    }
+    return this.request<T>(endpoint, options);
+  }
+
+  /**
+   * PATCH request
+   */
+  async patch<T>(
+    endpoint: string,
+    body?: any,
+    authenticated = false
+  ): Promise<ApiResponse<T>> {
+    const options: RequestInit = {
+      method: 'PATCH',
       body: body ? JSON.stringify(body) : undefined,
     };
 

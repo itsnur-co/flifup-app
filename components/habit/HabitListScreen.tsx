@@ -1,12 +1,20 @@
 /**
  * Habit List Screen
  * Main screen for viewing and managing habits
+ * Integrated with API services
  */
 
 import React, { useCallback, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSound } from "@/hooks";
+import { useSound, useHabits } from "@/hooks";
 
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
@@ -29,12 +37,7 @@ import {
   SetReminderSheet,
 } from "@/components/shared";
 
-import {
-  MOCK_HABITS,
-  MOCK_HABIT_CATEGORIES,
-  getCategoryFilterCounts,
-  getHabitsByStatus,
-} from "@/constants/habitMockData";
+import { Colors } from "@/constants/colors";
 import {
   Habit,
   HabitCategory,
@@ -42,11 +45,62 @@ import {
   HabitGoal,
   RepeatConfig,
 } from "@/types/habit";
+import { HabitApi, CreateHabitRequest, HabitCategoryApi } from "@/services/api/habit.service";
 
 interface HabitListScreenProps {
   onBack?: () => void;
   onNavigateToProgress?: (habit?: Habit) => void;
 }
+
+// Helper to convert API habit to local habit type
+const mapApiHabitToLocal = (apiHabit: HabitApi): Habit => {
+  return {
+    id: apiHabit.id,
+    name: apiHabit.name,
+    repeat: {
+      type: apiHabit.repeatType.toLowerCase() as 'daily' | 'monthly' | 'interval',
+      days: apiHabit.repeatDays,
+      interval: apiHabit.repeatInterval,
+    },
+    startDate: new Date(apiHabit.startDate),
+    goal: apiHabit.goalValue ? {
+      value: apiHabit.goalValue,
+      unit: apiHabit.goalUnit || 'COUNT',
+      frequency: apiHabit.goalFrequency || 'PER_DAY',
+    } : undefined,
+    category: apiHabit.category ? {
+      id: apiHabit.category.id,
+      name: apiHabit.category.name,
+      icon: apiHabit.category.icon || '📌',
+      color: apiHabit.category.color || '#9039FF',
+    } : undefined,
+    reminder: apiHabit.reminderTime || undefined,
+    comment: apiHabit.comment || undefined,
+    completed: apiHabit.isCompletedToday || false,
+    completedDates: apiHabit.completions?.map(c => c.date.split('T')[0]) || [],
+    createdAt: new Date(apiHabit.createdAt),
+    updatedAt: new Date(apiHabit.updatedAt),
+  };
+};
+
+// Helper to convert local form to API request
+const mapFormToApiRequest = (form: HabitFormState): CreateHabitRequest => {
+  return {
+    name: form.name,
+    description: form.comment || undefined,
+    repeatType: (form.repeat?.type?.toUpperCase() || 'DAILY') as 'DAILY' | 'MONTHLY' | 'INTERVAL',
+    repeatDays: form.repeat?.days || [],
+    repeatInterval: form.repeat?.interval,
+    startDate: form.startDate?.toISOString() || new Date().toISOString(),
+    goalValue: form.goal?.value,
+    goalUnit: form.goal?.unit as any,
+    goalFrequency: form.goal?.frequency as any,
+    categoryId: form.category?.id,
+    reminderTime: form.reminder || undefined,
+    comment: form.comment,
+    status: 'ACTIVE',
+  };
+};
 
 export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   onBack,
@@ -55,10 +109,41 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const insets = useSafeAreaInsets();
   const { playCompletionSound } = useSound();
 
-  // Habit State
-  const [habits, setHabits] = useState<Habit[]>(MOCK_HABITS);
+  // API Hook
+  const {
+    todayHabits: apiTodayHabits,
+    categories: apiCategories,
+    isLoading,
+    isCreating,
+    isDeleting,
+    isCompleting,
+    error,
+    createHabit,
+    deleteHabit,
+    toggleHabitCompletion,
+    createCategory,
+    refresh,
+  } = useHabits({ autoFetch: true });
+
+  // Map API habits to local format
+  const habits = useMemo(() => {
+    return apiTodayHabits.map(mapApiHabitToLocal);
+  }, [apiTodayHabits]);
+
+  // Map API categories to local format
+  const categories: HabitCategory[] = useMemo(() => {
+    return apiCategories.map((c: HabitCategoryApi) => ({
+      id: c.id,
+      name: c.name,
+      icon: c.icon || '📌',
+      color: c.color || '#9039FF',
+    }));
+  }, [apiCategories]);
+
+  // Local state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // FAB compact state while scrolling
   const [isFabCompact, setIsFabCompact] = useState(false);
@@ -88,31 +173,45 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
 
   // Category filter data
   const categoryFilters = useMemo(() => {
-    const counts = getCategoryFilterCounts(habits);
+    const counts: Record<string, number> = { all: habits.length };
+    
+    habits.forEach((habit) => {
+      if (habit.category?.name) {
+        counts[habit.category.name] = (counts[habit.category.name] || 0) + 1;
+      }
+    });
+
     const filters = [{ id: "all", name: "All Habits", count: counts.all || 0 }];
 
-    MOCK_HABIT_CATEGORIES.forEach((cat) => {
+    categories.forEach((cat) => {
       if (counts[cat.name]) {
         filters.push({ id: cat.id, name: cat.name, count: counts[cat.name] });
       }
     });
 
     return filters;
-  }, [habits]);
+  }, [habits, categories]);
 
-  // Filtered habits
+  // Filtered habits by category
   const filteredHabits = useMemo(() => {
     if (selectedCategory === "all") return habits;
-    const category = MOCK_HABIT_CATEGORIES.find(
-      (c) => c.id === selectedCategory
-    );
+    const category = categories.find((c) => c.id === selectedCategory);
     if (!category) return habits;
     return habits.filter((h) => h.category?.name === category.name);
-  }, [habits, selectedCategory]);
+  }, [habits, selectedCategory, categories]);
 
-  // Group habits by status
-  const { today: todayHabits, completed: completedHabits } = useMemo(() => {
-    return getHabitsByStatus(filteredHabits, selectedDate);
+  // Group habits by completion status
+  const { todayHabits, completedHabits } = useMemo(() => {
+    const dateStr = selectedDate.toISOString().split("T")[0];
+    
+    const today = filteredHabits.filter(
+      (h) => !h.completedDates.includes(dateStr)
+    );
+    const completed = filteredHabits.filter((h) =>
+      h.completedDates.includes(dateStr)
+    );
+
+    return { todayHabits: today, completedHabits: completed };
   }, [filteredHabits, selectedDate]);
 
   // Handlers
@@ -120,25 +219,15 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setSelectedDate(date);
   }, []);
 
-  const handleCreateHabit = useCallback((formState: HabitFormState) => {
-    const newHabit: Habit = {
-      id: Date.now().toString(),
-      name: formState.name,
-      repeat: formState.repeat,
-      startDate: formState.startDate,
-      goal: formState.goal,
-      category: formState.category,
-      reminder: formState.reminder,
-      comment: formState.comment,
-      completed: false,
-      completedDates: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    setHabits((prev) => [newHabit, ...prev]);
-    resetFormState();
-  }, []);
+  const handleCreateHabit = useCallback(async (formState: HabitFormState) => {
+    const apiRequest = mapFormToApiRequest(formState);
+    const result = await createHabit(apiRequest);
+    
+    if (result) {
+      resetFormState();
+      setShowCreateSheet(false);
+    }
+  }, [createHabit]);
 
   const resetFormState = () => {
     setFormRepeat(undefined);
@@ -149,33 +238,18 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   };
 
   const handleToggleHabit = useCallback(
-    (habit: Habit) => {
-      const dateStr = selectedDate.toISOString().split("T")[0];
-      const isCompleting = !habit.completedDates.includes(dateStr);
-
-      setHabits((prev) =>
-        prev.map((h) => {
-          if (h.id !== habit.id) return h;
-
-          const isCompleted = h.completedDates.includes(dateStr);
-          const newCompletedDates = isCompleted
-            ? h.completedDates.filter((d) => d !== dateStr)
-            : [...h.completedDates, dateStr];
-
-          return {
-            ...h,
-            completedDates: newCompletedDates,
-            updatedAt: new Date(),
-          };
-        })
+    async (habit: Habit) => {
+      const wasCompleted = habit.completedDates.includes(
+        selectedDate.toISOString().split("T")[0]
       );
 
-      // Play sound only when completing a habit (not when uncompleting)
-      if (isCompleting) {
+      const success = await toggleHabitCompletion(habit.id);
+      
+      if (success && !wasCompleted) {
         playCompletionSound();
       }
     },
-    [selectedDate, playCompletionSound]
+    [selectedDate, toggleHabitCompletion, playCompletionSound]
   );
 
   const handleHabitMore = useCallback((habit: Habit) => {
@@ -192,10 +266,14 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setShowCreateSheet(true);
   }, [selectedHabit]);
 
-  const handleDeleteHabit = useCallback(() => {
+  const handleDeleteHabit = useCallback(async () => {
     if (!selectedHabit) return;
-    setHabits((prev) => prev.filter((h) => h.id !== selectedHabit.id));
-  }, [selectedHabit]);
+    const success = await deleteHabit(selectedHabit.id);
+    if (success) {
+      setSelectedHabit(null);
+      setShowOptionsSheet(false);
+    }
+  }, [selectedHabit, deleteHabit]);
 
   const handleHabitProgress = useCallback(() => {
     if (!selectedHabit) return;
@@ -238,6 +316,40 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setShowReminderSheet(true);
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refresh();
+    setIsRefreshing(false);
+  }, [refresh]);
+
+  const handleCategorySelect = useCallback(async (category: HabitCategory) => {
+    const exists = categories.find((c) => c.name === category.name);
+    if (!exists) {
+      await createCategory(category.name, category.icon, category.color);
+    }
+    setFormCategory(category);
+    setShowCategorySheet(false);
+  }, [categories, createCategory]);
+
+  // Loading state for initial load
+  if (isLoading && habits.length === 0) {
+    return (
+      <View style={styles.container}>
+        <ScreenHeader
+          title="Habit List"
+          onBack={onBack}
+          hideBackButton={!onBack}
+          rightIcon="more-horizontal"
+          onRightPress={() => setShowHeaderOptions(true)}
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading habits...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -265,6 +377,13 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         onAddCategory={() => setShowCategorySheet(true)}
       />
 
+      {/* Error Message */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
       {/* Habit List */}
       <ScrollView
         style={styles.scrollView}
@@ -274,14 +393,20 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         ]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
         onScroll={() => {
-          // mark compact while scrolling
           if (scrollDebounceRef.current) {
             clearTimeout(scrollDebounceRef.current);
           }
           if (!isFabCompact) setIsFabCompact(true);
-          // when user stops scrolling for 300ms, expand FAB
-          // @ts-ignore - window.setTimeout returns number in RN
+          // @ts-ignore
           scrollDebounceRef.current = window.setTimeout(() => {
             setIsFabCompact(false);
             scrollDebounceRef.current = null;
@@ -310,6 +435,16 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
             onHabitToggle={handleToggleHabit}
             onHabitMore={handleHabitMore}
           />
+        )}
+
+        {/* Empty State */}
+        {habits.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No habits yet</Text>
+            <Text style={styles.emptySubtext}>
+              Create your first habit to start building good routines
+            </Text>
+          </View>
         )}
       </ScrollView>
 
@@ -376,9 +511,9 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       <AddCategorySheet
         visible={showCategorySheet}
         onClose={() => setShowCategorySheet(false)}
-        onSelectCategory={(category) => setFormCategory(category)}
+        onSelectCategory={handleCategorySelect}
         selectedCategory={formCategory}
-        categories={MOCK_HABIT_CATEGORIES}
+        categories={categories}
       />
 
       {/* Habit Edit Modal */}
@@ -418,6 +553,20 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         onClose={() => setShowCustomHoursSheet(false)}
         onAddHours={handleAddCustomHours}
       />
+
+      {/* Operation Loading Overlay */}
+      {(isCreating || isDeleting || isCompleting) && (
+        <View style={styles.operationOverlay}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.operationText}>
+            {isCreating
+              ? "Creating habit..."
+              : isDeleting
+              ? "Deleting habit..."
+              : "Updating..."}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -444,6 +593,58 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#8E8E93",
+  },
+  errorContainer: {
+    marginHorizontal: 20,
+    marginVertical: 8,
+    padding: 12,
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.3)",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#EF4444",
+    textAlign: "center",
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: "#8E8E93",
+    textAlign: "center",
+  },
+  operationOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+    zIndex: 10000,
+  },
+  operationText: {
+    fontSize: 16,
+    color: "#FFFFFF",
   },
 });
 

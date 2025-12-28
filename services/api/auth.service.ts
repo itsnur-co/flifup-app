@@ -11,6 +11,7 @@ export interface User {
   id: string;
   fullName: string;
   email: string;
+  avatar?: string;
   isActive?: boolean;
   createdAt: string;
 }
@@ -115,7 +116,10 @@ class AuthService {
   async refreshToken(
     data: RefreshTokenRequest
   ): Promise<ApiResponse<{ accessToken: string; refreshToken: string; expiresIn: number }>> {
-    const response = await httpClient.post(API_ENDPOINTS.AUTH.REFRESH, data);
+    const response = await httpClient.post<{ accessToken: string; refreshToken: string; expiresIn: number }>(
+      API_ENDPOINTS.AUTH.REFRESH,
+      data
+    );
 
     // Update tokens on successful refresh
     if (response.data && !response.error) {
@@ -130,9 +134,10 @@ class AuthService {
    * Invalidates refresh token
    */
   async logout(refreshToken: string): Promise<ApiResponse<{ message: string }>> {
-    const response = await httpClient.post(API_ENDPOINTS.AUTH.LOGOUT, {
-      refreshToken,
-    });
+    const response = await httpClient.post<{ message: string }>(
+      API_ENDPOINTS.AUTH.LOGOUT,
+      { refreshToken }
+    );
 
     // Clear local storage
     await removeTokens();
@@ -146,7 +151,7 @@ class AuthService {
    * Invalidates all refresh tokens for the user
    */
   async logoutAll(): Promise<ApiResponse<{ message: string }>> {
-    const response = await httpClient.post(
+    const response = await httpClient.post<{ message: string }>(
       API_ENDPOINTS.AUTH.LOGOUT_ALL,
       {},
       true // authenticated

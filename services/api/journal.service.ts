@@ -69,7 +69,7 @@ export const journalService = {
     id: string,
     data: UpdateJournalRequest
   ): Promise<ApiResponse<Journal>> {
-    return httpClient.put<Journal>(`/journals/${id}`, data, true);
+    return httpClient.patch<Journal>(`/journals/${id}`, data, true);
   },
 
   /**
@@ -106,7 +106,7 @@ export const journalService = {
     id: string,
     data: UpdateCategoryRequest
   ): Promise<ApiResponse<JournalCategory>> {
-    return httpClient.put<JournalCategory>(
+    return httpClient.patch<JournalCategory>(
       `/journals/categories/${id}`,
       data,
       true
