@@ -4,19 +4,18 @@
  */
 
 import { httpClient, ApiResponse } from './client';
+import { API_CONFIG } from './config';
 import { User } from './auth.service';
-import { setUserData } from '@/utils/storage';
+import { setUserData, getAccessToken } from '@/utils/storage';
 
 export interface UpdateProfileRequest {
   fullName?: string;
   email?: string;
-  avatar?: string;
 }
 
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
-  confirmPassword: string;
 }
 
 class ProfileService {
@@ -24,20 +23,20 @@ class ProfileService {
    * Get Current User Profile
    * Fetches the authenticated user's profile data
    */
-  async getProfile(): Promise<ApiResponse<User>> {
-    return httpClient.get<User>('/users/me', true);
+  async getProfile(): Promise<ApiResponse<{ success: boolean; data: User }>> {
+    return httpClient.get<{ success: boolean; data: User }>('/profile', true);
   }
 
   /**
    * Update User Profile
-   * Updates the authenticated user's profile information
+   * Updates the authenticated user's profile information (name/email)
    */
-  async updateProfile(data: UpdateProfileRequest): Promise<ApiResponse<User>> {
-    const response = await httpClient.patch<User>('/users/me', data, true);
+  async updateProfile(data: UpdateProfileRequest): Promise<ApiResponse<{ success: boolean; message: string; data: User }>> {
+    const response = await httpClient.patch<{ success: boolean; message: string; data: User }>('/profile', data, true);
 
     // Update local storage with new user data
-    if (response.data && !response.error) {
-      await setUserData(response.data);
+    if (response.data?.data && !response.error) {
+      await setUserData(response.data.data);
     }
 
     return response;
@@ -49,19 +48,67 @@ class ProfileService {
    */
   async changePassword(
     data: ChangePasswordRequest
-  ): Promise<ApiResponse<{ message: string }>> {
-    return httpClient.patch('/users/me/password', data, true);
+  ): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return httpClient.patch('/profile/password', data, true);
   }
 
   /**
-   * Upload Avatar
-   * Uploads user avatar/profile picture
-   * Note: This would typically use multipart/form-data
+   * Upload Profile Image
+   * Uploads user profile picture using multipart/form-data
    */
-  async uploadAvatar(imageUri: string): Promise<ApiResponse<{ avatarUrl: string }>> {
-    // This is a placeholder - actual implementation would depend on your backend
-    // You might need to use FormData for file uploads
-    return httpClient.patch('/users/me/avatar', { avatar: imageUri }, true);
+  async uploadProfileImage(imageUri: string): Promise<ApiResponse<{ success: boolean; message: string; data: User }>> {
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        return { error: 'No access token found' };
+      }
+
+      // Create FormData for image upload
+      const formData = new FormData();
+
+      // Extract filename from URI
+      const filename = imageUri.split('/').pop() || 'profile.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      // @ts-ignore - React Native FormData supports this
+      formData.append('image', {
+        uri: imageUri,
+        name: filename,
+        type: type,
+      });
+
+      const url = `${API_CONFIG.BASE_URL}/profile/image`;
+
+      const fetchResponse = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+
+      const responseData = await fetchResponse.json();
+
+      if (!fetchResponse.ok) {
+        return {
+          error: responseData.message || responseData.error || 'Failed to upload image',
+          data: responseData,
+        };
+      }
+
+      // Update local storage with new user data
+      if (responseData.data) {
+        await setUserData(responseData.data);
+      }
+
+      return { data: responseData };
+    } catch (error) {
+      console.error('Upload image error:', error);
+      return {
+        error: error instanceof Error ? error.message : 'Failed to upload image',
+      };
+    }
   }
 }
 

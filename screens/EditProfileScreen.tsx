@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
 import { ScreenHeader } from "@/components/navigation";
 import { TextInput } from "@/components/inputs";
 import { Colors } from "@/constants/colors";
@@ -55,8 +56,10 @@ export default function EditProfileScreen() {
   const [user, setUser] = useState<User | null>(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -69,6 +72,7 @@ export default function EditProfileScreen() {
         setUser(userData);
         setFullName(userData.fullName || "");
         setEmail(userData.email || "");
+        setAvatarUri(userData.avatar || null);
       }
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -98,18 +102,21 @@ export default function EditProfileScreen() {
     try {
       setIsUpdating(true);
 
-      // TODO: Uncomment when backend endpoint is ready
-      // const response = await profileService.updateProfile({
-      //   fullName: fullName.trim(),
-      //   email: email.trim(),
-      // });
+      const response = await profileService.updateProfile({
+        fullName: fullName.trim(),
+        email: email.trim(),
+      });
 
-      // if (response.error) {
-      //   Alert.alert("Error", response.error);
-      //   return;
-      // }
+      if (response.error) {
+        Alert.alert("Error", response.error);
+        return;
+      }
 
-      // For now, just show success and go back
+      // Update local user state
+      if (response.data?.data) {
+        setUser(response.data.data);
+      }
+
       Alert.alert("Success", "Profile updated successfully", [
         {
           text: "OK",
@@ -124,9 +131,103 @@ export default function EditProfileScreen() {
     }
   };
 
-  const handleAvatarPress = () => {
-    // TODO: Implement image picker
-    Alert.alert("Coming Soon", "Avatar upload will be available soon!");
+  const handleAvatarPress = async () => {
+    Alert.alert(
+      "Change Profile Picture",
+      "Choose an option",
+      [
+        {
+          text: "Take Photo",
+          onPress: () => pickImage("camera"),
+        },
+        {
+          text: "Choose from Gallery",
+          onPress: () => pickImage("gallery"),
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const pickImage = async (source: "camera" | "gallery") => {
+    try {
+      // Request permissions
+      let permissionResult;
+
+      if (source === "camera") {
+        permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      } else {
+        permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
+
+      if (!permissionResult.granted) {
+        Alert.alert(
+          "Permission Required",
+          `Please grant ${source === "camera" ? "camera" : "gallery"} permission to continue.`
+        );
+        return;
+      }
+
+      // Pick image
+      const result = source === "camera"
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setAvatarUri(imageUri);
+
+        // Upload avatar immediately
+        await uploadProfileImage(imageUri);
+      }
+    } catch (error) {
+      console.error("Image picker error:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
+    }
+  };
+
+  const uploadProfileImage = async (imageUri: string) => {
+    try {
+      setIsUploadingAvatar(true);
+
+      const response = await profileService.uploadProfileImage(imageUri);
+
+      if (response.error) {
+        Alert.alert("Error", response.error);
+        // Revert avatar on error
+        setAvatarUri(user?.avatar || null);
+        return;
+      }
+
+      // Update local user data with new avatar
+      if (response.data?.data) {
+        const updatedUser = response.data.data;
+        setAvatarUri(updatedUser.avatar || null);
+        setUser(updatedUser);
+        Alert.alert("Success", "Profile picture updated successfully!");
+      }
+    } catch (error) {
+      console.error("Avatar upload error:", error);
+      Alert.alert("Error", "Failed to upload profile picture. Please try again.");
+      // Revert avatar on error
+      setAvatarUri(user?.avatar || null);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   return (
@@ -159,8 +260,8 @@ export default function EditProfileScreen() {
               onPress={handleAvatarPress}
               activeOpacity={0.8}
             >
-              {user?.avatar ? (
-                <Image source={{ uri: user.avatar }} style={styles.avatar} />
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarPlaceholder]}>
                   <Text style={styles.avatarPlaceholderText}>
@@ -170,7 +271,11 @@ export default function EditProfileScreen() {
               )}
               {/* Edit Icon Badge */}
               <View style={styles.editBadge}>
-                <EditIcon size={18} color="#FFFFFF" />
+                {isUploadingAvatar ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <EditIcon size={18} color="#FFFFFF" />
+                )}
               </View>
             </TouchableOpacity>
           </View>
