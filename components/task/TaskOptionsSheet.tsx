@@ -1,15 +1,16 @@
 /**
  * Task Options Bottom Sheet Component
- * Edit and Delete task options modal
+ * Edit, Delete, Set Focus, and Reports options modal
  * Matches Figma design exactly
  */
 
-import { EditIcon, TrashIcon } from "@/components/icons/TaskIcons";
+import { EditIcon, TrashIcon, FocusIcon, ChartIcon } from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Task } from "@/types/task";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Colors } from "@/constants/colors";
 
 interface TaskOptionsSheetProps {
   visible: boolean;
@@ -17,6 +18,8 @@ interface TaskOptionsSheetProps {
   task: Task | null;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  onSetFocus?: (task: Task) => void;
+  onViewReports?: () => void;
 }
 
 export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
@@ -25,6 +28,8 @@ export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
   task,
   onEdit,
   onDelete,
+  onSetFocus,
+  onViewReports,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -40,6 +45,20 @@ export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
     onClose();
   };
 
+  const handleSetFocus = () => {
+    if (onSetFocus) {
+      onSetFocus(task);
+      onClose();
+    }
+  };
+
+  const handleViewReports = () => {
+    if (onViewReports) {
+      onViewReports();
+      onClose();
+    }
+  };
+
   return (
     <BottomSheet
       visible={visible}
@@ -51,6 +70,21 @@ export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
       <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
         {/* Options */}
         <View style={styles.optionsContainer}>
+          {/* Set Focus Option */}
+          {onSetFocus && task.status !== "COMPLETED" && (
+            <>
+              <TouchableOpacity
+                style={styles.optionItem}
+                onPress={handleSetFocus}
+                activeOpacity={0.7}
+              >
+                <FocusIcon size={22} color={Colors.primary} />
+                <Text style={styles.optionText}>Set Focus</Text>
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </>
+          )}
+
           {/* Edit Option */}
           <TouchableOpacity
             style={styles.optionItem}
@@ -70,10 +104,24 @@ export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
             onPress={handleDelete}
             activeOpacity={0.7}
           >
-            <TrashIcon size={22} color="#FFFFFF" />
-            <Text style={styles.optionText}>Delete Task</Text>
+            <TrashIcon size={22} color="#EF4444" />
+            <Text style={[styles.optionText, { color: "#EF4444" }]}>Delete Task</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Reports Option - Separate Section */}
+        {onViewReports && (
+          <View style={styles.optionsContainer}>
+            <TouchableOpacity
+              style={styles.optionItem}
+              onPress={handleViewReports}
+              activeOpacity={0.7}
+            >
+              <ChartIcon size={22} color={Colors.primary} />
+              <Text style={styles.optionText}>View Reports</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Cancel Button */}
         <TouchableOpacity

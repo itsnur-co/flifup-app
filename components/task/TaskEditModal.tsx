@@ -4,7 +4,7 @@
  * Matches Figma design exactly
  */
 
-import { EditIcon, TrashIcon } from "@/components/icons/TaskIcons";
+import { EditIcon, FocusIcon, TrashIcon } from "@/components/icons/TaskIcons";
 import { Colors } from "@/constants/colors";
 import React from "react";
 import {
@@ -21,6 +21,7 @@ interface TaskEditModalProps {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onSetFocus?: () => void;
 }
 
 export const TaskEditModal: React.FC<TaskEditModalProps> = ({
@@ -28,6 +29,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
   onClose,
   onEdit,
   onDelete,
+  onSetFocus,
 }) => {
   const handleEdit = () => {
     onEdit();
@@ -37,6 +39,13 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
   const handleDelete = () => {
     onDelete();
     onClose();
+  };
+
+  const handleSetFocus = () => {
+    if (onSetFocus) {
+      onSetFocus();
+      onClose();
+    }
   };
 
   return (
@@ -51,6 +60,18 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
         <View style={styles.modalContainer}>
+          {/* Set Focus Option */}
+          {onSetFocus && (
+            <TouchableOpacity
+              style={styles.option}
+              onPress={handleSetFocus}
+              activeOpacity={0.7}
+            >
+              <FocusIcon size={22} color={Colors.primary} />
+              <Text style={styles.optionText}>Set Focus</Text>
+            </TouchableOpacity>
+          )}
+
           {/* Edit Option */}
           <TouchableOpacity
             style={styles.option}

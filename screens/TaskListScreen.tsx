@@ -33,7 +33,9 @@ import {
   AddPeopleSheet,
   AddTimeSheet,
   CreateTaskSheet,
+  SetFocusDurationSheet,
   TaskEditModal,
+  TaskHeaderOptionsSheet,
   TaskSection,
 } from "@/components/task";
 
@@ -169,6 +171,8 @@ export const TaskListScreen: React.FC = () => {
   const [isAddCategoryVisible, setIsAddCategoryVisible] = useState(false);
   const [isAddPeopleVisible, setIsAddPeopleVisible] = useState(false);
   const [isTaskOptionsVisible, setIsTaskOptionsVisible] = useState(false);
+  const [isSetFocusVisible, setIsSetFocusVisible] = useState(false);
+  const [isHeaderOptionsVisible, setIsHeaderOptionsVisible] = useState(false);
   const [isRepeatVisible, setIsRepeatVisible] = useState(false);
   const [isSetReminderVisible, setIsSetReminderVisible] = useState(false);
   const [isAddCustomMinutesVisible, setIsAddCustomMinutesVisible] =
@@ -241,6 +245,12 @@ export const TaskListScreen: React.FC = () => {
   const handleTaskMore = useCallback((task: LocalTask) => {
     setSelectedTask(task);
     setIsTaskOptionsVisible(true);
+  }, []);
+
+  const handleSetFocusFromModal = useCallback(() => {
+    // Open Set Focus sheet for selectedTask
+    setIsTaskOptionsVisible(false);
+    setIsSetFocusVisible(true);
   }, []);
 
   const handleEditTask = useCallback(() => {
@@ -349,7 +359,11 @@ export const TaskListScreen: React.FC = () => {
   if (isLoading && todayTasks.length === 0) {
     return (
       <View style={styles.container}>
-        <ScreenHeader title="Task List" onBack={() => router.back()} />
+        <ScreenHeader
+          title="Task List"
+          onBack={() => router.back()}
+          onRightPress={() => setIsHeaderOptionsVisible(true)}
+        />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Loading tasks...</Text>
@@ -361,7 +375,11 @@ export const TaskListScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <ScreenHeader title="Task List" onBack={() => router.back()} />
+      <ScreenHeader
+        title="Task List"
+        onBack={() => router.back()}
+        onRightPress={() => setIsHeaderOptionsVisible(true)}
+      />
 
       {/* Calendar */}
       <WeekCalendar
@@ -544,6 +562,35 @@ export const TaskListScreen: React.FC = () => {
         onClose={() => setIsTaskOptionsVisible(false)}
         onEdit={handleEditTask}
         onDelete={handleDeleteTask}
+        onSetFocus={handleSetFocusFromModal}
+      />
+
+      {/* Set Focus Duration Sheet (opens when user chooses Set Focus) */}
+      <SetFocusDurationSheet
+        visible={isSetFocusVisible}
+        onClose={() => setIsSetFocusVisible(false)}
+        onStart={(durationMinutes) => {
+          // navigate to focus route with params
+          const taskId = selectedTask?.id || "";
+          const taskTitle = selectedTask?.title || "Focus Session";
+          setIsSetFocusVisible(false);
+          setSelectedTask(null);
+          router.push({
+            pathname: "/focus",
+            params: { taskId, taskTitle, duration: String(durationMinutes) },
+          });
+        }}
+        taskTitle={selectedTask?.title || ""}
+      />
+
+      {/* Header options sheet (Task Progress) */}
+      <TaskHeaderOptionsSheet
+        visible={isHeaderOptionsVisible}
+        onClose={() => setIsHeaderOptionsVisible(false)}
+        onViewReports={() => {
+          setIsHeaderOptionsVisible(false);
+          router.push("/task-progress");
+        }}
       />
 
       {/* Set Reminder Bottom Sheet */}

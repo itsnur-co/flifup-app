@@ -9,3 +9,4 @@ export { useSound } from "./useSound";
 export { useHabits } from "./useHabits";
 export { useJournals } from "./useJournals";
 export { useTasks } from "./useTasks";
+export { useFocus } from './useFocus';

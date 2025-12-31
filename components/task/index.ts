@@ -12,3 +12,12 @@ export { TaskDetailsScreen } from "./TaskDetailsScreen";
 export { TaskEditModal } from "./TaskEditModal";
 export { TaskOptionsSheet } from "./TaskOptionsSheet";
 export { TaskSection } from "./TaskSection";
+
+// Focus Mode components
+export { FocusModeScreen } from "./FocusModeScreen";
+export { FocusAddTimeSheet } from "./FocusAddTimeSheet";
+export { SetFocusDurationSheet } from "./SetFocusDurationSheet";
+
+// Reports & Progress components
+export { TaskProgressScreen } from "./TaskProgressScreen";
+export { TaskHeaderOptionsSheet } from "./TaskHeaderOptionsSheet";
