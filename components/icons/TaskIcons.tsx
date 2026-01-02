@@ -1,10 +1,37 @@
 /**
  * Custom SVG Icons for Task Feature
  * Matching Figma design exactly
+ * Includes both inline SVG and imported SVG file icons
  */
 
 import React from "react";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
+
+// Import SVG files from assets
+import AddLineSVG from "@/assets/svg/add-line.svg";
+import AlarmLineSVG from "@/assets/svg/alarm-line.svg";
+import AlignLeftSVG from "@/assets/svg/align-left.svg";
+import CalendarLineSVG from "@/assets/svg/calendar-line.svg";
+import Calendar2LineSVG from "@/assets/svg/calendar-2-line.svg";
+import DeleteBinSVG from "@/assets/svg/delete-bin-line.svg";
+import DotSVG from "@/assets/svg/dot.svg";
+import FlagSVG from "@/assets/svg/flag.svg";
+import FocusSVG from "@/assets/svg/focus-2-line.svg";
+import FocusWhiteSVG from "@/assets/svg/focus-white-icon.svg";
+import LaterWeekSVG from "@/assets/svg/later-week.svg";
+import NextSVG from "@/assets/svg/next.svg";
+import NotificationSVG from "@/assets/svg/notification.svg";
+import PauseSVG from "@/assets/svg/pause.svg";
+import PriceTagSVG from "@/assets/svg/price-tag-3-line.svg";
+import RepeatSVG from "@/assets/svg/repeat.svg";
+import RoadLineSVG from "@/assets/svg/road-line.svg";
+import SofaLineSVG from "@/assets/svg/sofa-line.svg";
+import StopSVG from "@/assets/svg/stop.svg";
+import SunSVG from "@/assets/svg/sun.svg";
+import ThreeDotSVG from "@/assets/svg/three-dot.svg";
+import TimeLineSVG from "@/assets/svg/time-line.svg";
+import TimerSVG from "@/assets/svg/timer.svg";
+import UserAddLineSVG from "@/assets/svg/user-add-line (1).svg";
 
 interface IconProps {
   size?: number;
@@ -475,6 +502,12 @@ export const FocusIcon: React.FC<IconProps> = ({
   </Svg>
 );
 
+// Focus White icon (from SVG file) - concentric circles target icon
+export const FocusWhiteIcon: React.FC<IconProps> = ({
+  size = 20,
+  color = "#FFFFFF",
+}) => <FocusWhiteSVG width={size} height={size} fill={color} />;
+
 // Pause icon
 export const PauseIcon: React.FC<IconProps> = ({
   size = 24,
@@ -499,7 +532,7 @@ export const PlayIcon: React.FC<IconProps> = ({
   </Svg>
 );
 
-// Stop icon
+// Stop icon (inline)
 export const StopIcon: React.FC<IconProps> = ({
   size = 24,
   color = "#FFFFFF",
@@ -508,6 +541,24 @@ export const StopIcon: React.FC<IconProps> = ({
     <Rect x="6" y="6" width="12" height="12" rx="2" fill={color} />
   </Svg>
 );
+
+// Pause icon (from SVG file)
+export const PauseLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => <PauseSVG width={size} height={size} fill={color} />;
+
+// Stop icon (from SVG file)
+export const StopLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => <StopSVG width={size} height={size} fill={color} />;
+
+// Timer icon (from SVG file)
+export const TimerLineIcon: React.FC<IconProps> = ({
+  size = 20,
+  color = "#FFFFFF",
+}) => <TimerSVG width={size} height={size} fill={color} />;
 
 // Chart/Report icon
 export const ChartIcon: React.FC<IconProps> = ({
@@ -673,7 +724,156 @@ export const MoreVerticalIcon: React.FC<IconProps> = ({
   </Svg>
 );
 
+// Undo/Revert icon
+export const UndoIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M3 7V13H9"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M21 17C21 15.1435 20.2625 13.363 18.9497 12.0503C17.637 10.7375 15.8565 10 14 10H3"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// ============================================
+// SVG File-Based Icons
+// Icons imported from assets/svg folder
+// ============================================
+
+// Alarm/Bell icon (from SVG file)
+export const AlarmLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <AlarmLineSVG width={size} height={size} fill={color} />;
+
+// Calendar icon (from SVG file)
+export const CalendarLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <CalendarLineSVG width={size} height={size} fill={color} />;
+
+// Time/Clock icon (from SVG file)
+export const TimeLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <TimeLineSVG width={size} height={size} fill={color} />;
+
+// Price Tag icon (from SVG file)
+export const PriceTagLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <PriceTagSVG width={size} height={size} fill={color} />;
+
+// Align Left / Description icon (from SVG file)
+export const AlignLeftIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <AlignLeftSVG width={size} height={size} fill={color} />;
+
+// Delete/Trash icon (from SVG file)
+export const DeleteBinIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => <DeleteBinSVG width={size} height={size} fill={color} />;
+
+// Add/Plus icon (from SVG file)
+export const AddLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <AddLineSVG width={size} height={size} fill={color} />;
+
+// Sun icon (from SVG file)
+export const SunLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#F59E0B",
+}) => <SunSVG width={size} height={size} fill={color} />;
+
+// Sofa/Couch icon (from SVG file)
+export const SofaLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#3B82F6",
+}) => <SofaLineSVG width={size} height={size} fill={color} />;
+
+// Next/Arrow Right icon (from SVG file)
+export const NextIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <NextSVG width={size} height={size} fill={color} />;
+
+// Focus/Timer icon (from SVG file)
+export const FocusLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <FocusSVG width={size} height={size} fill={color} />;
+
+// Three Dots / More icon (from SVG file)
+export const ThreeDotIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => <ThreeDotSVG width={size} height={size} fill={color} />;
+
+// Flag/Priority icon (from SVG file)
+export const FlagIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <FlagSVG width={size} height={size} fill={color} />;
+
+// Later This Week icon (from SVG file)
+export const LaterWeekIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <LaterWeekSVG width={size} height={size} fill={color} />;
+
+// Notification icon (from SVG file)
+export const NotificationLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#FFFFFF",
+}) => <NotificationSVG width={size} height={size} stroke={color} />;
+
+// User Add / People icon (from SVG file)
+export const UserAddLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <UserAddLineSVG width={size} height={size} fill={color} />;
+
+// Dot / Circle icon (from SVG file)
+export const DotIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <DotSVG width={size} height={size} fill={color} />;
+
+// Road icon (from SVG file)
+export const RoadLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <RoadLineSVG width={size} height={size} fill={color} />;
+
+// Repeat icon (from SVG file)
+export const RepeatLineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <RepeatSVG width={size} height={size} fill={color} />;
+
+// Calendar 2 icon (from SVG file)
+export const Calendar2LineIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <Calendar2LineSVG width={size} height={size} fill={color} />;
+
 export default {
+  // Inline SVG Icons
   CircleIcon,
   CircleCheckIcon,
   DescriptionIcon,
@@ -696,9 +896,13 @@ export default {
   SearchIcon,
   CheckIcon,
   FocusIcon,
+  FocusWhiteIcon,
   PauseIcon,
+  PauseLineIcon,
   PlayIcon,
   StopIcon,
+  StopLineIcon,
+  TimerLineIcon,
   ChartIcon,
   TrophyIcon,
   TargetIcon,
@@ -706,4 +910,26 @@ export default {
   CloseIcon,
   BackIcon,
   MoreVerticalIcon,
+  UndoIcon,
+  // SVG File Icons
+  AlarmLineIcon,
+  CalendarLineIcon,
+  Calendar2LineIcon,
+  TimeLineIcon,
+  PriceTagLineIcon,
+  AlignLeftIcon,
+  DeleteBinIcon,
+  AddLineIcon,
+  SunLineIcon,
+  SofaLineIcon,
+  NextIcon,
+  FocusLineIcon,
+  ThreeDotIcon,
+  FlagIcon,
+  LaterWeekIcon,
+  NotificationLineIcon,
+  UserAddLineIcon,
+  DotIcon,
+  RoadLineIcon,
+  RepeatLineIcon,
 };

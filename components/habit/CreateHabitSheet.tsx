@@ -3,12 +3,14 @@
  * Main form for creating new habits
  */
 
-import { AlarmIcon, GoalIcon, RepeatIcon } from "@/components/icons/HabitIcons";
 import {
-  CalendarIcon,
-  CircleIcon,
-  PlusIcon,
-  TagIcon,
+  AddLineIcon,
+  AlarmLineIcon,
+  CalendarLineIcon,
+  DotIcon,
+  FlagIcon,
+  PriceTagLineIcon,
+  RepeatLineIcon,
 } from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
@@ -171,7 +173,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
         >
           {/* Name Input */}
           <TouchableOpacity style={styles.formRow} activeOpacity={1}>
-            <CircleIcon size={22} color={Colors.primary} />
+            <DotIcon size={22} color={Colors.primary} />
             <TextInput
               style={styles.nameInput}
               placeholder="Name your Habit"
@@ -189,7 +191,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
             onPress={onSelectRepeat}
             activeOpacity={0.7}
           >
-            <RepeatIcon size={22} color={Colors.primary} />
+            <RepeatLineIcon size={22} color={Colors.primary} />
             <Text
               style={[
                 styles.formLabel,
@@ -206,7 +208,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
             onPress={onSelectStartDate}
             activeOpacity={0.7}
           >
-            <CalendarIcon size={22} color={Colors.primary} />
+            <CalendarLineIcon size={22} color={Colors.primary} />
             <Text
               style={[
                 styles.formLabel,
@@ -223,7 +225,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
             onPress={onSelectGoal}
             activeOpacity={0.7}
           >
-            <GoalIcon size={22} color={Colors.primary} />
+            <FlagIcon size={22} color={Colors.primary} />
             <Text
               style={[
                 styles.formLabel,
@@ -240,7 +242,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
             onPress={onSelectCategory}
             activeOpacity={0.7}
           >
-            <TagIcon size={22} color={Colors.primary} />
+            <PriceTagLineIcon size={22} color={Colors.primary} />
             <Text
               style={[
                 styles.formLabel,
@@ -257,7 +259,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
             onPress={onSetReminder}
             activeOpacity={0.7}
           >
-            <AlarmIcon size={22} color={Colors.primary} />
+            <AlarmLineIcon size={22} color={Colors.primary} />
             <Text
               style={[
                 styles.formLabel,
@@ -277,7 +279,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
               onPress={() => setShowCommentInput(true)}
               activeOpacity={0.7}
             >
-              <PlusIcon size={20} color={Colors.primary} />
+              <AddLineIcon size={20} color={Colors.primary} />
               <Text style={styles.addCommentText}>Add Comment</Text>
             </TouchableOpacity>
           ) : (

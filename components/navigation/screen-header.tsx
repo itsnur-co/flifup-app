@@ -68,6 +68,7 @@ const MoreHorizontalIcon: React.FC<{ size?: number; color?: string }> = ({
 
 interface ScreenHeaderProps {
   title: string;
+  subtitle?: string;
   onBack?: () => void;
   hideBackButton?: boolean;
   rightIcon?: React.ReactNode | "more-horizontal" | "none";
@@ -76,6 +77,7 @@ interface ScreenHeaderProps {
 
 export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   title,
+  subtitle,
   onBack,
   hideBackButton = false,
   rightIcon = "more-horizontal",
@@ -123,9 +125,24 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         )}
 
         {/* Title */}
-        <Text style={[styles.title, hideBackButton && styles.titleLeftAlign]}>
-          {title}
-        </Text>
+        <View
+          style={[
+            styles.titleContainer,
+            hideBackButton && styles.titleContainerLeft,
+          ]}
+        >
+          <Text
+            style={[styles.title, hideBackButton && styles.titleLeftAlign]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          {subtitle && (
+            <Text style={styles.subtitle} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          )}
+        </View>
 
         {/* Right Button */}
         {rightIcon !== "none" && rightIcon !== undefined ? (
@@ -184,18 +201,30 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderRadius: 22,
   },
+  titleContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  titleContainerLeft: {
+    alignItems: "flex-start",
+  },
   title: {
     fontSize: 18,
     fontWeight: "600",
     color: "#FFFFFF",
     textAlign: "center",
     letterSpacing: 0.3,
-    flex: 1,
   },
   titleLeftAlign: {
     textAlign: "left",
-    fontSize: 18,
     fontWeight: "700",
+  },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: "400",
+    color: "rgba(255, 255, 255, 0.7)",
+    marginTop: 2,
   },
   rightButton: {
     width: 44,

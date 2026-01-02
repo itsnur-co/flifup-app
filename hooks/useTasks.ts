@@ -4,20 +4,27 @@
  * Provides loading states, error handling, and optimistic updates
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  TaskMonthlyStats,
+  TaskOverviewStats,
   taskService,
+  TaskWeeklyStats,
+} from "@/services/api/task.service";
+import type {
+  CreateCategoryRequest,
+  CreateTaskRequest,
+  ReminderUnit,
   Task,
   TaskCategory,
+  TaskDetail,
+  TaskGoal,
   TaskQueryParams,
-  CreateTaskRequest,
-  UpdateTaskRequest,
+  TaskReminder,
   TaskStatus,
   TaskSubtask,
-  TaskOverviewStats,
-  TaskWeeklyStats,
-  TaskMonthlyStats,
-} from "@/services/api/task.service";
+  UpdateTaskRequest,
+} from "@/types/task";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface UseTasksOptions {
   autoFetch?: boolean;
@@ -31,9 +38,12 @@ interface UseTasksReturn {
   upcomingTasks: Task[];
   overdueTasks: Task[];
   completedTasks: Task[];
+  selectedDateTasks: Task[];
   categories: TaskCategory[];
   projects: string[];
+  goals: TaskGoal[];
   selectedTask: Task | null;
+  taskDetail: TaskDetail | null;
   overviewStats: TaskOverviewStats | null;
   weeklyStats: TaskWeeklyStats | null;
   monthlyStats: TaskMonthlyStats | null;
@@ -57,12 +67,14 @@ interface UseTasksReturn {
     totalPages: number;
   };
 
-  // Actions
+  // Task CRUD Actions
   fetchTasks: (params?: TaskQueryParams) => Promise<void>;
   fetchTodayTasks: () => Promise<void>;
   fetchUpcomingTasks: () => Promise<void>;
   fetchOverdueTasks: () => Promise<void>;
+  fetchTasksByDate: (date: Date) => Promise<void>;
   fetchTask: (id: string) => Promise<Task | null>;
+  fetchTaskDetail: (id: string) => Promise<TaskDetail | null>;
   createTask: (data: CreateTaskRequest) => Promise<Task | null>;
   updateTask: (id: string, data: UpdateTaskRequest) => Promise<Task | null>;
   deleteTask: (id: string) => Promise<boolean>;
@@ -72,16 +84,62 @@ interface UseTasksReturn {
   toggleTaskStatus: (id: string) => Promise<boolean>;
   markTaskCompleted: (id: string) => Promise<boolean>;
   markTaskTodo: (id: string) => Promise<boolean>;
+  updateTaskStatus: (id: string, status: TaskStatus) => Promise<boolean>;
 
   // Subtask actions
   addSubtask: (taskId: string, title: string) => Promise<TaskSubtask | null>;
   toggleSubtask: (taskId: string, subtaskId: string) => Promise<boolean>;
   deleteSubtask: (taskId: string, subtaskId: string) => Promise<boolean>;
+  updateSubtask: (
+    taskId: string,
+    subtaskId: string,
+    data: { title?: string; isCompleted?: boolean }
+  ) => Promise<TaskSubtask | null>;
+  reorderSubtasks: (taskId: string, orderedIds: string[]) => Promise<boolean>;
 
   // Category actions
   fetchCategories: () => Promise<void>;
-  createCategory: (name: string, icon?: string, color?: string) => Promise<TaskCategory | null>;
+  createCategory: (
+    name: string,
+    icon?: string,
+    color?: string
+  ) => Promise<TaskCategory | null>;
+  updateCategory: (
+    id: string,
+    data: Partial<CreateCategoryRequest>
+  ) => Promise<TaskCategory | null>;
   deleteCategory: (id: string) => Promise<boolean>;
+
+  // Goal actions
+  fetchGoals: (params?: {
+    isCompleted?: boolean;
+    search?: string;
+  }) => Promise<void>;
+  createGoal: (data: {
+    title: string;
+    description?: string;
+    icon?: string;
+    color?: string;
+  }) => Promise<TaskGoal | null>;
+  updateGoal: (
+    id: string,
+    data: Partial<{
+      title: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+    }>
+  ) => Promise<TaskGoal | null>;
+  deleteGoal: (id: string) => Promise<boolean>;
+
+  // Reminder actions
+  addReminder: (
+    taskId: string,
+    value: number,
+    unit: ReminderUnit
+  ) => Promise<TaskReminder | null>;
+  deleteReminder: (taskId: string, reminderId: string) => Promise<boolean>;
+  getReminders: (taskId: string) => Promise<TaskReminder[]>;
 
   // Project actions
   fetchProjects: () => Promise<void>;
@@ -104,12 +162,19 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
   const [todayTasks, setTodayTasks] = useState<Task[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<Task[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
+  const [selectedDateTasks, setSelectedDateTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<TaskCategory[]>([]);
   const [projects, setProjects] = useState<string[]>([]);
+  const [goals, setGoals] = useState<TaskGoal[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [overviewStats, setOverviewStats] = useState<TaskOverviewStats | null>(null);
+  const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
+  const [overviewStats, setOverviewStats] = useState<TaskOverviewStats | null>(
+    null
+  );
   const [weeklyStats, setWeeklyStats] = useState<TaskWeeklyStats | null>(null);
-  const [monthlyStats, setMonthlyStats] = useState<TaskMonthlyStats | null>(null);
+  const [monthlyStats, setMonthlyStats] = useState<TaskMonthlyStats | null>(
+    null
+  );
 
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
@@ -141,40 +206,66 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
   }, [tasks]);
 
   // ============================================
+  // Helper: Update task in all lists
+  // ============================================
+  const updateTaskInAllLists = useCallback((updatedTask: Task) => {
+    const updateInList = (list: Task[]) =>
+      list.map((t) => (t.id === updatedTask.id ? updatedTask : t));
+
+    setTasks(updateInList);
+    setTodayTasks(updateInList);
+    setUpcomingTasks(updateInList);
+    setOverdueTasks(updateInList);
+  }, []);
+
+  const removeTaskFromAllLists = useCallback((taskId: string) => {
+    const removeFromList = (list: Task[]) =>
+      list.filter((t) => t.id !== taskId);
+
+    setTasks(removeFromList);
+    setTodayTasks(removeFromList);
+    setUpcomingTasks(removeFromList);
+    setOverdueTasks(removeFromList);
+  }, []);
+
+  // ============================================
   // Task CRUD Operations
   // ============================================
 
-  const fetchTasks = useCallback(async (params?: TaskQueryParams) => {
-    setIsLoading(true);
-    setError(null);
+  const fetchTasks = useCallback(
+    async (params?: TaskQueryParams) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const mergedParams = { ...queryParams, ...params };
-      setQueryParams(mergedParams);
+      try {
+        const mergedParams = { ...queryParams, ...params };
+        setQueryParams(mergedParams);
 
-      const response = await taskService.getTasks(mergedParams);
+        const response = await taskService.getTasks(mergedParams);
 
-      if (response.error) {
-        setError(response.error);
-        return;
+        if (response.error) {
+          setError(response.error);
+          return;
+        }
+
+        if (response.data) {
+          setTasks(response.data.data);
+          setPagination({
+            page: response.data.meta.page,
+            limit: response.data.meta.limit,
+            total: response.data.meta.total,
+            totalPages: response.data.meta.totalPages,
+          });
+        }
+      } catch (err) {
+        setError("Failed to fetch tasks");
+        console.error("fetchTasks error:", err);
+      } finally {
+        setIsLoading(false);
       }
-
-      if (response.data) {
-        setTasks(response.data.data);
-        setPagination({
-          page: response.data.meta.page,
-          limit: response.data.meta.limit,
-          total: response.data.meta.total,
-          totalPages: response.data.meta.totalPages,
-        });
-      }
-    } catch (err) {
-      setError("Failed to fetch tasks");
-      console.error("fetchTasks error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [queryParams]);
+    },
+    [queryParams]
+  );
 
   const fetchTodayTasks = useCallback(async () => {
     setIsLoading(true);
@@ -245,6 +336,41 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     }
   }, []);
 
+  /**
+   * Fetch tasks for a specific date
+   * Uses dueDateFrom and dueDateTo filters to get tasks for that day
+   */
+  const fetchTasksByDate = useCallback(async (date: Date) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Format date as YYYY-MM-DD for API
+      const dateStr = date.toISOString().split("T")[0];
+
+      const response = await taskService.getTasks({
+        dueDateFrom: dateStr,
+        dueDateTo: dateStr,
+        sortBy: "dueDate",
+        sortOrder: "asc",
+      });
+
+      if (response.error) {
+        setError(response.error);
+        return;
+      }
+
+      if (response.data) {
+        setSelectedDateTasks(response.data.data);
+      }
+    } catch (err) {
+      setError("Failed to fetch tasks for date");
+      console.error("fetchTasksByDate error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const fetchTask = useCallback(async (id: string): Promise<Task | null> => {
     setIsLoading(true);
     setError(null);
@@ -272,6 +398,42 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     }
   }, []);
 
+  /**
+   * Fetch enhanced task detail with subtask counts and grouping
+   * Use this for the task details screen
+   */
+  const fetchTaskDetail = useCallback(
+    async (id: string): Promise<TaskDetail | null> => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await taskService.getTaskDetail(id);
+
+        if (response.error) {
+          setError(response.error);
+          return null;
+        }
+
+        if (response.data) {
+          setTaskDetail(response.data);
+          // Also set selectedTask for compatibility
+          setSelectedTask(response.data);
+          return response.data;
+        }
+
+        return null;
+      } catch (err) {
+        setError("Failed to fetch task detail");
+        console.error("fetchTaskDetail error:", err);
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   const createTask = useCallback(
     async (data: CreateTaskRequest): Promise<Task | null> => {
       setIsCreating(true);
@@ -286,7 +448,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         }
 
         if (response.data) {
-          // Add to all relevant lists
+          // Add to relevant lists
           setTasks((prev) => [response.data!, ...prev]);
           setTodayTasks((prev) => [response.data!, ...prev]);
           setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
@@ -319,13 +481,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         }
 
         if (response.data) {
-          const updateInList = (list: Task[]) =>
-            list.map((t) => (t.id === id ? response.data! : t));
-
-          setTasks(updateInList);
-          setTodayTasks(updateInList);
-          setUpcomingTasks(updateInList);
-          setOverdueTasks(updateInList);
+          updateTaskInAllLists(response.data);
 
           if (selectedTask?.id === id) {
             setSelectedTask(response.data);
@@ -343,42 +499,43 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         setIsUpdating(false);
       }
     },
-    [selectedTask]
+    [selectedTask, updateTaskInAllLists]
   );
 
-  const deleteTask = useCallback(async (id: string): Promise<boolean> => {
-    setIsDeleting(true);
-    setError(null);
+  const deleteTask = useCallback(
+    async (id: string): Promise<boolean> => {
+      setIsDeleting(true);
+      setError(null);
 
-    try {
-      const response = await taskService.deleteTask(id);
+      try {
+        const response = await taskService.deleteTask(id);
 
-      if (response.error) {
-        setError(response.error);
+        if (response.error) {
+          setError(response.error);
+          return false;
+        }
+
+        removeTaskFromAllLists(id);
+        setPagination((prev) => ({
+          ...prev,
+          total: Math.max(0, prev.total - 1),
+        }));
+
+        if (selectedTask?.id === id) {
+          setSelectedTask(null);
+        }
+
+        return true;
+      } catch (err) {
+        setError("Failed to delete task");
+        console.error("deleteTask error:", err);
         return false;
+      } finally {
+        setIsDeleting(false);
       }
-
-      const removeFromList = (list: Task[]) => list.filter((t) => t.id !== id);
-
-      setTasks(removeFromList);
-      setTodayTasks(removeFromList);
-      setUpcomingTasks(removeFromList);
-      setOverdueTasks(removeFromList);
-      setPagination((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }));
-
-      if (selectedTask?.id === id) {
-        setSelectedTask(null);
-      }
-
-      return true;
-    } catch (err) {
-      setError("Failed to delete task");
-      console.error("deleteTask error:", err);
-      return false;
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [selectedTask]);
+    },
+    [selectedTask, removeTaskFromAllLists]
+  );
 
   // ============================================
   // Status Operations
@@ -398,14 +555,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         }
 
         if (response.data) {
-          const updateInList = (list: Task[]) =>
-            list.map((t) => (t.id === id ? response.data! : t));
-
-          setTasks(updateInList);
-          setTodayTasks(updateInList);
-          setUpcomingTasks(updateInList);
-          setOverdueTasks(updateInList);
-
+          updateTaskInAllLists(response.data);
           return true;
         }
 
@@ -418,7 +568,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         setIsUpdating(false);
       }
     },
-    []
+    [updateTaskInAllLists]
   );
 
   const toggleTaskStatus = useCallback(
@@ -426,7 +576,8 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
       const task =
         tasks.find((t) => t.id === id) ||
         todayTasks.find((t) => t.id === id) ||
-        upcomingTasks.find((t) => t.id === id);
+        upcomingTasks.find((t) => t.id === id) ||
+        overdueTasks.find((t) => t.id === id);
 
       if (!task) return false;
 
@@ -435,7 +586,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
 
       return updateTaskStatus(id, newStatus);
     },
-    [tasks, todayTasks, upcomingTasks, updateTaskStatus]
+    [tasks, todayTasks, upcomingTasks, overdueTasks, updateTaskStatus]
   );
 
   const markTaskCompleted = useCallback(
@@ -480,6 +631,23 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
           setTodayTasks((prev) => prev.map(addSubtaskToTask));
           setUpcomingTasks((prev) => prev.map(addSubtaskToTask));
 
+          if (selectedTask?.id === taskId) {
+            setSelectedTask((prev) =>
+              prev
+                ? { ...prev, subtasks: [...prev.subtasks, response.data!] }
+                : null
+            );
+          }
+
+          // Also update taskDetail if it matches
+          if (taskDetail?.id === taskId) {
+            setTaskDetail((prev) =>
+              prev
+                ? { ...prev, subtasks: [...prev.subtasks, response.data!] }
+                : null
+            );
+          }
+
           return response.data;
         }
 
@@ -492,7 +660,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         setIsUpdating(false);
       }
     },
-    []
+    [selectedTask, taskDetail]
   );
 
   const toggleSubtask = useCallback(
@@ -524,6 +692,33 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
           setTodayTasks((prev) => prev.map(updateSubtaskInTask));
           setUpcomingTasks((prev) => prev.map(updateSubtaskInTask));
 
+          if (selectedTask?.id === taskId) {
+            setSelectedTask((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    subtasks: prev.subtasks.map((st) =>
+                      st.id === subtaskId ? response.data! : st
+                    ),
+                  }
+                : null
+            );
+          }
+
+          // Also update taskDetail if it matches
+          if (taskDetail?.id === taskId) {
+            setTaskDetail((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    subtasks: prev.subtasks.map((st) =>
+                      st.id === subtaskId ? response.data! : st
+                    ),
+                  }
+                : null
+            );
+          }
+
           return true;
         }
 
@@ -531,6 +726,121 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
       } catch (err) {
         setError("Failed to toggle subtask");
         console.error("toggleSubtask error:", err);
+        return false;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [selectedTask, taskDetail]
+  );
+
+  const updateSubtask = useCallback(
+    async (
+      taskId: string,
+      subtaskId: string,
+      data: { title?: string; isCompleted?: boolean }
+    ): Promise<TaskSubtask | null> => {
+      setIsUpdating(true);
+      setError(null);
+
+      try {
+        const response = await taskService.updateSubtask(
+          taskId,
+          subtaskId,
+          data
+        );
+
+        if (response.error) {
+          setError(response.error);
+          return null;
+        }
+
+        if (response.data) {
+          const updateSubtaskInTask = (task: Task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  subtasks: task.subtasks.map((st) =>
+                    st.id === subtaskId ? response.data! : st
+                  ),
+                }
+              : task;
+
+          setTasks((prev) => prev.map(updateSubtaskInTask));
+          setTodayTasks((prev) => prev.map(updateSubtaskInTask));
+          setUpcomingTasks((prev) => prev.map(updateSubtaskInTask));
+
+          // Also update selectedTask if it matches
+          if (selectedTask?.id === taskId) {
+            setSelectedTask((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    subtasks: prev.subtasks.map((st) =>
+                      st.id === subtaskId ? response.data! : st
+                    ),
+                  }
+                : null
+            );
+          }
+
+          // Also update taskDetail if it matches
+          if (taskDetail?.id === taskId) {
+            setTaskDetail((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    subtasks: prev.subtasks.map((st) =>
+                      st.id === subtaskId ? response.data! : st
+                    ),
+                  }
+                : null
+            );
+          }
+
+          return response.data;
+        }
+
+        return null;
+      } catch (err) {
+        setError("Failed to update subtask");
+        console.error("updateSubtask error:", err);
+        return null;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [selectedTask, taskDetail]
+  );
+
+  const reorderSubtasks = useCallback(
+    async (taskId: string, orderedIds: string[]): Promise<boolean> => {
+      setIsUpdating(true);
+      setError(null);
+
+      try {
+        const response = await taskService.reorderSubtasks(taskId, orderedIds);
+
+        if (response.error) {
+          setError(response.error);
+          return false;
+        }
+
+        if (response.data) {
+          const updateSubtasksInTask = (task: Task) =>
+            task.id === taskId ? { ...task, subtasks: response.data! } : task;
+
+          setTasks((prev) => prev.map(updateSubtasksInTask));
+          setTodayTasks((prev) => prev.map(updateSubtasksInTask));
+          setUpcomingTasks((prev) => prev.map(updateSubtasksInTask));
+
+          return true;
+        }
+
+        return false;
+      } catch (err) {
+        setError("Failed to reorder subtasks");
+        console.error("reorderSubtasks error:", err);
         return false;
       } finally {
         setIsUpdating(false);
@@ -565,6 +875,29 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         setTodayTasks((prev) => prev.map(removeSubtaskFromTask));
         setUpcomingTasks((prev) => prev.map(removeSubtaskFromTask));
 
+        if (selectedTask?.id === taskId) {
+          setSelectedTask((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  subtasks: prev.subtasks.filter((st) => st.id !== subtaskId),
+                }
+              : null
+          );
+        }
+
+        // Also update taskDetail if it matches
+        if (taskDetail?.id === taskId) {
+          setTaskDetail((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  subtasks: prev.subtasks.filter((st) => st.id !== subtaskId),
+                }
+              : null
+          );
+        }
+
         return true;
       } catch (err) {
         setError("Failed to delete subtask");
@@ -574,7 +907,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
         setIsUpdating(false);
       }
     },
-    []
+    [selectedTask, taskDetail]
   );
 
   // ============================================
@@ -605,11 +938,19 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
   }, []);
 
   const createCategory = useCallback(
-    async (name: string, icon?: string, color?: string): Promise<TaskCategory | null> => {
+    async (
+      name: string,
+      icon?: string,
+      color?: string
+    ): Promise<TaskCategory | null> => {
       setError(null);
 
       try {
-        const response = await taskService.createCategory({ name, icon, color });
+        const response = await taskService.createCategory({
+          name,
+          icon,
+          color,
+        });
 
         if (response.error) {
           setError(response.error);
@@ -625,6 +966,38 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
       } catch (err) {
         setError("Failed to create category");
         console.error("createCategory error:", err);
+        return null;
+      }
+    },
+    []
+  );
+
+  const updateCategory = useCallback(
+    async (
+      id: string,
+      data: Partial<CreateCategoryRequest>
+    ): Promise<TaskCategory | null> => {
+      setError(null);
+
+      try {
+        const response = await taskService.updateCategory(id, data);
+
+        if (response.error) {
+          setError(response.error);
+          return null;
+        }
+
+        if (response.data) {
+          setCategories((prev) =>
+            prev.map((c) => (c.id === id ? response.data! : c))
+          );
+          return response.data;
+        }
+
+        return null;
+      } catch (err) {
+        setError("Failed to update category");
+        console.error("updateCategory error:", err);
         return null;
       }
     },
@@ -650,6 +1023,192 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
       return false;
     }
   }, []);
+
+  // ============================================
+  // Goal Operations
+  // ============================================
+
+  const fetchGoals = useCallback(
+    async (params?: { isCompleted?: boolean; search?: string }) => {
+      setError(null);
+
+      try {
+        const response = await taskService.getGoals(params);
+
+        if (response.error) {
+          setError(response.error);
+          return;
+        }
+
+        if (response.data) {
+          setGoals(response.data);
+        }
+      } catch (err) {
+        setError("Failed to fetch goals");
+        console.error("fetchGoals error:", err);
+      }
+    },
+    []
+  );
+
+  const createGoal = useCallback(
+    async (data: {
+      title: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+    }): Promise<TaskGoal | null> => {
+      setError(null);
+
+      try {
+        const response = await taskService.createGoal(data);
+
+        if (response.error) {
+          setError(response.error);
+          return null;
+        }
+
+        if (response.data) {
+          setGoals((prev) => [...prev, response.data!]);
+          return response.data;
+        }
+
+        return null;
+      } catch (err) {
+        setError("Failed to create goal");
+        console.error("createGoal error:", err);
+        return null;
+      }
+    },
+    []
+  );
+
+  const updateGoal = useCallback(
+    async (
+      id: string,
+      data: Partial<{
+        title: string;
+        description?: string;
+        icon?: string;
+        color?: string;
+      }>
+    ): Promise<TaskGoal | null> => {
+      setError(null);
+
+      try {
+        const response = await taskService.updateGoal(id, data);
+
+        if (response.error) {
+          setError(response.error);
+          return null;
+        }
+
+        if (response.data) {
+          setGoals((prev) =>
+            prev.map((g) => (g.id === id ? response.data! : g))
+          );
+          return response.data;
+        }
+
+        return null;
+      } catch (err) {
+        setError("Failed to update goal");
+        console.error("updateGoal error:", err);
+        return null;
+      }
+    },
+    []
+  );
+
+  const deleteGoal = useCallback(async (id: string): Promise<boolean> => {
+    setError(null);
+
+    try {
+      const response = await taskService.deleteGoal(id);
+
+      if (response.error) {
+        setError(response.error);
+        return false;
+      }
+
+      setGoals((prev) => prev.filter((g) => g.id !== id));
+      return true;
+    } catch (err) {
+      setError("Failed to delete goal");
+      console.error("deleteGoal error:", err);
+      return false;
+    }
+  }, []);
+
+  // ============================================
+  // Reminder Operations
+  // ============================================
+
+  const addReminder = useCallback(
+    async (
+      taskId: string,
+      value: number,
+      unit: ReminderUnit
+    ): Promise<TaskReminder | null> => {
+      setError(null);
+
+      try {
+        const response = await taskService.addReminder(taskId, { value, unit });
+
+        if (response.error) {
+          setError(response.error);
+          return null;
+        }
+
+        return response.data || null;
+      } catch (err) {
+        setError("Failed to add reminder");
+        console.error("addReminder error:", err);
+        return null;
+      }
+    },
+    []
+  );
+
+  const deleteReminder = useCallback(
+    async (taskId: string, reminderId: string): Promise<boolean> => {
+      setError(null);
+
+      try {
+        const response = await taskService.deleteReminder(taskId, reminderId);
+
+        if (response.error) {
+          setError(response.error);
+          return false;
+        }
+
+        return true;
+      } catch (err) {
+        setError("Failed to delete reminder");
+        console.error("deleteReminder error:", err);
+        return false;
+      }
+    },
+    []
+  );
+
+  const getReminders = useCallback(
+    async (taskId: string): Promise<TaskReminder[]> => {
+      try {
+        const response = await taskService.getReminders(taskId);
+
+        if (response.error) {
+          return [];
+        }
+
+        return response.data || [];
+      } catch (err) {
+        console.error("getReminders error:", err);
+        return [];
+      }
+    },
+    []
+  );
 
   // ============================================
   // Project Operations
@@ -725,28 +1284,31 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     }
   }, []);
 
-  const fetchMonthlyStats = useCallback(async (year?: number, month?: number) => {
-    setIsFetchingStats(true);
-    setError(null);
+  const fetchMonthlyStats = useCallback(
+    async (year?: number, month?: number) => {
+      setIsFetchingStats(true);
+      setError(null);
 
-    try {
-      const response = await taskService.getMonthlyStats({ year, month });
+      try {
+        const response = await taskService.getMonthlyStats({ year, month });
 
-      if (response.error) {
-        setError(response.error);
-        return;
+        if (response.error) {
+          setError(response.error);
+          return;
+        }
+
+        if (response.data) {
+          setMonthlyStats(response.data);
+        }
+      } catch (err) {
+        setError("Failed to fetch monthly stats");
+        console.error("fetchMonthlyStats error:", err);
+      } finally {
+        setIsFetchingStats(false);
       }
-
-      if (response.data) {
-        setMonthlyStats(response.data);
-      }
-    } catch (err) {
-      setError("Failed to fetch monthly stats");
-      console.error("fetchMonthlyStats error:", err);
-    } finally {
-      setIsFetchingStats(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   // ============================================
   // Utility Functions
@@ -759,9 +1321,10 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
   const refresh = useCallback(async () => {
     await Promise.all([
       fetchTodayTasks(),
+      fetchUpcomingTasks(),
       fetchCategories(),
     ]);
-  }, [fetchTodayTasks, fetchCategories]);
+  }, [fetchTodayTasks, fetchUpcomingTasks, fetchCategories]);
 
   // ============================================
   // Auto-fetch on mount
@@ -770,9 +1333,10 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
   useEffect(() => {
     if (autoFetch) {
       fetchTodayTasks();
+      fetchUpcomingTasks();
       fetchCategories();
     }
-  }, [autoFetch]);
+  }, [autoFetch, fetchTodayTasks, fetchUpcomingTasks, fetchCategories]);
 
   return {
     // Data
@@ -781,9 +1345,12 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     upcomingTasks,
     overdueTasks,
     completedTasks,
+    selectedDateTasks,
     categories,
     projects,
+    goals,
     selectedTask,
+    taskDetail,
     overviewStats,
     weeklyStats,
     monthlyStats,
@@ -802,12 +1369,14 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     // Pagination
     pagination,
 
-    // Actions
+    // Task CRUD Actions
     fetchTasks,
     fetchTodayTasks,
     fetchUpcomingTasks,
     fetchOverdueTasks,
+    fetchTasksByDate,
     fetchTask,
+    fetchTaskDetail,
     createTask,
     updateTask,
     deleteTask,
@@ -817,16 +1386,31 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     toggleTaskStatus,
     markTaskCompleted,
     markTaskTodo,
+    updateTaskStatus,
 
     // Subtask actions
     addSubtask,
     toggleSubtask,
     deleteSubtask,
+    updateSubtask,
+    reorderSubtasks,
 
     // Category actions
     fetchCategories,
     createCategory,
+    updateCategory,
     deleteCategory,
+
+    // Goal actions
+    fetchGoals,
+    createGoal,
+    updateGoal,
+    deleteGoal,
+
+    // Reminder actions
+    addReminder,
+    deleteReminder,
+    getReminders,
 
     // Project actions
     fetchProjects,

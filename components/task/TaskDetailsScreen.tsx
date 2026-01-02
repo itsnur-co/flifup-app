@@ -1,28 +1,28 @@
 /**
  * Task Details Screen Component
  * Displays task details with sub-tasks list
- * Matches Figma design exactly
+ * Uses API Task type for data
  */
 
 import {
-  BellIcon,
-  CalendarIcon,
+  AlarmLineIcon,
+  AlignLeftIcon,
+  CalendarLineIcon,
   ChevronDownIcon,
   CircleCheckIcon,
-  CircleIcon,
-  ClockIcon,
-  DescriptionIcon,
-  MoreHorizontalIcon,
-  PeopleIcon,
-  TagIcon,
+  DotIcon,
+  ThreeDotIcon,
+  UserAddLineIcon,
+  PriceTagLineIcon,
+  TimeLineIcon,
 } from "@/components/icons/TaskIcons";
-import { ChevronLeftIcon } from "@/components/icons/CommonIcons";
+import { ScreenHeader } from "@/components/navigation";
 import { AvatarGroup } from "@/components/ui/Avatar";
 import { CreateButton } from "@/components/buttons";
 import { Colors } from "@/constants/colors";
-import { Category, Person, SubTask, Task } from "@/types/task";
-import { LinearGradient } from "expo-linear-gradient";
-import React, { useState, useCallback } from "react";
+import { Task, TaskDetail, TaskSubtask, collaboratorToPerson } from "@/types/task";
+import { formatDetailDate, formatTime, formatReminder } from "@/utils/dateTime";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -30,20 +30,26 @@ import {
   TouchableOpacity,
   View,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TaskEditModal } from ".";
 
-
 interface TaskDetailsScreenProps {
-  task: Task;
+  task: Task | TaskDetail;
   onBack: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onToggleSubTask?: (subTaskId: string) => void;
   onAddSubTask?: () => void;
-  onSubTaskOptions?: (subTask: SubTask) => void;
+  onSubTaskOptions?: (subTask: TaskSubtask) => void;
+  isLoading?: boolean;
 }
+
+// Type guard to check if task is TaskDetail
+const isTaskDetail = (task: Task | TaskDetail): task is TaskDetail => {
+  return "subtasksGrouped" in task && "subtaskCounts" in task;
+};
 
 interface InfoRowProps {
   icon: React.ReactNode;
@@ -62,9 +68,9 @@ interface SubTaskSectionProps {
   count: number;
   isExpanded: boolean;
   onToggle: () => void;
-  subTasks: SubTask[];
+  subTasks: TaskSubtask[];
   onToggleComplete: (id: string) => void;
-  onOptions: (subTask: SubTask) => void;
+  onOptions: (subTask: TaskSubtask) => void;
 }
 
 const SubTaskSection: React.FC<SubTaskSectionProps> = ({
@@ -105,16 +111,16 @@ const SubTaskSection: React.FC<SubTaskSectionProps> = ({
               onPress={() => onToggleComplete(subTask.id)}
               activeOpacity={0.7}
             >
-              {subTask.completed ? (
+              {subTask.isCompleted ? (
                 <CircleCheckIcon size={24} color={Colors.primary} />
               ) : (
-                <CircleIcon size={24} color="#5A5A5E" />
+                <DotIcon size={24} color="#5A5A5E" />
               )}
             </TouchableOpacity>
             <Text
               style={[
                 styles.subTaskTitle,
-                subTask.completed && styles.subTaskTitleCompleted,
+                subTask.isCompleted && styles.subTaskTitleCompleted,
               ]}
             >
               {subTask.title}
@@ -124,7 +130,7 @@ const SubTaskSection: React.FC<SubTaskSectionProps> = ({
               onPress={() => onOptions(subTask)}
               activeOpacity={0.7}
             >
-              <MoreHorizontalIcon size={20} color="#6B7280" />
+              <ThreeDotIcon size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
         ))}
@@ -141,73 +147,82 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
   onToggleSubTask,
   onAddSubTask,
   onSubTaskOptions,
+  isLoading = false,
 }) => {
   const insets = useSafeAreaInsets();
   const [showEditModal, setShowEditModal] = useState(false);
   const [incompleteExpanded, setIncompleteExpanded] = useState(true);
   const [completedExpanded, setCompletedExpanded] = useState(true);
 
-  const incompleteSubTasks = task.subTasks.filter((st) => !st.completed);
-  const completedSubTasks = task.subTasks.filter((st) => st.completed);
+  // Compute subtask groups - use pre-computed if available (TaskDetail)
+  const { incompleteSubTasks, completedSubTasks, completedCount } = useMemo(() => {
+    if (isTaskDetail(task)) {
+      // Use pre-computed groups from TaskDetail
+      return {
+        incompleteSubTasks: task.subtasksGrouped.incomplete,
+        completedSubTasks: task.subtasksGrouped.completed,
+        completedCount: task.subtaskCounts.completed,
+      };
+    }
+    // Fallback: compute locally from subtasks
+    const subtasks = task.subtasks || [];
+    const incomplete = subtasks.filter((st) => !st.isCompleted);
+    const completed = subtasks.filter((st) => st.isCompleted);
+    return {
+      incompleteSubTasks: incomplete,
+      completedSubTasks: completed,
+      completedCount: completed.length,
+    };
+  }, [task]);
 
-  const handleToggleSubTask = useCallback((id: string) => {
-    onToggleSubTask?.(id);
-  }, [onToggleSubTask]);
+  // Convert collaborators to persons for avatar display
+  const assignedPeople = useMemo(() => {
+    if (!task.collaborators) return [];
+    return task.collaborators.map(collaboratorToPerson);
+  }, [task.collaborators]);
 
-  const handleSubTaskOptions = useCallback((subTask: SubTask) => {
-    onSubTaskOptions?.(subTask);
-  }, [onSubTaskOptions]);
+  const handleToggleSubTask = useCallback(
+    (id: string) => {
+      onToggleSubTask?.(id);
+    },
+    [onToggleSubTask]
+  );
 
-  const formatDate = (date?: Date): string => {
-    if (!date) return "No date";
-    return date.toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
+  const handleSubTaskOptions = useCallback(
+    (subTask: TaskSubtask) => {
+      onSubTaskOptions?.(subTask);
+    },
+    [onSubTaskOptions]
+  );
 
-  const formatReminder = (reminder?: Date): string => {
-    if (!reminder) return "No reminder";
-    return "30 Minutes Before"; // You can calculate this based on task.dueDate and reminder
-  };
+  // Format reminder display
+  const formatReminderDisplay = useCallback((): string => {
+    if (!task.reminders || task.reminders.length === 0) {
+      return "No reminder";
+    }
+    const reminder = task.reminders[0];
+    return formatReminder(reminder.value, reminder.unit);
+  }, [task.reminders]);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header with Gradient */}
-      <LinearGradient
-        colors={[Colors.primary, "#6C2BBF"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.header, { paddingTop: insets.top + 8 }]}
-      >
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={onBack}
-            activeOpacity={0.7}
-          >
-            <ChevronLeftIcon size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+      {/* Header */}
+      <ScreenHeader
+        title={task.title}
+        subtitle={`${completedCount}/${task.subtasks?.length || 0} Sub Tasks`}
+        onBack={onBack}
+        rightIcon="more-horizontal"
+        onRightPress={() => setShowEditModal(true)}
+      />
 
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>{task.title}</Text>
-            <Text style={styles.headerSubtitle}>
-              {completedSubTasks.length}/{task.subTasks.length} Sub Tasks
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.moreButton}
-            onPress={() => setShowEditModal(true)}
-            activeOpacity={0.7}
-          >
-            <MoreHorizontalIcon size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+      {/* Loading Indicator */}
+      {isLoading && (
+        <View style={styles.loadingBar}>
+          <ActivityIndicator size="small" color={Colors.primary} />
         </View>
-      </LinearGradient>
+      )}
 
       {/* Content */}
       <ScrollView
@@ -218,35 +233,43 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
         {/* Task Info Section */}
         <View style={styles.infoSection}>
           {/* Description */}
-          <InfoRow icon={<DescriptionIcon size={22} color={Colors.primary} />}>
+          <InfoRow icon={<AlignLeftIcon size={22} color={Colors.primary} />}>
             <Text style={styles.infoText}>
-              {task.description ||
-                "Lorem ipsum dolor sit amet consectetur. Pellentesque condimentum nulla nisi faucibus mi quis penatibus. Ac duis sed morbi adipiscing sit."}
+              {task.description || "No description provided."}
             </Text>
           </InfoRow>
 
           {/* Date */}
-          <InfoRow icon={<CalendarIcon size={22} color={Colors.primary} />}>
-            <Text style={styles.infoValue}>{formatDate(task.dueDate)}</Text>
-          </InfoRow>
-
-          {/* Time */}
-          <InfoRow icon={<ClockIcon size={22} color={Colors.primary} />}>
-            <Text style={styles.infoValue}>{task.dueTime || "12:00 AM"}</Text>
-          </InfoRow>
-
-          {/* Category */}
-          <InfoRow icon={<TagIcon size={22} color={Colors.primary} />}>
+          <InfoRow icon={<CalendarLineIcon size={22} color={Colors.primary} />}>
             <Text style={styles.infoValue}>
-              {task.category?.name || "Exercise"}
+              {formatDetailDate(task.dueDate)}
             </Text>
           </InfoRow>
 
+          {/* Time */}
+          <InfoRow icon={<TimeLineIcon size={22} color={Colors.primary} />}>
+            <Text style={styles.infoValue}>
+              {formatTime(task.dueTime) || "No time set"}
+            </Text>
+          </InfoRow>
+
+          {/* Category */}
+          <InfoRow icon={<PriceTagLineIcon size={22} color={Colors.primary} />}>
+            <View style={styles.categoryRow}>
+              {task.category?.icon && (
+                <Text style={styles.categoryIcon}>{task.category.icon}</Text>
+              )}
+              <Text style={styles.infoValue}>
+                {task.category?.name || "No category"}
+              </Text>
+            </View>
+          </InfoRow>
+
           {/* People */}
-          <InfoRow icon={<PeopleIcon size={22} color={Colors.primary} />}>
-            {task.assignedPeople && task.assignedPeople.length > 0 ? (
+          <InfoRow icon={<UserAddLineIcon size={22} color={Colors.primary} />}>
+            {assignedPeople.length > 0 ? (
               <AvatarGroup
-                avatars={task.assignedPeople.map((p) => ({
+                avatars={assignedPeople.map((p) => ({
                   uri: p.avatar,
                   name: p.name,
                 }))}
@@ -260,9 +283,30 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
           </InfoRow>
 
           {/* Reminder */}
-          <InfoRow icon={<BellIcon size={22} color={Colors.primary} />}>
-            <Text style={styles.infoValue}>{formatReminder(task.reminder)}</Text>
+          <InfoRow icon={<AlarmLineIcon size={22} color={Colors.primary} />}>
+            <Text style={styles.infoValue}>{formatReminderDisplay()}</Text>
           </InfoRow>
+
+          {/* Priority Badge */}
+          <InfoRow icon={<View style={styles.priorityDot} />}>
+            <Text style={[styles.infoValue, styles.priorityText]}>
+              Priority: {task.priority}
+            </Text>
+          </InfoRow>
+
+          {/* Status */}
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Status:</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                task.status === "COMPLETED" && styles.statusBadgeCompleted,
+                task.status === "IN_PROGRESS" && styles.statusBadgeInProgress,
+              ]}
+            >
+              <Text style={styles.statusBadgeText}>{task.status}</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.divider} />
@@ -294,12 +338,25 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
               onOptions={handleSubTaskOptions}
             />
           )}
+
+          {/* Empty State */}
+          {task.subtasks?.length === 0 && (
+            <View style={styles.emptySubtasks}>
+              <Text style={styles.emptySubtasksText}>No subtasks yet</Text>
+              <Text style={styles.emptySubtasksSubtext}>
+                Add subtasks to break down this task
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
       {/* Add Sub-task FAB */}
       <View style={[styles.fabContainer, { bottom: insets.bottom + 32 }]}>
-        <CreateButton label="New Sub-Task" onPress={onAddSubTask || (() => {})} />
+        <CreateButton
+          label="New Sub-Task"
+          onPress={onAddSubTask || (() => {})}
+        />
       </View>
 
       {/* Edit Modal */}
@@ -324,43 +381,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#1C1C1E",
   },
-  header: {
-    paddingBottom: 20,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
-  headerContent: {
-    flexDirection: "row",
+  loadingBar: {
+    paddingVertical: 8,
     alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginBottom: 2,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "rgba(255, 255, 255, 0.7)",
-  },
-  moreButton: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "rgba(138, 77, 255, 0.1)",
   },
   content: {
     flex: 1,
@@ -396,6 +420,51 @@ const styles = StyleSheet.create({
   infoPlaceholder: {
     fontSize: 15,
     color: "#6B7280",
+  },
+  categoryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  categoryIcon: {
+    fontSize: 18,
+  },
+  priorityDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.primary,
+  },
+  priorityText: {
+    textTransform: "capitalize",
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  statusLabel: {
+    fontSize: 15,
+    color: "#9CA3AF",
+  },
+  statusBadge: {
+    backgroundColor: "#3A3A3C",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusBadgeCompleted: {
+    backgroundColor: "rgba(34, 197, 94, 0.2)",
+  },
+  statusBadgeInProgress: {
+    backgroundColor: "rgba(138, 77, 255, 0.2)",
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   divider: {
     height: 1,
@@ -466,6 +535,22 @@ const styles = StyleSheet.create({
   },
   subTaskOptions: {
     padding: 4,
+  },
+  emptySubtasks: {
+    alignItems: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptySubtasksText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
+  emptySubtasksSubtext: {
+    fontSize: 14,
+    color: "#8E8E93",
+    textAlign: "center",
   },
   fabContainer: {
     position: "absolute",

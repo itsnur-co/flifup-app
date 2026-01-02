@@ -4,7 +4,7 @@
  * Quick preset options + custom duration picker
  */
 
-import { ClockIcon, FocusIcon } from "@/components/icons/TaskIcons";
+import { FocusLineIcon, TimeLineIcon } from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
 import React, { useState } from "react";
@@ -56,7 +56,7 @@ export const SetFocusDurationSheet: React.FC<SetFocusDurationSheetProps> = ({
       <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
         {/* Header */}
         <View style={styles.header}>
-          <FocusIcon size={24} color={Colors.primary} />
+          <FocusLineIcon size={24} color={Colors.primary} />
           <Text style={styles.headerTitle}>Set Focus</Text>
         </View>
 
@@ -102,7 +102,7 @@ export const SetFocusDurationSheet: React.FC<SetFocusDurationSheetProps> = ({
 
         {/* Selected Duration Display */}
         <View style={styles.selectedDisplay}>
-          <ClockIcon size={20} color={Colors.primary} />
+          <TimeLineIcon size={20} color={Colors.primary} />
           <Text style={styles.selectedText}>
             Focus for{" "}
             <Text style={styles.selectedDuration}>

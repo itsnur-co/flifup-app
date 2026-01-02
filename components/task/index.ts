@@ -4,9 +4,11 @@
 export { AddCategorySheet, DEFAULT_TASK_CATEGORIES } from "./AddCategorySheet";
 export { AddCustomDateSheet } from "./AddCustomDateSheet";
 export { AddPeopleSheet } from "./AddPeopleSheet";
+export { AddSubtaskSheet } from "./AddSubtaskSheet";
 export { AddTimeSheet } from "./AddTimeSheet";
 export { CreateTaskSheet } from "./CreateTaskSheet";
 export { SelectDateSheet } from "./SelectDateSheet";
+export { SubtaskOptionsSheet } from "./SubtaskOptionsSheet";
 export { TaskCard } from "./TaskCard";
 export { TaskDetailsScreen } from "./TaskDetailsScreen";
 export { TaskEditModal } from "./TaskEditModal";

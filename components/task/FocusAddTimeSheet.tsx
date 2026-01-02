@@ -25,15 +25,15 @@ const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 interface FocusAddTimeSheetProps {
   visible: boolean;
   onClose: () => void;
-  onAdd: (minutes: number, seconds: number) => void;
+  onAdd: (hours: number, minutes: number) => void;
+  initialHours?: number;
   initialMinutes?: number;
-  initialSeconds?: number;
 }
 
-// Generate minutes (1-60)
-const minuteOptions = Array.from({ length: 60 }, (_, i) => i + 1);
-// Generate seconds (26-59 for right column display)
-const secondOptions = Array.from({ length: 34 }, (_, i) => i + 26);
+// Generate hours (1-12) for left column
+const hourOptions = Array.from({ length: 12 }, (_, i) => i + 1);
+// Generate minutes (0-59) for right column
+const minuteOptions = Array.from({ length: 60 }, (_, i) => i);
 
 interface WheelPickerProps {
   data: number[];
@@ -156,39 +156,39 @@ export const FocusAddTimeSheet: React.FC<FocusAddTimeSheetProps> = ({
   visible,
   onClose,
   onAdd,
-  initialMinutes = 5,
-  initialSeconds = 30,
+  initialHours = 5,
+  initialMinutes = 30,
 }) => {
-  // Find initial indices
+  // Find initial indices (default to 5 hours and 30 minutes)
+  const initialHourIndex = Math.max(
+    0,
+    hourOptions.findIndex((h) => h === initialHours)
+  );
   const initialMinuteIndex = Math.max(
     0,
     minuteOptions.findIndex((m) => m === initialMinutes)
   );
-  const initialSecondIndex = Math.max(
-    0,
-    secondOptions.findIndex((s) => s === initialSeconds)
-  );
 
-  const [selectedMinuteIndex, setSelectedMinuteIndex] = useState(
-    initialMinuteIndex || 4
+  const [selectedHourIndex, setSelectedHourIndex] = useState(
+    initialHourIndex >= 0 ? initialHourIndex : 4
   );
-  const [selectedSecondIndex, setSelectedSecondIndex] = useState(
-    initialSecondIndex || 4
+  const [selectedMinuteIndex, setSelectedMinuteIndex] = useState(
+    initialMinuteIndex >= 0 ? initialMinuteIndex : 30
   );
 
   // Reset when sheet opens
   useEffect(() => {
     if (visible) {
-      setSelectedMinuteIndex(initialMinuteIndex || 4);
-      setSelectedSecondIndex(initialSecondIndex || 4);
+      setSelectedHourIndex(initialHourIndex >= 0 ? initialHourIndex : 4);
+      setSelectedMinuteIndex(initialMinuteIndex >= 0 ? initialMinuteIndex : 30);
     }
   }, [visible]);
 
   const handleAdd = useCallback(() => {
+    const hours = hourOptions[selectedHourIndex];
     const minutes = minuteOptions[selectedMinuteIndex];
-    const seconds = secondOptions[selectedSecondIndex];
-    onAdd(minutes, seconds);
-  }, [selectedMinuteIndex, selectedSecondIndex, onAdd]);
+    onAdd(hours, minutes);
+  }, [selectedHourIndex, selectedMinuteIndex, onAdd]);
 
   return (
     <BottomSheet
@@ -213,25 +213,17 @@ export const FocusAddTimeSheet: React.FC<FocusAddTimeSheetProps> = ({
         {/* Time Picker */}
         <View style={styles.pickerWrapper}>
           <WheelPicker
+            data={hourOptions}
+            selectedIndex={selectedHourIndex}
+            onIndexChange={setSelectedHourIndex}
+            width={120}
+          />
+          <WheelPicker
             data={minuteOptions}
             selectedIndex={selectedMinuteIndex}
             onIndexChange={setSelectedMinuteIndex}
             width={120}
           />
-          <WheelPicker
-            data={secondOptions}
-            selectedIndex={selectedSecondIndex}
-            onIndexChange={setSelectedSecondIndex}
-            width={120}
-          />
-        </View>
-
-        {/* Preview */}
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewText}>
-            Adding {minuteOptions[selectedMinuteIndex]} min{" "}
-            {secondOptions[selectedSecondIndex]} sec
-          </Text>
         </View>
       </View>
     </BottomSheet>

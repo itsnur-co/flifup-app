@@ -4,7 +4,7 @@
  * Matches Figma design exactly
  */
 
-import { EditIcon, TrashIcon, FocusIcon, ChartIcon } from "@/components/icons/TaskIcons";
+import { ChartIcon, DeleteBinIcon, EditIcon, FocusLineIcon } from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Task } from "@/types/task";
 import React from "react";
@@ -78,7 +78,7 @@ export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
                 onPress={handleSetFocus}
                 activeOpacity={0.7}
               >
-                <FocusIcon size={22} color={Colors.primary} />
+                <FocusLineIcon size={22} color={Colors.primary} />
                 <Text style={styles.optionText}>Set Focus</Text>
               </TouchableOpacity>
               <View style={styles.divider} />
@@ -104,7 +104,7 @@ export const TaskOptionsSheet: React.FC<TaskOptionsSheetProps> = ({
             onPress={handleDelete}
             activeOpacity={0.7}
           >
-            <TrashIcon size={22} color="#EF4444" />
+            <DeleteBinIcon size={22} color="#EF4444" />
             <Text style={[styles.optionText, { color: "#EF4444" }]}>Delete Task</Text>
           </TouchableOpacity>
         </View>

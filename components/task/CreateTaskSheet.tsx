@@ -1,31 +1,32 @@
 /**
  * Create Task Bottom Sheet Component
  * Full-featured task creation form
- * Matches Figma design exactly
+ * Uses unified Task types
  */
 
 import {
-  BellIcon,
-  CalendarIcon,
-  CircleIcon,
-  ClockIcon,
-  DescriptionIcon,
-  PeopleIcon,
-  PlusIcon,
-  TagIcon,
+  AddLineIcon,
+  AlarmLineIcon,
+  AlignLeftIcon,
+  CalendarLineIcon,
+  DotIcon,
+  PriceTagLineIcon,
+  RepeatLineIcon,
+  TimeLineIcon,
+  UserAddLineIcon,
 } from "@/components/icons/TaskIcons";
-import { RepeatIcon } from "@/components/icons/HabitIcons";
 import { AvatarGroup } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
 import {
-  Category,
+  TaskCategory,
+  TaskFormState,
   DEFAULT_TASK_FORM,
   Person,
-  TaskFormState,
+  ReminderValue,
 } from "@/types/task";
 import { RepeatConfig } from "@/types/habit";
-import { ReminderValue } from "@/components/shared";
+import { formatDate, formatReminder } from "@/utils/dateTime";
 import React, { useCallback, useState } from "react";
 import {
   ScrollView,
@@ -50,7 +51,7 @@ interface CreateTaskSheetProps {
   selectedDate?: Date | null;
   selectedTime?: string | null;
   selectedRepeat?: RepeatConfig | null;
-  selectedCategory?: Category | null;
+  selectedCategory?: TaskCategory | null;
   selectedPeople?: Person[];
   selectedReminder?: ReminderValue | null;
 }
@@ -103,7 +104,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     { title: string; description: string }[]
   >([]);
 
-  const formatRepeat = (repeat?: RepeatConfig | null): string => {
+  const formatRepeatDisplay = (repeat?: RepeatConfig | null): string => {
     if (!repeat) return "Repeat";
     if (repeat.type === "daily" && repeat.days.length > 0) {
       return `${repeat.days.length} days/week`;
@@ -117,20 +118,40 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     return "Repeat";
   };
 
-  const formatReminderText = (reminder: ReminderValue | null): string => {
+  const formatReminderDisplay = (reminder: ReminderValue | null): string => {
     if (!reminder) return "Set Reminder";
+    return formatReminder(reminder.value, reminder.type);
+  };
 
-    const { type, value} = reminder;
+  // Format HH:mm time to user-friendly display (e.g., "5:30 PM")
+  const formatTimeDisplay = (time?: string | null): string => {
+    if (!time) return "Add Time";
 
-    if (type === "minutes") {
-      return `${value} minute${value > 1 ? "s" : ""} before`;
-    } else if (type === "hours") {
-      return `${value} hour${value > 1 ? "s" : ""} before`;
-    } else if (type === "days") {
-      return `${value} day${value > 1 ? "s" : ""} before`;
+    // Parse HH:mm format
+    const match = time.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return time; // Return as-is if not in expected format
+
+    const hour24 = parseInt(match[1], 10);
+    const minute = match[2];
+
+    let hour12: number;
+    let period: string;
+
+    if (hour24 === 0) {
+      hour12 = 12;
+      period = "AM";
+    } else if (hour24 < 12) {
+      hour12 = hour24;
+      period = "AM";
+    } else if (hour24 === 12) {
+      hour12 = 12;
+      period = "PM";
+    } else {
+      hour12 = hour24 - 12;
+      period = "PM";
     }
 
-    return "Set Reminder";
+    return `${hour12}:${minute} ${period}`;
   };
 
   const handleCreate = useCallback(() => {
@@ -138,14 +159,13 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
 
     onCreateTask({
       ...formState,
-      dueDate: selectedDate ?? null,
+      dueDate: selectedDate?.toISOString() ?? null,
       dueTime: selectedTime ?? null,
       category: selectedCategory ?? null,
-      assignedPeople: selectedPeople,
-      subTasks: subTasks.map((st) => ({
+      categoryId: selectedCategory?.id ?? null,
+      subtasks: subTasks.map((st) => ({
         title: st.title,
         description: st.description,
-        completed: false,
       })),
     });
 
@@ -158,28 +178,10 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     selectedDate,
     selectedTime,
     selectedCategory,
-    selectedPeople,
     subTasks,
     onCreateTask,
     onClose,
   ]);
-
-  const formatDate = (date: Date | null): string => {
-    if (!date) return "No date";
-    const today = new Date();
-    if (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    ) {
-      return "Today";
-    }
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   const addSubTask = () => {
     setSubTasks([...subTasks, { title: "", description: "" }]);
@@ -239,11 +241,11 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
           keyboardShouldPersistTaps="handled"
         >
           {/* Title */}
-          <FormRow icon={<CircleIcon size={24} color={Colors.primary} />}>
+          <FormRow icon={<DotIcon size={24} color={Colors.primary} />}>
             <TextInput
               style={styles.titleInput}
               placeholder="Add Title"
-              placeholderTextColor="#fff"
+              placeholderTextColor="#8E8E93"
               value={formState.title}
               onChangeText={(text) =>
                 setFormState((prev) => ({ ...prev, title: text }))
@@ -253,11 +255,11 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
           </FormRow>
 
           {/* Description */}
-          <FormRow icon={<DescriptionIcon size={24} color={Colors.primary} />}>
+          <FormRow icon={<AlignLeftIcon size={24} color={Colors.primary} />}>
             <TextInput
               style={styles.descriptionInput}
               placeholder="Description"
-              placeholderTextColor="#fff"
+              placeholderTextColor="#8E8E93"
               value={formState.description}
               onChangeText={(text) =>
                 setFormState((prev) => ({ ...prev, description: text }))
@@ -268,55 +270,60 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
 
           {/* Date */}
           <FormRow
-            icon={<CalendarIcon size={24} color={Colors.primary} />}
+            icon={<CalendarLineIcon size={24} color={Colors.primary} />}
             onPress={onSelectDate}
           >
             <Text
               style={[styles.rowText, selectedDate && styles.rowTextActive]}
             >
-              {formatDate(selectedDate ?? null)}
+              {formatDate(selectedDate)}
             </Text>
           </FormRow>
 
           {/* Time */}
           <FormRow
-            icon={<ClockIcon size={24} color={Colors.primary} />}
+            icon={<TimeLineIcon size={24} color={Colors.primary} />}
             onPress={onSelectTime}
           >
             <Text
               style={[styles.rowText, selectedTime && styles.rowTextActive]}
             >
-              {selectedTime || "Add Time"}
+              {formatTimeDisplay(selectedTime)}
             </Text>
           </FormRow>
 
           {/* Repeat */}
           <FormRow
-            icon={<RepeatIcon size={24} color={Colors.primary} />}
+            icon={<RepeatLineIcon size={24} color={Colors.primary} />}
             onPress={onSelectRepeat}
           >
             <Text
               style={[styles.rowText, selectedRepeat && styles.rowTextActive]}
             >
-              {formatRepeat(selectedRepeat)}
+              {formatRepeatDisplay(selectedRepeat)}
             </Text>
           </FormRow>
 
           {/* Category */}
           <FormRow
-            icon={<TagIcon size={24} color={Colors.primary} />}
+            icon={<PriceTagLineIcon size={24} color={Colors.primary} />}
             onPress={onSelectCategory}
           >
-            <Text
-              style={[styles.rowText, selectedCategory && styles.rowTextActive]}
-            >
-              {selectedCategory?.name || "Add category"}
-            </Text>
+            <View style={styles.categoryDisplay}>
+              {selectedCategory?.icon && (
+                <Text style={styles.categoryIcon}>{selectedCategory.icon}</Text>
+              )}
+              <Text
+                style={[styles.rowText, selectedCategory && styles.rowTextActive]}
+              >
+                {selectedCategory?.name || "Add category"}
+              </Text>
+            </View>
           </FormRow>
 
           {/* People */}
           <FormRow
-            icon={<PeopleIcon size={24} color={Colors.primary} />}
+            icon={<UserAddLineIcon size={24} color={Colors.primary} />}
             onPress={onSelectPeople}
           >
             {selectedPeople.length > 0 ? (
@@ -336,13 +343,13 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
 
           {/* Reminder */}
           <FormRow
-            icon={<BellIcon size={24} color={Colors.primary} />}
+            icon={<AlarmLineIcon size={24} color={Colors.primary} />}
             onPress={onSetReminder}
           >
             <Text
               style={[styles.rowText, selectedReminder && styles.rowTextActive]}
             >
-              {formatReminderText(selectedReminder)}
+              {formatReminderDisplay(selectedReminder ?? null)}
             </Text>
           </FormRow>
 
@@ -364,13 +371,13 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                       style={styles.subTaskCheckbox}
                       activeOpacity={0.7}
                     >
-                      <CircleIcon size={20} color="#5A5A5E" />
+                      <DotIcon size={20} color="#5A5A5E" />
                     </TouchableOpacity>
                     <View style={styles.subTaskContent}>
                       <TextInput
                         style={styles.subTaskTitle}
                         placeholder={`Sub task-${index + 1}`}
-                        placeholderTextColor="#fff"
+                        placeholderTextColor="#8E8E93"
                         value={subTask.title}
                         onChangeText={(text) =>
                           updateSubTask(index, "title", text)
@@ -379,13 +386,19 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                       <TextInput
                         style={styles.subTaskDescription}
                         placeholder="sub Task description/ note"
-                        placeholderTextColor="#fff"
+                        placeholderTextColor="#6B7280"
                         value={subTask.description}
                         onChangeText={(text) =>
                           updateSubTask(index, "description", text)
                         }
                       />
                     </View>
+                    <TouchableOpacity
+                      onPress={() => removeSubTask(index)}
+                      style={styles.removeSubTask}
+                    >
+                      <Text style={styles.removeSubTaskText}>✕</Text>
+                    </TouchableOpacity>
                   </View>
                 ))}
               </>
@@ -397,7 +410,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
               style={styles.addSubTaskButton}
               activeOpacity={0.7}
             >
-              <PlusIcon size={20} color={Colors.primary} />
+              <AddLineIcon size={20} color={Colors.primary} />
               <Text style={styles.addSubTaskText}>Add sub-task</Text>
             </TouchableOpacity>
           </View>
@@ -468,10 +481,18 @@ const styles = StyleSheet.create({
   },
   rowText: {
     fontSize: 15,
-    color: Colors.ui.text.secondary,
+    color: "#8E8E93",
   },
   rowTextActive: {
     color: "#FFFFFF",
+  },
+  categoryDisplay: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  categoryIcon: {
+    fontSize: 18,
   },
   sectionDivider: {
     height: 8,
@@ -516,8 +537,16 @@ const styles = StyleSheet.create({
   },
   subTaskDescription: {
     fontSize: 13,
-    color: Colors.ui.white,
+    color: "#9CA3AF",
     padding: 0,
+  },
+  removeSubTask: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  removeSubTaskText: {
+    fontSize: 16,
+    color: "#8E8E93",
   },
   addSubTaskButton: {
     flexDirection: "row",
@@ -527,7 +556,7 @@ const styles = StyleSheet.create({
   addSubTaskText: {
     fontSize: 15,
     fontWeight: "500",
-    color: Colors.ui.white,
+    color: Colors.primary,
     marginLeft: 8,
   },
 });

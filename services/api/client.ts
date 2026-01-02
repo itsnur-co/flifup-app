@@ -44,11 +44,28 @@ class HttpClient {
       };
 
       const response = await fetch(url, config);
-      const data = await response.json();
+
+      // Handle empty responses (204 No Content, etc.)
+      const contentType = response.headers.get('content-type');
+      const hasJsonContent = contentType?.includes('application/json');
+      const text = await response.text();
+
+      let data: any = null;
+      if (text && hasJsonContent) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // If JSON parsing fails, treat as empty response
+          data = null;
+        }
+      } else if (text && !hasJsonContent) {
+        // Non-JSON response with text content
+        data = { message: text };
+      }
 
       if (!response.ok) {
         return {
-          error: data.message || data.error || 'Something went wrong',
+          error: data?.message || data?.error || 'Something went wrong',
           data: data,
         };
       }

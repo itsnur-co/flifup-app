@@ -23,7 +23,6 @@ import {
   AddCustomDateSheet,
   AddCustomHoursSheet,
   AddCustomMinutesSheet,
-  ReminderValue,
   RepeatSheet,
   SelectDateSheet,
   SetReminderSheet,
@@ -40,66 +39,49 @@ import {
 } from "@/components/task";
 
 import { Colors } from "@/constants/colors";
-import { MOCK_PEOPLE } from "@/constants/mockData";
-import {
-  Task as ApiTask,
-  CreateTaskRequest,
-  TaskCategory,
-} from "@/services/api/task.service";
-import { RepeatConfig } from "@/types/habit";
-import {
-  Category,
-  DateOption,
-  Task as LocalTask,
-  Person,
+import type {
   Task,
+  TaskCategory,
+  CreateTaskRequest,
   TaskFormState,
+  ReminderValue,
+  Person,
 } from "@/types/task";
-
-// Helper to convert API task to local task type
-const mapApiTaskToLocal = (apiTask: ApiTask): LocalTask => {
-  return {
-    id: apiTask.id,
-    title: apiTask.title,
-    description: apiTask.description,
-    dueDate: apiTask.dueDate ? new Date(apiTask.dueDate) : undefined,
-    dueTime: apiTask.dueTime || undefined,
-    repeat: undefined, // API uses different repeat structure
-    category: apiTask.category
-      ? {
-          id: apiTask.category.id,
-          name: apiTask.category.name,
-          icon: apiTask.category.icon || "📋",
-          color: apiTask.category.color || Colors.primary,
-        }
-      : undefined,
-    assignedPeople: [], // Would need collaborators mapping
-    reminder: apiTask.reminderAt ? new Date(apiTask.reminderAt) : undefined,
-    subTasks:
-      apiTask.subtasks?.map((st) => ({
-        id: st.id,
-        title: st.title,
-        description: "",
-        completed: st.isCompleted,
-        createdAt: new Date(st.createdAt),
-      })) || [],
-    completed: apiTask.status === "COMPLETED",
-    createdAt: new Date(apiTask.createdAt),
-    updatedAt: new Date(apiTask.updatedAt),
-  };
-};
+import { RepeatConfig } from "@/types/habit";
+import { isTaskCompleted } from "@/types/task";
+import { formatDateForApi } from "@/utils/dateTime";
 
 // Helper to convert form to API request
-const mapFormToApiRequest = (form: TaskFormState): CreateTaskRequest => {
+const formToApiRequest = (
+  form: TaskFormState,
+  dueDate: Date | null,
+  dueTime: string | null,
+  category: TaskCategory | null,
+  reminder: ReminderValue | null,
+  assignedPeople: Person[]
+): CreateTaskRequest => {
   return {
     title: form.title,
     description: form.description || undefined,
-    priority: "MEDIUM",
-    dueDate: form.dueDate?.toISOString().split("T")[0],
-    dueTime: form.dueTime || undefined,
-    repeat: "NONE",
-    categoryId: form.category?.id,
+    priority: form.priority,
+    dueDate: dueDate ? formatDateForApi(dueDate) : undefined,
+    dueTime: dueTime || undefined,
+    repeat: form.repeat,
+    categoryId: category?.id,
     status: "TODO",
+    // Include inline subtasks if form has them
+    subtasks:
+      form.subtasks && form.subtasks.length > 0
+        ? form.subtasks.map((s, idx) => ({
+            title: s.title,
+            order: idx,
+          }))
+        : undefined,
+    // Include inline collaborators from assigned people
+    collaborators:
+      assignedPeople.length > 0
+        ? assignedPeople.map((p) => ({ email: p.email }))
+        : undefined,
   };
 };
 
@@ -110,9 +92,10 @@ export const TaskListScreen: React.FC = () => {
 
   // API Hook
   const {
-    todayTasks: apiTodayTasks,
-    upcomingTasks: apiUpcomingTasks,
-    categories: apiCategories,
+    todayTasks,
+    upcomingTasks,
+    selectedDateTasks,
+    categories,
     isLoading,
     isCreating,
     isUpdating,
@@ -125,39 +108,10 @@ export const TaskListScreen: React.FC = () => {
     toggleSubtask,
     createCategory,
     refresh,
+    fetchUpcomingTasks,
+    fetchTasksByDate,
+    fetchTodayTasks,
   } = useTasks({ autoFetch: true });
-
-  // Map API tasks to local format
-  const todayTasks = useMemo(
-    () => apiTodayTasks.map(mapApiTaskToLocal),
-    [apiTodayTasks]
-  );
-
-  const upcomingTasks = useMemo(
-    () => apiUpcomingTasks.map(mapApiTaskToLocal),
-    [apiUpcomingTasks]
-  );
-
-  // Computed completed tasks from today
-  const completedTasks = useMemo(
-    () => todayTasks.filter((t: Task) => t.completed),
-    [todayTasks]
-  );
-
-  const pendingTodayTasks = useMemo(
-    () => todayTasks.filter((t: Task) => !t.completed),
-    [todayTasks]
-  );
-
-  // Map API categories to local format
-  const categories: Category[] = useMemo(() => {
-    return apiCategories.map((c: TaskCategory) => ({
-      id: c.id,
-      name: c.name,
-      icon: c.icon || "📋",
-      color: c.color || Colors.primary,
-    }));
-  }, [apiCategories]);
 
   // Local state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -181,29 +135,93 @@ export const TaskListScreen: React.FC = () => {
 
   // FAB compact state while scrolling
   const [isFabCompact, setIsFabCompact] = useState(false);
-  const scrollDebounceRef = useRef<number | null>(null);
+  const scrollDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Selected task for options
-  const [selectedTask, setSelectedTask] = useState<LocalTask | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // Form states for create task
   const [taskDueDate, setTaskDueDate] = useState<Date | null>(null);
   const [taskDueTime, setTaskDueTime] = useState<string | null>(null);
   const [taskRepeat, setTaskRepeat] = useState<RepeatConfig | null>(null);
-  const [taskCategory, setTaskCategory] = useState<Category | null>(null);
+  const [taskCategory, setTaskCategory] = useState<TaskCategory | null>(null);
   const [taskAssignedPeople, setTaskAssignedPeople] = useState<Person[]>([]);
   const [taskReminder, setTaskReminder] = useState<ReminderValue | null>(null);
   const [customMinutes, setCustomMinutes] = useState<number[]>([]);
   const [customHours, setCustomHours] = useState<number[]>([]);
 
+  // Check if selected date is today
+  const isToday = useMemo(() => {
+    const today = new Date();
+    return (
+      selectedDate.getFullYear() === today.getFullYear() &&
+      selectedDate.getMonth() === today.getMonth() &&
+      selectedDate.getDate() === today.getDate()
+    );
+  }, [selectedDate]);
+
+  // Get tasks to display based on selected date (with fallback for undefined)
+  const displayTasks = useMemo(() => {
+    if (isToday) {
+      return todayTasks || [];
+    }
+    return selectedDateTasks || [];
+  }, [isToday, todayTasks, selectedDateTasks]);
+
+  // Computed completed/pending tasks based on selected date
+  const pendingTasks = useMemo(
+    () => displayTasks.filter((t) => !isTaskCompleted(t)),
+    [displayTasks]
+  );
+
+  const completedTasks = useMemo(
+    () => displayTasks.filter((t) => isTaskCompleted(t)),
+    [displayTasks]
+  );
+
+  // Format selected date for section title
+  const selectedDateTitle = useMemo(() => {
+    if (isToday) return "Today";
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    };
+    return selectedDate.toLocaleDateString("en-US", options);
+  }, [selectedDate, isToday]);
+
   // Handlers
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-  };
+  const handleDateSelect = useCallback(
+    (date: Date) => {
+      setSelectedDate(date);
+      // Check if selected date is today
+      const today = new Date();
+      const isSelectedToday =
+        date.getFullYear() === today.getFullYear() &&
+        date.getMonth() === today.getMonth() &&
+        date.getDate() === today.getDate();
+
+      if (isSelectedToday) {
+        // Refresh today's tasks
+        fetchTodayTasks();
+      } else {
+        // Fetch tasks for the selected date
+        fetchTasksByDate(date);
+      }
+    },
+    [fetchTodayTasks, fetchTasksByDate]
+  );
 
   const handleCreateTask = useCallback(
     async (formState: TaskFormState) => {
-      const apiRequest = mapFormToApiRequest(formState);
+      const apiRequest = formToApiRequest(
+        formState,
+        taskDueDate,
+        taskDueTime,
+        taskCategory,
+        taskReminder,
+        taskAssignedPeople
+      );
       const result = await createTask(apiRequest);
 
       if (result) {
@@ -215,14 +233,32 @@ export const TaskListScreen: React.FC = () => {
         setTaskAssignedPeople([]);
         setTaskReminder(null);
         setIsCreateTaskVisible(false);
+
+        // Refresh tasks for current selected date
+        if (isToday) {
+          fetchTodayTasks();
+        } else {
+          fetchTasksByDate(selectedDate);
+        }
       }
     },
-    [createTask]
+    [
+      createTask,
+      taskDueDate,
+      taskDueTime,
+      taskCategory,
+      taskReminder,
+      taskAssignedPeople,
+      isToday,
+      selectedDate,
+      fetchTodayTasks,
+      fetchTasksByDate,
+    ]
   );
 
   const handleToggleTask = useCallback(
-    async (task: LocalTask) => {
-      const wasCompleted = task.completed;
+    async (task: Task) => {
+      const wasCompleted = isTaskCompleted(task);
       const success = await toggleTaskStatus(task.id);
 
       if (success && !wasCompleted) {
@@ -233,7 +269,7 @@ export const TaskListScreen: React.FC = () => {
   );
 
   const handleTaskPress = useCallback(
-    (task: LocalTask) => {
+    (task: Task) => {
       router.push({
         pathname: "/task-details",
         params: { taskId: task.id },
@@ -242,13 +278,12 @@ export const TaskListScreen: React.FC = () => {
     [router]
   );
 
-  const handleTaskMore = useCallback((task: LocalTask) => {
+  const handleTaskMore = useCallback((task: Task) => {
     setSelectedTask(task);
     setIsTaskOptionsVisible(true);
   }, []);
 
   const handleSetFocusFromModal = useCallback(() => {
-    // Open Set Focus sheet for selectedTask
     setIsTaskOptionsVisible(false);
     setIsSetFocusVisible(true);
   }, []);
@@ -268,13 +303,9 @@ export const TaskListScreen: React.FC = () => {
     }
   }, [selectedTask, deleteTask]);
 
-  const handleSelectDate = useCallback(
-    (date: Date | null, option: DateOption) => {
-      setTaskDueDate(date);
-      console.log("Selected date option:", option);
-    },
-    []
-  );
+  const handleSelectDate = useCallback((date: Date | null) => {
+    setTaskDueDate(date);
+  }, []);
 
   const handleOpenCustomDate = useCallback(() => {
     setIsSelectDateVisible(false);
@@ -296,7 +327,7 @@ export const TaskListScreen: React.FC = () => {
   }, []);
 
   const handleSelectCategory = useCallback(
-    async (category: Category) => {
+    async (category: TaskCategory) => {
       // Check if category already exists
       const exists = categories.find((c) => c.name === category.name);
       if (!exists) {
@@ -354,6 +385,17 @@ export const TaskListScreen: React.FC = () => {
   const openCreateTask = () => {
     setIsCreateTaskVisible(true);
   };
+
+  const handleScroll = useCallback(() => {
+    if (scrollDebounceRef.current) {
+      clearTimeout(scrollDebounceRef.current);
+    }
+    if (!isFabCompact) setIsFabCompact(true);
+    scrollDebounceRef.current = setTimeout(() => {
+      setIsFabCompact(false);
+      scrollDebounceRef.current = null;
+    }, 300);
+  }, [isFabCompact]);
 
   // Loading state for initial load
   if (isLoading && todayTasks.length === 0) {
@@ -413,24 +455,14 @@ export const TaskListScreen: React.FC = () => {
             colors={[Colors.primary]}
           />
         }
-        onScroll={() => {
-          if (scrollDebounceRef.current) {
-            clearTimeout(scrollDebounceRef.current);
-          }
-          if (!isFabCompact) setIsFabCompact(true);
-          // @ts-ignore
-          scrollDebounceRef.current = window.setTimeout(() => {
-            setIsFabCompact(false);
-            scrollDebounceRef.current = null;
-          }, 300);
-        }}
+        onScroll={handleScroll}
       >
-        {/* Today Section */}
-        {pendingTodayTasks.length > 0 && (
+        {/* Selected Date Section */}
+        {pendingTasks.length > 0 && (
           <TaskSection
-            title="Today"
-            count={pendingTodayTasks.length}
-            tasks={pendingTodayTasks}
+            title={selectedDateTitle}
+            count={pendingTasks.length}
+            tasks={pendingTasks}
             initialExpanded
             onTaskPress={handleTaskPress}
             onTaskToggle={handleToggleTask}
@@ -465,11 +497,15 @@ export const TaskListScreen: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {todayTasks.length === 0 && upcomingTasks.length === 0 && (
+        {displayTasks.length === 0 && upcomingTasks.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No tasks yet</Text>
+            <Text style={styles.emptyText}>
+              {isToday ? "No tasks yet" : `No tasks for ${selectedDateTitle}`}
+            </Text>
             <Text style={styles.emptySubtext}>
-              Create your first task to get started
+              {isToday
+                ? "Create your first task to get started"
+                : "Select another date or create a new task"}
             </Text>
           </View>
         )}
@@ -544,7 +580,6 @@ export const TaskListScreen: React.FC = () => {
         visible={isAddPeopleVisible}
         onClose={() => setIsAddPeopleVisible(false)}
         onConfirm={handleAddPeople}
-        availablePeople={MOCK_PEOPLE}
         selectedPeople={taskAssignedPeople}
       />
 
@@ -565,12 +600,11 @@ export const TaskListScreen: React.FC = () => {
         onSetFocus={handleSetFocusFromModal}
       />
 
-      {/* Set Focus Duration Sheet (opens when user chooses Set Focus) */}
+      {/* Set Focus Duration Sheet */}
       <SetFocusDurationSheet
         visible={isSetFocusVisible}
         onClose={() => setIsSetFocusVisible(false)}
         onStart={(durationMinutes) => {
-          // navigate to focus route with params
           const taskId = selectedTask?.id || "";
           const taskTitle = selectedTask?.title || "Focus Session";
           setIsSetFocusVisible(false);
@@ -583,7 +617,7 @@ export const TaskListScreen: React.FC = () => {
         taskTitle={selectedTask?.title || ""}
       />
 
-      {/* Header options sheet (Task Progress) */}
+      {/* Header options sheet */}
       <TaskHeaderOptionsSheet
         visible={isHeaderOptionsVisible}
         onClose={() => setIsHeaderOptionsVisible(false)}

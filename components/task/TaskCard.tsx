@@ -1,28 +1,29 @@
 /**
  * Task Card Component
  * Displays individual task in the task list
- * Matches Figma design exactly
+ * Works with API Task type
  */
 
-import React from 'react';
+import React from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   ViewStyle,
-} from 'react-native';
-import { Task } from '@/types/task';
-import { AvatarGroup } from '@/components/ui/Avatar';
+} from "react-native";
+import { Task, isTaskCompleted, collaboratorToPerson } from "@/types/task";
+import { AvatarGroup } from "@/components/ui/Avatar";
 import {
-  CircleIcon,
+  CalendarLineIcon,
   CircleCheckIcon,
-  ClockIcon,
-  CalendarIcon,
-  TagIcon,
+  CircleIcon,
   MoreHorizontalIcon,
-} from '@/components/icons/TaskIcons';
-import { Colors } from '@/constants/colors';
+  PriceTagLineIcon,
+  TimeLineIcon,
+} from "@/components/icons/TaskIcons";
+import { Colors } from "@/constants/colors";
+import { formatTaskDate, formatTime, formatDuration } from "@/utils/dateTime";
 
 interface TaskCardProps {
   task: Task;
@@ -39,25 +40,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onMorePress,
   style,
 }) => {
-  const formatDate = (date?: Date): string => {
-    if (!date) return '';
-    const today = new Date();
-    if (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    ) {
-      return 'Today';
+  const isCompleted = isTaskCompleted(task);
+
+  // Convert collaborators to display format
+  const assignedPeople = task.collaborators?.map(collaboratorToPerson) || [];
+
+  // Get priority color
+  const getPriorityColor = (): string => {
+    switch (task.priority) {
+      case "HIGH":
+        return "#EF4444";
+      case "MEDIUM":
+        return "#F59E0B";
+      case "LOW":
+        return "#22C55E";
+      default:
+        return "#8E8E93";
     }
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
   };
 
   return (
     <View
-      style={[styles.container, task.completed && styles.containerCompleted, style]}
+      style={[styles.container, isCompleted && styles.containerCompleted, style]}
     >
       {/* Top Row: Checkbox, Title, More Button */}
       <View style={styles.topRow}>
@@ -66,7 +70,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           style={styles.checkboxContainer}
           activeOpacity={0.7}
         >
-          {task.completed ? (
+          {isCompleted ? (
             <CircleCheckIcon size={24} color={Colors.primary} />
           ) : (
             <CircleIcon size={24} color="#5A5A5E" />
@@ -79,12 +83,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           style={styles.titleContainer}
         >
           <Text
-            style={[styles.title, task.completed && styles.titleCompleted]}
+            style={[styles.title, isCompleted && styles.titleCompleted]}
             numberOfLines={1}
           >
             {task.title}
           </Text>
         </TouchableOpacity>
+
+        {/* Priority indicator */}
+        <View style={[styles.priorityDot, { backgroundColor: getPriorityColor() }]} />
 
         <TouchableOpacity
           onPress={onMorePress}
@@ -97,20 +104,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
       {/* Meta info row */}
       <View style={styles.metaRow}>
-        {/* Duration */}
-        {task.dueTime && (
+        {/* Estimated Time */}
+        {task.estimatedTime && (
           <View style={styles.metaItem}>
-            <ClockIcon size={14} color="#8E8E93" />
-            <Text style={styles.metaText}>2 H</Text>
+            <TimeLineIcon size={14} color="#8E8E93" />
+            <Text style={styles.metaText}>{formatDuration(task.estimatedTime)}</Text>
           </View>
         )}
 
-        {/* Date */}
+        {/* Date & Time */}
         {task.dueDate && (
           <View style={styles.metaItem}>
-            <CalendarIcon size={14} color="#8E8E93" />
+            <CalendarLineIcon size={14} color="#8E8E93" />
             <Text style={styles.metaText}>
-              {formatDate(task.dueDate)}, {task.dueTime}
+              {formatTaskDate(task.dueDate)}
+              {task.dueTime && `, ${formatTime(task.dueTime)}`}
             </Text>
           </View>
         )}
@@ -118,15 +126,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Category */}
         {task.category && (
           <View style={styles.metaItem}>
-            <TagIcon size={14} color="#8E8E93" />
+            <PriceTagLineIcon size={14} color="#8E8E93" />
             <Text style={styles.metaText}>{task.category.name}</Text>
           </View>
         )}
 
+        {/* Subtask count */}
+        {task.subtasks && task.subtasks.length > 0 && (
+          <View style={styles.subtaskBadge}>
+            <Text style={styles.subtaskText}>
+              {task.subtasks.filter((st) => st.isCompleted).length}/{task.subtasks.length}
+            </Text>
+          </View>
+        )}
+
         {/* Assigned people */}
-        {task.assignedPeople.length > 0 && (
+        {assignedPeople.length > 0 && (
           <AvatarGroup
-            avatars={task.assignedPeople.map((p) => ({
+            avatars={assignedPeople.map((p) => ({
               uri: p.avatar,
               name: p.name,
             }))}
@@ -143,7 +160,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -152,8 +169,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
   },
   checkboxContainer: {
@@ -164,28 +181,45 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    fontWeight: "500",
+    color: "#FFFFFF",
   },
   titleCompleted: {
-    textDecorationLine: 'line-through',
-    color: '#8E8E93',
+    textDecorationLine: "line-through",
+    color: "#8E8E93",
+  },
+  priorityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
   },
   metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
     gap: 8,
     paddingLeft: 36,
   },
   metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   metaText: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
+  },
+  subtaskBadge: {
+    backgroundColor: "#3A3A3C",
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  subtaskText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   avatarGroup: {
     marginLeft: 4,

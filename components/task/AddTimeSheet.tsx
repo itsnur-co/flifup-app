@@ -152,15 +152,44 @@ export const AddTimeSheet: React.FC<AddTimeSheetProps> = ({
   initialTime,
 }) => {
   // Parse initial time or default to 5:30 PM
+  // Supports both HH:mm (24h) and h:mm AM/PM (12h) formats
   const parseInitialTime = () => {
     if (initialTime) {
-      const match = initialTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (match) {
+      // Try 12-hour format first (e.g., "5:30 PM")
+      const match12h = initialTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (match12h) {
         return {
-          hour: parseInt(match[1], 10),
-          minute: parseInt(match[2], 10),
-          period: match[3].toUpperCase() as "AM" | "PM",
+          hour: parseInt(match12h[1], 10),
+          minute: parseInt(match12h[2], 10),
+          period: match12h[3].toUpperCase() as "AM" | "PM",
         };
+      }
+
+      // Try 24-hour format (e.g., "17:30")
+      const match24h = initialTime.match(/^(\d{1,2}):(\d{2})$/);
+      if (match24h) {
+        const hour24 = parseInt(match24h[1], 10);
+        const minute = parseInt(match24h[2], 10);
+
+        // Convert 24h to 12h format
+        let hour12: number;
+        let period: "AM" | "PM";
+
+        if (hour24 === 0) {
+          hour12 = 12;
+          period = "AM";
+        } else if (hour24 < 12) {
+          hour12 = hour24;
+          period = "AM";
+        } else if (hour24 === 12) {
+          hour12 = 12;
+          period = "PM";
+        } else {
+          hour12 = hour24 - 12;
+          period = "PM";
+        }
+
+        return { hour: hour12, minute, period };
       }
     }
     return { hour: 5, minute: 30, period: "PM" as const };
@@ -174,11 +203,23 @@ export const AddTimeSheet: React.FC<AddTimeSheetProps> = ({
   );
 
   const handleAdd = useCallback(() => {
-    const hour = hours[selectedHour];
+    const hour12 = hours[selectedHour]; // 1-12
     const minute = minutes[selectedMinute];
     const period = periods[selectedPeriod];
-    const formattedMinute = minute < 10 ? `0${minute}` : minute;
-    const timeString = `${hour}:${formattedMinute} ${period}`;
+
+    // Convert to 24-hour format for API (HH:mm)
+    let hour24 = hour12;
+    if (period === "AM") {
+      hour24 = hour12 === 12 ? 0 : hour12;
+    } else {
+      // PM
+      hour24 = hour12 === 12 ? 12 : hour12 + 12;
+    }
+
+    const formattedHour = hour24 < 10 ? `0${hour24}` : `${hour24}`;
+    const formattedMinute = minute < 10 ? `0${minute}` : `${minute}`;
+    const timeString = `${formattedHour}:${formattedMinute}`;
+
     onSelectTime(timeString);
     onClose();
   }, [selectedHour, selectedMinute, selectedPeriod, onSelectTime, onClose]);

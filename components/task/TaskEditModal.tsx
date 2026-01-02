@@ -4,7 +4,7 @@
  * Matches Figma design exactly
  */
 
-import { EditIcon, FocusIcon, TrashIcon } from "@/components/icons/TaskIcons";
+import { DeleteBinIcon, EditIcon, FocusLineIcon } from "@/components/icons/TaskIcons";
 import { Colors } from "@/constants/colors";
 import React from "react";
 import {
@@ -67,7 +67,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
               onPress={handleSetFocus}
               activeOpacity={0.7}
             >
-              <FocusIcon size={22} color={Colors.primary} />
+              <FocusLineIcon size={22} color={Colors.primary} />
               <Text style={styles.optionText}>Set Focus</Text>
             </TouchableOpacity>
           )}
@@ -88,7 +88,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
             onPress={handleDelete}
             activeOpacity={0.7}
           >
-            <TrashIcon size={22} color="#FFFFFF" />
+            <DeleteBinIcon size={22} color="#FFFFFF" />
             <Text style={styles.optionText}>Delete Task</Text>
           </TouchableOpacity>
 

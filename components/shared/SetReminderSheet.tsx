@@ -22,7 +22,30 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ReminderUnit } from "@/types/task";
+
+// Tab type for UI - maps to ReminderUnit
 type ReminderTab = "minutes" | "hours" | "days";
+
+// Convert tab to API unit
+const tabToUnit = (tab: ReminderTab): ReminderUnit => {
+  const mapping: Record<ReminderTab, ReminderUnit> = {
+    minutes: "MINUTES",
+    hours: "HOURS",
+    days: "DAYS",
+  };
+  return mapping[tab];
+};
+
+// Convert unit to tab
+const unitToTab = (unit: ReminderUnit): ReminderTab => {
+  const mapping: Record<ReminderUnit, ReminderTab> = {
+    MINUTES: "minutes",
+    HOURS: "hours",
+    DAYS: "days",
+  };
+  return mapping[unit];
+};
 
 interface ReminderOption {
   value: number;
@@ -30,7 +53,7 @@ interface ReminderOption {
 }
 
 const MINUTES_OPTIONS: ReminderOption[] = [
-  { value: 1, label: "1 minutes before" },
+  { value: 1, label: "1 minute before" },
   { value: 5, label: "5 minutes before" },
   { value: 10, label: "10 minutes before" },
   { value: 15, label: "15 minutes before" },
@@ -41,22 +64,23 @@ const MINUTES_OPTIONS: ReminderOption[] = [
 
 const HOURS_OPTIONS: ReminderOption[] = [
   { value: 1, label: "1 hour before" },
-  { value: 2, label: "2 hour before" },
-  { value: 4, label: "4 hour before" },
-  { value: 8, label: "8 hour before" },
-  { value: 16, label: "16 hour before" },
+  { value: 2, label: "2 hours before" },
+  { value: 4, label: "4 hours before" },
+  { value: 8, label: "8 hours before" },
+  { value: 16, label: "16 hours before" },
 ];
 
 const DAYS_OPTIONS: ReminderOption[] = [
   { value: 1, label: "1 day before" },
-  { value: 2, label: "2 day before" },
-  { value: 3, label: "3 day before" },
-  { value: 5, label: "5 day before" },
-  { value: 7, label: "7 day before" },
+  { value: 2, label: "2 days before" },
+  { value: 3, label: "3 days before" },
+  { value: 5, label: "5 days before" },
+  { value: 7, label: "7 days before" },
 ];
 
+// ReminderValue uses ReminderUnit for API compatibility
 export interface ReminderValue {
-  type: ReminderTab;
+  type: ReminderUnit;
   value: number;
   isCustom?: boolean;
   customDate?: Date;
@@ -87,7 +111,7 @@ export const SetReminderSheet: React.FC<SetReminderSheetProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<ReminderTab>(
-    selectedReminder?.type || "minutes"
+    selectedReminder?.type ? unitToTab(selectedReminder.type) : "minutes"
   );
   const [selected, setSelected] = useState<ReminderValue | null>(
     selectedReminder || null
@@ -100,8 +124,8 @@ export const SetReminderSheet: React.FC<SetReminderSheetProps> = ({
     onClose();
   };
 
-  const handleSelectOption = (type: ReminderTab, value: number) => {
-    setSelected({ type, value });
+  const handleSelectOption = (tab: ReminderTab, value: number) => {
+    setSelected({ type: tabToUnit(tab), value });
   };
 
   const getOptions = (): ReminderOption[] => {
@@ -163,8 +187,8 @@ export const SetReminderSheet: React.FC<SetReminderSheetProps> = ({
     }
   };
 
-  const isOptionSelected = (type: ReminderTab, value: number): boolean => {
-    return selected?.type === type && selected?.value === value;
+  const isOptionSelected = (tab: ReminderTab, value: number): boolean => {
+    return selected?.type === tabToUnit(tab) && selected?.value === value;
   };
 
   return (

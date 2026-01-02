@@ -4,7 +4,7 @@
  * Shows Reports option like Habits feature
  */
 
-import { ChartIcon, FocusIcon } from "@/components/icons/TaskIcons";
+import { ChartIcon, FocusLineIcon } from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
 import React from "react";
@@ -77,7 +77,7 @@ export const TaskHeaderOptionsSheet: React.FC<TaskHeaderOptionsSheetProps> = ({
               activeOpacity={0.7}
             >
               <View style={styles.iconContainer}>
-                <FocusIcon size={22} color="#3B82F6" />
+                <FocusLineIcon size={22} color="#3B82F6" />
               </View>
               <View style={styles.optionContent}>
                 <Text style={styles.optionText}>Focus History</Text>

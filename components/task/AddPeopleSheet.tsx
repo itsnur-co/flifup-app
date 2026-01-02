@@ -1,17 +1,18 @@
 /**
  * Add People Bottom Sheet Component
  * Search and select people to assign to tasks
- * Matches Figma design exactly
+ * Uses real API for searching users and getting contacts
  */
 
 import { CheckIcon, SearchIcon } from "@/components/icons/TaskIcons";
 import { Avatar } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
-import { MOCK_PEOPLE } from "@/constants/mockData";
+import { taskService, UserSearchResult } from "@/services/api/task.service";
 import { Person } from "@/types/task";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -26,15 +27,21 @@ interface AddPeopleSheetProps {
   onClose: () => void;
   onConfirm: (people: Person[]) => void;
   selectedPeople?: Person[];
-  availablePeople?: Person[];
 }
+
+// Convert API UserSearchResult to Person
+const userToPerson = (user: UserSearchResult): Person => ({
+  id: user.id,
+  name: user.fullName,
+  email: user.email,
+  avatar: user.profileImage,
+});
 
 export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
   visible,
   onClose,
   onConfirm,
   selectedPeople = [],
-  availablePeople = MOCK_PEOPLE,
 }) => {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,63 +49,175 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
     new Set(selectedPeople.map((p) => p.id))
   );
 
-  const filteredPeople = useMemo(() => {
-    if (!searchQuery.trim()) return availablePeople;
+  // API states
+  const [contacts, setContacts] = useState<Person[]>([]);
+  const [searchResults, setSearchResults] = useState<Person[]>([]);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-    const query = searchQuery.toLowerCase();
-    return availablePeople.filter(
-      (person) =>
-        person.name.toLowerCase().includes(query) ||
-        person.email.toLowerCase().includes(query)
-    );
-  }, [searchQuery, availablePeople]);
+  // Keep track of all selected people (for confirmation)
+  const [allSelectedPeople, setAllSelectedPeople] = useState<Map<string, Person>>(
+    new Map(selectedPeople.map((p) => [p.id, p]))
+  );
 
-  const togglePerson = (person: Person) => {
-    const newSelected = new Set(selected);
-    if (newSelected.has(person.id)) {
-      newSelected.delete(person.id);
-    } else {
-      newSelected.add(person.id);
+  // Fetch contacts when sheet opens
+  useEffect(() => {
+    if (visible) {
+      fetchContacts();
+      // Reset states when opening
+      setSearchQuery("");
+      setSearchResults([]);
+      setSelected(new Set(selectedPeople.map((p) => p.id)));
+      setAllSelectedPeople(new Map(selectedPeople.map((p) => [p.id, p])));
     }
-    setSelected(newSelected);
+  }, [visible, selectedPeople]);
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      searchUsers(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const fetchContacts = async () => {
+    setIsLoadingContacts(true);
+    try {
+      const response = await taskService.getContacts();
+      if (response.data) {
+        setContacts(response.data.map(userToPerson));
+      }
+    } catch (error) {
+      console.error("Failed to fetch contacts:", error);
+    } finally {
+      setIsLoadingContacts(false);
+    }
   };
 
-  const handleConfirm = () => {
-    const selectedPeopleList = availablePeople.filter((p) =>
-      selected.has(p.id)
-    );
+  const searchUsers = async (query: string) => {
+    setIsSearching(true);
+    try {
+      const response = await taskService.searchUsers(query, 10);
+      if (response.data) {
+        setSearchResults(response.data.map(userToPerson));
+      }
+    } catch (error) {
+      console.error("Failed to search users:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Determine which list to display
+  const displayList = useMemo(() => {
+    if (searchQuery.trim().length >= 2) {
+      return searchResults;
+    }
+    return contacts;
+  }, [searchQuery, searchResults, contacts]);
+
+  const togglePerson = useCallback((person: Person) => {
+    setSelected((prev) => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(person.id)) {
+        newSelected.delete(person.id);
+        setAllSelectedPeople((prevMap) => {
+          const newMap = new Map(prevMap);
+          newMap.delete(person.id);
+          return newMap;
+        });
+      } else {
+        newSelected.add(person.id);
+        setAllSelectedPeople((prevMap) => {
+          const newMap = new Map(prevMap);
+          newMap.set(person.id, person);
+          return newMap;
+        });
+      }
+      return newSelected;
+    });
+  }, []);
+
+  const handleConfirm = useCallback(() => {
+    const selectedPeopleList = Array.from(allSelectedPeople.values());
     onConfirm(selectedPeopleList);
     onClose();
-  };
+  }, [allSelectedPeople, onConfirm, onClose]);
 
-  const renderPerson = ({ item }: { item: Person }) => {
-    const isSelected = selected.has(item.id);
+  const renderPerson = useCallback(
+    ({ item }: { item: Person }) => {
+      const isSelected = selected.has(item.id);
+
+      return (
+        <TouchableOpacity
+          style={styles.personItem}
+          onPress={() => togglePerson(item)}
+          activeOpacity={0.7}
+        >
+          <Avatar
+            uri={item.avatar}
+            name={item.name}
+            size={44}
+            borderColor={isSelected ? Colors.primary : "#3A3A3C"}
+            borderWidth={2}
+          />
+
+          <View style={styles.personInfo}>
+            <Text style={styles.personName}>{item.name}</Text>
+            <Text style={styles.personEmail}>{item.email}</Text>
+          </View>
+
+          <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+            {isSelected && <CheckIcon size={16} color="#FFFFFF" />}
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [selected, togglePerson]
+  );
+
+  const renderEmptyState = useCallback(() => {
+    if (isLoadingContacts || isSearching) {
+      return (
+        <View style={styles.loadingState}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+          <Text style={styles.loadingText}>
+            {isSearching ? "Searching..." : "Loading contacts..."}
+          </Text>
+        </View>
+      );
+    }
+
+    if (searchQuery.trim().length > 0 && searchQuery.trim().length < 2) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>Type at least 2 characters to search</Text>
+        </View>
+      );
+    }
+
+    if (searchQuery.trim().length >= 2 && searchResults.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>No users found</Text>
+          <Text style={styles.emptySubtext}>Try a different search term</Text>
+        </View>
+      );
+    }
 
     return (
-      <TouchableOpacity
-        style={styles.personItem}
-        onPress={() => togglePerson(item)}
-        activeOpacity={0.7}
-      >
-        <Avatar
-          uri={item.avatar}
-          name={item.name}
-          size={44}
-          borderColor={isSelected ? Colors.primary : "#3A3A3C"}
-          borderWidth={2}
-        />
-
-        <View style={styles.personInfo}>
-          <Text style={styles.personName}>{item.name}</Text>
-          <Text style={styles.personEmail}>{item.email}</Text>
-        </View>
-
-        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
-          {isSelected && <CheckIcon size={16} color="#FFFFFF" />}
-        </View>
-      </TouchableOpacity>
+      <View style={styles.emptyState}>
+        <Text style={styles.emptyText}>No recent contacts</Text>
+        <Text style={styles.emptySubtext}>Search for users by name or email</Text>
+      </View>
     );
-  };
+  }, [isLoadingContacts, isSearching, searchQuery, searchResults]);
 
   return (
     <BottomSheet
@@ -113,7 +232,9 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Add People</Text>
           <TouchableOpacity onPress={handleConfirm} activeOpacity={0.7}>
-            <Text style={styles.addButton}>Add</Text>
+            <Text style={styles.addButton}>
+              Add{selected.size > 0 ? ` (${selected.size})` : ""}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -125,19 +246,32 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
             <SearchIcon size={20} color="#6B7280" />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search People..."
+              placeholder="Search by name or email..."
               placeholderTextColor="#6B7280"
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoCapitalize="none"
               autoCorrect={false}
+              keyboardType="email-address"
             />
+            {isSearching && (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            )}
           </View>
+        </View>
+
+        {/* Section Label */}
+        <View style={styles.sectionLabelContainer}>
+          <Text style={styles.sectionLabel}>
+            {searchQuery.trim().length >= 2
+              ? `Search Results (${searchResults.length})`
+              : "Recent Contacts"}
+          </Text>
         </View>
 
         {/* People List */}
         <FlatList
-          data={filteredPeople}
+          data={displayList}
           renderItem={renderPerson}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[
@@ -146,11 +280,7 @@ export const AddPeopleSheet: React.FC<AddPeopleSheetProps> = ({
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No people found</Text>
-            </View>
-          }
+          ListEmptyComponent={renderEmptyState}
         />
       </View>
     </BottomSheet>
@@ -201,6 +331,17 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     padding: 0,
   },
+  sectionLabelContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#8E8E93",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   listContent: {
     paddingHorizontal: 20,
   },
@@ -238,14 +379,28 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
   },
   emptyState: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 40,
   },
   emptyText: {
     fontSize: 15,
+    color: "#8E8E93",
+    marginBottom: 4,
+  },
+  emptySubtext: {
+    fontSize: 13,
     color: "#6B7280",
+  },
+  loadingState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#8E8E93",
   },
 });
 
