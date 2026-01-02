@@ -4,6 +4,7 @@
  * Integrated with API services
  */
 
+import { useHabits, useSound } from "@/hooks";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSound, useHabits } from "@/hooks";
 
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
@@ -25,13 +25,16 @@ import {
   CreateHabitSheet,
   HabitEditModal,
   HabitSection,
-  HeaderOptionsSheet,
   RepeatSheet,
 } from "@/components/habit";
+import { ChartIcon } from "@/components/icons/HabitIcons";
+import { PlusIcon } from "@/components/icons/TaskIcons";
 import { ScreenHeader } from "@/components/navigation/screen-header";
 import {
   AddCustomHoursSheet,
   AddCustomMinutesSheet,
+  ModalOption,
+  OptionsModal,
   ReminderValue,
   SelectDateSheet,
   SetReminderSheet,
@@ -39,13 +42,17 @@ import {
 
 import { Colors } from "@/constants/colors";
 import {
+  CreateHabitRequest,
+  HabitApi,
+  HabitCategoryApi,
+} from "@/services/api/habit.service";
+import {
   Habit,
   HabitCategory,
   HabitFormState,
   HabitGoal,
   RepeatConfig,
 } from "@/types/habit";
-import { HabitApi, CreateHabitRequest, HabitCategoryApi } from "@/services/api/habit.service";
 
 interface HabitListScreenProps {
   onBack?: () => void;
@@ -58,26 +65,34 @@ const mapApiHabitToLocal = (apiHabit: HabitApi): Habit => {
     id: apiHabit.id,
     name: apiHabit.name,
     repeat: {
-      type: apiHabit.repeatType.toLowerCase() as 'daily' | 'monthly' | 'interval',
+      type: apiHabit.repeatType.toLowerCase() as
+        | "daily"
+        | "monthly"
+        | "interval",
       days: apiHabit.repeatDays,
       interval: apiHabit.repeatInterval,
     },
     startDate: new Date(apiHabit.startDate),
-    goal: apiHabit.goalValue ? {
-      value: apiHabit.goalValue,
-      unit: apiHabit.goalUnit || 'COUNT',
-      frequency: apiHabit.goalFrequency || 'PER_DAY',
-    } : undefined,
-    category: apiHabit.category ? {
-      id: apiHabit.category.id,
-      name: apiHabit.category.name,
-      icon: apiHabit.category.icon || '📌',
-      color: apiHabit.category.color || '#9039FF',
-    } : undefined,
+    goal: apiHabit.goalValue
+      ? {
+          value: apiHabit.goalValue,
+          unit: apiHabit.goalUnit || "COUNT",
+          frequency: apiHabit.goalFrequency || "PER_DAY",
+        }
+      : undefined,
+    category: apiHabit.category
+      ? {
+          id: apiHabit.category.id,
+          name: apiHabit.category.name,
+          icon: apiHabit.category.icon || "📌",
+          color: apiHabit.category.color || "#9039FF",
+        }
+      : undefined,
     reminder: apiHabit.reminderTime || undefined,
     comment: apiHabit.comment || undefined,
     completed: apiHabit.isCompletedToday || false,
-    completedDates: apiHabit.completions?.map(c => c.date.split('T')[0]) || [],
+    completedDates:
+      apiHabit.completions?.map((c) => c.date.split("T")[0]) || [],
     createdAt: new Date(apiHabit.createdAt),
     updatedAt: new Date(apiHabit.updatedAt),
   };
@@ -88,7 +103,10 @@ const mapFormToApiRequest = (form: HabitFormState): CreateHabitRequest => {
   return {
     name: form.name,
     description: form.comment || undefined,
-    repeatType: (form.repeat?.type?.toUpperCase() || 'DAILY') as 'DAILY' | 'MONTHLY' | 'INTERVAL',
+    repeatType: (form.repeat?.type?.toUpperCase() || "DAILY") as
+      | "DAILY"
+      | "MONTHLY"
+      | "INTERVAL",
     repeatDays: form.repeat?.days || [],
     repeatInterval: form.repeat?.interval,
     startDate: form.startDate?.toISOString() || new Date().toISOString(),
@@ -98,7 +116,7 @@ const mapFormToApiRequest = (form: HabitFormState): CreateHabitRequest => {
     categoryId: form.category?.id,
     reminderTime: form.reminder || undefined,
     comment: form.comment,
-    status: 'ACTIVE',
+    status: "ACTIVE",
   };
 };
 
@@ -135,8 +153,8 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     return apiCategories.map((c: HabitCategoryApi) => ({
       id: c.id,
       name: c.name,
-      icon: c.icon || '📌',
-      color: c.color || '#9039FF',
+      icon: c.icon || "📌",
+      color: c.color || "#9039FF",
     }));
   }, [apiCategories]);
 
@@ -174,7 +192,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   // Category filter data
   const categoryFilters = useMemo(() => {
     const counts: Record<string, number> = { all: habits.length };
-    
+
     habits.forEach((habit) => {
       if (habit.category?.name) {
         counts[habit.category.name] = (counts[habit.category.name] || 0) + 1;
@@ -203,7 +221,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   // Group habits by completion status
   const { todayHabits, completedHabits } = useMemo(() => {
     const dateStr = selectedDate.toISOString().split("T")[0];
-    
+
     const today = filteredHabits.filter(
       (h) => !h.completedDates.includes(dateStr)
     );
@@ -219,15 +237,18 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setSelectedDate(date);
   }, []);
 
-  const handleCreateHabit = useCallback(async (formState: HabitFormState) => {
-    const apiRequest = mapFormToApiRequest(formState);
-    const result = await createHabit(apiRequest);
-    
-    if (result) {
-      resetFormState();
-      setShowCreateSheet(false);
-    }
-  }, [createHabit]);
+  const handleCreateHabit = useCallback(
+    async (formState: HabitFormState) => {
+      const apiRequest = mapFormToApiRequest(formState);
+      const result = await createHabit(apiRequest);
+
+      if (result) {
+        resetFormState();
+        setShowCreateSheet(false);
+      }
+    },
+    [createHabit]
+  );
 
   const resetFormState = () => {
     setFormRepeat(undefined);
@@ -244,7 +265,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       );
 
       const success = await toggleHabitCompletion(habit.id);
-      
+
       if (success && !wasCompleted) {
         playCompletionSound();
       }
@@ -289,6 +310,25 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setShowCreateSheet(true);
   }, []);
 
+  // Header options configuration
+  const headerOptions: ModalOption[] = useMemo(
+    () => [
+      {
+        id: "add-new",
+        label: "Add New Habit",
+        icon: <PlusIcon size={22} color="#FFFFFF" />,
+        onPress: openCreateSheet,
+      },
+      {
+        id: "overall-progress",
+        label: "Overall Progress",
+        icon: <ChartIcon size={22} color="#FFFFFF" />,
+        onPress: handleOverallProgress,
+      },
+    ],
+    [openCreateSheet, handleOverallProgress]
+  );
+
   const handleSetReminder = useCallback((reminder: ReminderValue) => {
     setFormReminder(reminder);
     setShowReminderSheet(false);
@@ -322,14 +362,17 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setIsRefreshing(false);
   }, [refresh]);
 
-  const handleCategorySelect = useCallback(async (category: HabitCategory) => {
-    const exists = categories.find((c) => c.name === category.name);
-    if (!exists) {
-      await createCategory(category.name, category.icon, category.color);
-    }
-    setFormCategory(category);
-    setShowCategorySheet(false);
-  }, [categories, createCategory]);
+  const handleCategorySelect = useCallback(
+    async (category: HabitCategory) => {
+      const exists = categories.find((c) => c.name === category.name);
+      if (!exists) {
+        await createCategory(category.name, category.icon, category.color);
+      }
+      setFormCategory(category);
+      setShowCategorySheet(false);
+    },
+    [categories, createCategory]
+  );
 
   // Loading state for initial load
   if (isLoading && habits.length === 0) {
@@ -450,17 +493,20 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
 
       {/* Create Button */}
       <View style={styles.fabContainer}>
-        <CreateButton label="New Habit" onPress={openCreateSheet} compact={isFabCompact} />
+        <CreateButton
+          label="New Habit"
+          onPress={openCreateSheet}
+          compact={isFabCompact}
+        />
       </View>
 
       {/* Bottom Sheets */}
 
-      {/* Header Options Sheet */}
-      <HeaderOptionsSheet
+      {/* Header Options Modal */}
+      <OptionsModal
         visible={showHeaderOptions}
         onClose={() => setShowHeaderOptions(false)}
-        onAddNewHabit={openCreateSheet}
-        onOverallProgress={handleOverallProgress}
+        options={headerOptions}
       />
 
       {/* Create Habit Sheet */}
