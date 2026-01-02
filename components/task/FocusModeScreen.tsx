@@ -813,15 +813,16 @@ const styles = StyleSheet.create({
   elapsedText: {
     fontSize: 16,
     fontWeight: "400",
-    color: "#6B7280",
+    color: "#fffFFF",
+    fontVariant: ["tabular-nums"],
     marginTop: 8,
   },
   controlsContainer: {
     flexDirection: "row",
     justifyContent: "center",
+    gap: 60,
     alignItems: "center",
-    gap: 48,
-    marginBottom: 8,
+    marginBottom: 16,
   },
   controlButton: {
     width: 72,
@@ -833,17 +834,18 @@ const styles = StyleSheet.create({
   },
   labelsContainer: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-around",
     alignItems: "center",
-    gap: 80,
+    gap: 103,
     marginBottom: 32,
+    minHeight: 40,
   },
   controlLabel: {
     fontSize: 14,
     fontWeight: "400",
     color: "#8E8E93",
-    width: 60,
     textAlign: "center",
+    lineHeight: 20,
   },
   finishTimeContainer: {
     backgroundColor: "#2C2C2E",

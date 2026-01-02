@@ -380,6 +380,19 @@ export const taskService = {
     return httpClient.delete<{ message: string }>(`/tasks/${id}`, true);
   },
 
+  /**
+   * Delete all tasks by date
+   * @param date - Date in YYYY-MM-DD format
+   */
+  async deleteTasksByDate(
+    date: string
+  ): Promise<ApiResponse<{ message: string; count: number }>> {
+    return httpClient.delete<{ message: string; count: number }>(
+      `/tasks/date/${date}`,
+      true
+    );
+  },
+
   // ============================================
   // Subtask Operations
   // ============================================
@@ -809,9 +822,7 @@ export const taskService = {
   /**
    * Get all time entries for a task
    */
-  async getTimeEntries(
-    taskId: string
-  ): Promise<
+  async getTimeEntries(taskId: string): Promise<
     ApiResponse<{
       entries: TimeEntry[];
       totalMinutes: number;

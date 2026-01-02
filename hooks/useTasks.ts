@@ -537,6 +537,40 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     [selectedTask, removeTaskFromAllLists]
   );
 
+  const deleteAllTasksByDate = useCallback(
+    async (date: string): Promise<{ success: boolean; count: number }> => {
+      setIsDeleting(true);
+      setError(null);
+
+      try {
+        const response = await taskService.deleteTasksByDate(date);
+
+        if (response.error) {
+          setError(response.error);
+          return { success: false, count: 0 };
+        }
+
+        const count = response.data?.count || 0;
+
+        // Refresh all task lists after deletion
+        await Promise.all([
+          fetchTodayTasks(),
+          fetchUpcomingTasks(),
+          fetchTasksByDate(new Date(date)),
+        ]);
+
+        return { success: true, count };
+      } catch (err) {
+        setError("Failed to delete tasks");
+        console.error("deleteAllTasksByDate error:", err);
+        return { success: false, count: 0 };
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [fetchTodayTasks, fetchUpcomingTasks, fetchTasksByDate]
+  );
+
   // ============================================
   // Status Operations
   // ============================================
@@ -1380,6 +1414,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     createTask,
     updateTask,
     deleteTask,
+    deleteAllTasksByDate,
     setSelectedTask,
 
     // Status actions

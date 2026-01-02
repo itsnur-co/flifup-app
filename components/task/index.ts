@@ -7,6 +7,7 @@ export { AddPeopleSheet } from "./AddPeopleSheet";
 export { AddSubtaskSheet } from "./AddSubtaskSheet";
 export { AddTimeSheet } from "./AddTimeSheet";
 export { CreateTaskSheet } from "./CreateTaskSheet";
+export { DeleteAllTasksConfirmModal } from "./DeleteAllTasksConfirmModal";
 export { SelectDateSheet } from "./SelectDateSheet";
 export { SubtaskOptionsSheet } from "./SubtaskOptionsSheet";
 export { TaskCard } from "./TaskCard";
@@ -16,10 +17,11 @@ export { TaskOptionsSheet } from "./TaskOptionsSheet";
 export { TaskSection } from "./TaskSection";
 
 // Focus Mode components
-export { FocusModeScreen } from "./FocusModeScreen";
 export { FocusAddTimeSheet } from "./FocusAddTimeSheet";
+export { FocusModeScreen } from "./FocusModeScreen";
 export { SetFocusDurationSheet } from "./SetFocusDurationSheet";
 
 // Reports & Progress components
-export { TaskProgressScreen } from "./TaskProgressScreen";
+export { TaskHeaderOptionsModal } from "./TaskHeaderOptionsModal";
 export { TaskHeaderOptionsSheet } from "./TaskHeaderOptionsSheet";
+export { TaskProgressScreen } from "./TaskProgressScreen";

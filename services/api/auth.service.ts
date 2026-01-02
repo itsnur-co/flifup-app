@@ -3,9 +3,14 @@
  * Handles all authentication-related API calls
  */
 
-import { API_ENDPOINTS } from './config';
-import { httpClient, ApiResponse } from './client';
-import { setTokens, setUserData, removeTokens, removeUserData } from '@/utils/storage';
+import {
+  removeTokens,
+  removeUserData,
+  setTokens,
+  setUserData,
+} from "@/utils/storage";
+import { ApiResponse, httpClient } from "./client";
+import { API_ENDPOINTS } from "./config";
 
 export interface User {
   id: string;
@@ -56,6 +61,10 @@ export interface ResetPasswordRequest {
 
 export interface RefreshTokenRequest {
   refreshToken: string;
+}
+
+export interface GoogleLoginRequest {
+  idToken: string;
 }
 
 class AuthService {
@@ -115,11 +124,18 @@ class AuthService {
    */
   async refreshToken(
     data: RefreshTokenRequest
-  ): Promise<ApiResponse<{ accessToken: string; refreshToken: string; expiresIn: number }>> {
-    const response = await httpClient.post<{ accessToken: string; refreshToken: string; expiresIn: number }>(
-      API_ENDPOINTS.AUTH.REFRESH,
-      data
-    );
+  ): Promise<
+    ApiResponse<{
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: number;
+    }>
+  > {
+    const response = await httpClient.post<{
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: number;
+    }>(API_ENDPOINTS.AUTH.REFRESH, data);
 
     // Update tokens on successful refresh
     if (response.data && !response.error) {
@@ -133,7 +149,9 @@ class AuthService {
    * Logout
    * Invalidates refresh token
    */
-  async logout(refreshToken: string): Promise<ApiResponse<{ message: string }>> {
+  async logout(
+    refreshToken: string
+  ): Promise<ApiResponse<{ message: string }>> {
     const response = await httpClient.post<{ message: string }>(
       API_ENDPOINTS.AUTH.LOGOUT,
       { refreshToken }
@@ -180,7 +198,9 @@ class AuthService {
    */
   async verifyOtp(
     data: VerifyOtpRequest
-  ): Promise<ApiResponse<{ message: string; resetToken: string; expiresIn: number }>> {
+  ): Promise<
+    ApiResponse<{ message: string; resetToken: string; expiresIn: number }>
+  > {
     return httpClient.post(API_ENDPOINTS.AUTH.VERIFY_OTP, data);
   }
 
@@ -192,6 +212,27 @@ class AuthService {
     data: ResetPasswordRequest
   ): Promise<ApiResponse<{ message: string }>> {
     return httpClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, data);
+  }
+
+  /**
+   * Google Login
+   * Authenticates user with Google ID token
+   */
+  async googleLogin(
+    data: GoogleLoginRequest
+  ): Promise<ApiResponse<AuthResponse>> {
+    const response = await httpClient.post<AuthResponse>(
+      API_ENDPOINTS.AUTH.GOOGLE,
+      data
+    );
+
+    // Store tokens and user data on successful Google login
+    if (response.data && !response.error) {
+      await setTokens(response.data.accessToken, response.data.refreshToken);
+      await setUserData(response.data.user);
+    }
+
+    return response;
   }
 }
 

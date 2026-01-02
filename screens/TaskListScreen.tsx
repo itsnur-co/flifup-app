@@ -32,22 +32,23 @@ import {
   AddPeopleSheet,
   AddTimeSheet,
   CreateTaskSheet,
+  DeleteAllTasksConfirmModal,
   SetFocusDurationSheet,
   TaskEditModal,
-  TaskHeaderOptionsSheet,
+  TaskHeaderOptionsModal,
   TaskSection,
 } from "@/components/task";
 
 import { Colors } from "@/constants/colors";
+import { RepeatConfig } from "@/types/habit";
 import type {
+  CreateTaskRequest,
+  Person,
+  ReminderValue,
   Task,
   TaskCategory,
-  CreateTaskRequest,
   TaskFormState,
-  ReminderValue,
-  Person,
 } from "@/types/task";
-import { RepeatConfig } from "@/types/habit";
 import { isTaskCompleted } from "@/types/task";
 import { formatDateForApi } from "@/utils/dateTime";
 
@@ -103,6 +104,7 @@ export const TaskListScreen: React.FC = () => {
     error,
     createTask,
     deleteTask,
+    deleteAllTasksByDate,
     toggleTaskStatus,
     addSubtask,
     toggleSubtask,
@@ -127,6 +129,8 @@ export const TaskListScreen: React.FC = () => {
   const [isTaskOptionsVisible, setIsTaskOptionsVisible] = useState(false);
   const [isSetFocusVisible, setIsSetFocusVisible] = useState(false);
   const [isHeaderOptionsVisible, setIsHeaderOptionsVisible] = useState(false);
+  const [isDeleteAllConfirmVisible, setIsDeleteAllConfirmVisible] =
+    useState(false);
   const [isRepeatVisible, setIsRepeatVisible] = useState(false);
   const [isSetReminderVisible, setIsSetReminderVisible] = useState(false);
   const [isAddCustomMinutesVisible, setIsAddCustomMinutesVisible] =
@@ -302,6 +306,19 @@ export const TaskListScreen: React.FC = () => {
       setIsTaskOptionsVisible(false);
     }
   }, [selectedTask, deleteTask]);
+
+  const handleDeleteAllTasks = useCallback(() => {
+    setIsDeleteAllConfirmVisible(true);
+  }, []);
+
+  const handleConfirmDeleteAll = useCallback(async () => {
+    const dateStr = formatDateForApi(selectedDate);
+    const result = await deleteAllTasksByDate(dateStr);
+
+    if (result.success) {
+      console.log(`Deleted ${result.count} tasks`);
+    }
+  }, [selectedDate, deleteAllTasksByDate]);
 
   const handleSelectDate = useCallback((date: Date | null) => {
     setTaskDueDate(date);
@@ -617,14 +634,28 @@ export const TaskListScreen: React.FC = () => {
         taskTitle={selectedTask?.title || ""}
       />
 
-      {/* Header options sheet */}
-      <TaskHeaderOptionsSheet
+      {/* Header options modal */}
+      <TaskHeaderOptionsModal
         visible={isHeaderOptionsVisible}
         onClose={() => setIsHeaderOptionsVisible(false)}
         onViewReports={() => {
           setIsHeaderOptionsVisible(false);
           router.push("/task-progress");
         }}
+        onDeleteAll={handleDeleteAllTasks}
+      />
+
+      {/* Delete All Tasks Confirmation Modal */}
+      <DeleteAllTasksConfirmModal
+        visible={isDeleteAllConfirmVisible}
+        onClose={() => setIsDeleteAllConfirmVisible(false)}
+        onConfirm={handleConfirmDeleteAll}
+        dateText={selectedDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}
+        taskCount={selectedDateTasks.length}
       />
 
       {/* Set Reminder Bottom Sheet */}

@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.flifup.app",
+      "scheme": "com.flifup.googleauth"
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +39,14 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      "expo-web-browser",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "isUserInteractionRequired": true,
+          "iosUrlScheme": "com.googleusercontent.apps.219478745190-7dda7gi7qd9s9itvc6oncm6b3p51tu86"
         }
       ]
     ],

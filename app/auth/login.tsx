@@ -113,9 +113,55 @@ export default function LoginScreen() {
   /**
    * Handles social sign in
    */
-  const handleSocialSignIn = (provider: "google" | "facebook") => {
-    // TODO: Implement social authentication
-    console.log(`Sign in with ${provider}`);
+  const handleSocialSignIn = async (provider: "google" | "facebook") => {
+    if (provider === "google") {
+      setIsLoading(true);
+      try {
+        // Lazy-load Google Sign-In to avoid native module errors
+        const { signInWithGoogle } = await import(
+          "@/services/googleAuth.service"
+        );
+
+        // Get ID token from Google Sign-In
+        const idToken = await signInWithGoogle();
+
+        // Send ID token to backend
+        const response = await authService.googleLogin({ idToken });
+
+        if (response.error) {
+          Alert.alert("Google Sign-In Failed", response.error);
+          return;
+        }
+
+        // Success - navigate to tabs
+        router.replace("/(tabs)");
+      } catch (error: any) {
+        console.error("Google Sign-In error:", error);
+
+        // Check if it's the native module not available error
+        if (error.message?.includes("not available in Expo Go")) {
+          Alert.alert(
+            "Google Sign-In Not Available",
+            "Google Sign-In requires a native build. Please:\n\n" +
+              "1. Use EAS Build: npx eas build --platform ios/android\n" +
+              "2. Or use a physical device with proper setup\n\n" +
+              "For now, you can test with email/password login.",
+            [{ text: "OK", onPress: () => setIsLoading(false) }]
+          );
+        } else {
+          Alert.alert(
+            "Google Sign-In Error",
+            error.message || "An error occurred during Google Sign-In"
+          );
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    } else if (provider === "facebook") {
+      // TODO: Implement Facebook authentication
+      console.log("Sign in with facebook");
+      Alert.alert("Coming Soon", "Facebook sign-in coming soon");
+    }
   };
 
   /**

@@ -1,20 +1,17 @@
 /**
  * Task Edit Modal Component
  * Edit/Delete options modal for task 3-dot menu
- * Matches Figma design exactly
+ * Uses reusable OptionsModal component
  */
 
-import { DeleteBinIcon, EditIcon, FocusLineIcon } from "@/components/icons/TaskIcons";
-import { Colors } from "@/constants/colors";
-import React from "react";
 import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+  DeleteBinIcon,
+  EditIcon,
+  FocusLineIcon,
+} from "@/components/icons/TaskIcons";
+import { ModalOption, OptionsModal } from "@/components/shared";
+import { Colors } from "@/constants/colors";
+import React, { useMemo } from "react";
 
 interface TaskEditModalProps {
   visible: boolean;
@@ -31,119 +28,40 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
   onDelete,
   onSetFocus,
 }) => {
-  const handleEdit = () => {
-    onEdit();
-    onClose();
-  };
+  const options: ModalOption[] = useMemo(() => {
+    const opts: ModalOption[] = [];
 
-  const handleDelete = () => {
-    onDelete();
-    onClose();
-  };
-
-  const handleSetFocus = () => {
+    // Set Focus Option
     if (onSetFocus) {
-      onSetFocus();
-      onClose();
+      opts.push({
+        id: "setFocus",
+        label: "Set Focus",
+        icon: <FocusLineIcon size={22} color={Colors.primary} />,
+        onPress: onSetFocus,
+      });
     }
-  };
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+    // Edit Option
+    opts.push({
+      id: "edit",
+      label: "Edit Task",
+      icon: <EditIcon size={22} color="#FFFFFF" />,
+      onPress: onEdit,
+    });
 
-        <View style={styles.modalContainer}>
-          {/* Set Focus Option */}
-          {onSetFocus && (
-            <TouchableOpacity
-              style={styles.option}
-              onPress={handleSetFocus}
-              activeOpacity={0.7}
-            >
-              <FocusLineIcon size={22} color={Colors.primary} />
-              <Text style={styles.optionText}>Set Focus</Text>
-            </TouchableOpacity>
-          )}
+    // Delete Option
+    opts.push({
+      id: "delete",
+      label: "Delete Task",
+      icon: <DeleteBinIcon size={22} color="#EF4444" />,
+      onPress: onDelete,
+      isDanger: true,
+    });
 
-          {/* Edit Option */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={handleEdit}
-            activeOpacity={0.7}
-          >
-            <EditIcon size={22} color="#FFFFFF" />
-            <Text style={styles.optionText}>Edit Task</Text>
-          </TouchableOpacity>
+    return opts;
+  }, [onEdit, onDelete, onSetFocus]);
 
-          {/* Delete Option */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={handleDelete}
-            activeOpacity={0.7}
-          >
-            <DeleteBinIcon size={22} color="#FFFFFF" />
-            <Text style={styles.optionText}>Delete Task</Text>
-          </TouchableOpacity>
-
-          {/* Cancel Button */}
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={onClose}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
+  return <OptionsModal visible={visible} onClose={onClose} options={options} />;
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  modalContainer: {
-    width: "100%",
-    backgroundColor: "#2C2C2E",
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  option: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    gap: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#3A3A3C",
-  },
-  optionText: {
-    fontSize: 16,
-    color: "#FFFFFF",
-    fontWeight: "500",
-  },
-  cancelButton: {
-    paddingVertical: 16,
-    alignItems: "center",
-    backgroundColor: "#1C1C1E",
-  },
-  cancelText: {
-    fontSize: 16,
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-});
 
 export default TaskEditModal;

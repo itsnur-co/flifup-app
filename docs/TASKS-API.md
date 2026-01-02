@@ -237,6 +237,32 @@ Returns detailed task with subtask counts and grouped subtasks.
 
 ---
 
+### Delete All Tasks by Date
+
+**DELETE** `/tasks/date/:date`
+
+Deletes all tasks for the authenticated user on the specified date.
+
+**URL Parameters:**
+
+- `date`: Date in `YYYY-MM-DD` format (e.g., `2026-01-15`)
+
+**Response:**
+
+```json
+{
+  "message": "5 task(s) deleted successfully",
+  "count": 5
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Invalid date format
+- `401 Unauthorized`: Not authenticated
+
+---
+
 ## Categories
 
 ### Get Categories

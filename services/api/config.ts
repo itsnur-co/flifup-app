@@ -53,6 +53,7 @@ export const API_ENDPOINTS = {
     INITIATE_SIGNUP: "/auth/initiate-signup",
     VERIFY_SIGNUP_OTP: "/auth/verify-signup-otp",
     LOGIN: "/auth/login",
+    GOOGLE: "/auth/google",
     REFRESH: "/auth/refresh",
     LOGOUT: "/auth/logout",
     LOGOUT_ALL: "/auth/logout-all",
