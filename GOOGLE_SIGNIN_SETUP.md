@@ -3,6 +3,7 @@
 ## ✅ Full Stack Implementation Complete
 
 ### Backend ✅
+
 - Google OAuth endpoint: `POST /api/v1/auth/google`
 - Token verification with Google's servers
 - User creation and account linking
@@ -11,6 +12,7 @@
 - Dev server running on port 3000
 
 ### Frontend ✅
+
 All components created and integrated for complete Google Sign-In flow.
 
 ---
@@ -18,6 +20,7 @@ All components created and integrated for complete Google Sign-In flow.
 ## Frontend Implementation Details
 
 ### 1. Packages Installed
+
 ```bash
 npx expo install @react-native-google-signin/google-signin expo-auth-session expo-web-browser
 ```
@@ -25,6 +28,7 @@ npx expo install @react-native-google-signin/google-signin expo-auth-session exp
 ### 2. Configuration Files Updated
 
 **app.json** - Added Google Sign-In plugin:
+
 ```json
 "plugins": [
   "@react-native-google-signin/google-signin"
@@ -32,13 +36,15 @@ npx expo install @react-native-google-signin/google-signin expo-auth-session exp
 ```
 
 **services/api/config.ts** - Added Google endpoint:
+
 ```typescript
-GOOGLE: "/auth/google"
+GOOGLE: "/auth/google";
 ```
 
 ### 3. New Files Created
 
 **services/googleAuth.service.ts**
+
 - `configureGoogleSignIn()` - Initialize Google Sign-In with Client ID
 - `signInWithGoogle()` - Get ID token from Google
 - `signOutGoogle()` - Sign out from Google
@@ -47,23 +53,25 @@ GOOGLE: "/auth/google"
 ### 4. Files Modified
 
 **services/api/auth.service.ts** - Added Google login method:
+
 ```typescript
 async googleLogin(data: GoogleLoginRequest): Promise<ApiResponse<AuthResponse>> {
   const response = await httpClient.post<AuthResponse>(
     API_ENDPOINTS.AUTH.GOOGLE,
     data
   );
-  
+
   if (response.data && !response.error) {
     await setTokens(response.data.accessToken, response.data.refreshToken);
     await setUserData(response.data.user);
   }
-  
+
   return response;
 }
 ```
 
 **app/auth/login.tsx** - Added Google Sign-In button handler:
+
 ```typescript
 const handleSocialSignIn = async (provider: "google" | "facebook") => {
   if (provider === "google") {
@@ -71,7 +79,7 @@ const handleSocialSignIn = async (provider: "google" | "facebook") => {
     try {
       const idToken = await signInWithGoogle();
       const response = await authService.googleLogin({ idToken });
-      
+
       if (!response.error) {
         router.replace("/(tabs)");
       }
@@ -84,7 +92,8 @@ const handleSocialSignIn = async (provider: "google" | "facebook") => {
 };
 ```
 
-**app/_layout.tsx** - Initialize Google Sign-In on app start:
+**app/\_layout.tsx** - Initialize Google Sign-In on app start:
+
 ```typescript
 useEffect(() => {
   configureGoogleSignIn();
@@ -98,12 +107,14 @@ useEffect(() => {
 ### User Signs In with Google:
 
 1. **Frontend - User taps Google button**
+
    ```
    Login Screen (app/auth/login.tsx)
    → handleSocialSignIn("google")
    ```
 
 2. **Frontend - Get ID Token**
+
    ```
    signInWithGoogle() from googleAuth.service.ts
    → GoogleSignin.signIn()
@@ -111,12 +122,14 @@ useEffect(() => {
    ```
 
 3. **Frontend - Send to Backend**
+
    ```
    authService.googleLogin({ idToken })
    → POST /api/v1/auth/google
    ```
 
 4. **Backend - Verify Token**
+
    ```
    AuthService.googleLogin()
    → OAuth2Client.verifyIdToken()
@@ -124,15 +137,17 @@ useEffect(() => {
    ```
 
 5. **Backend - Create/Link User**
+
    ```
    If user doesn't exist:
      → Create new user with googleId
-   
+
    If user exists:
      → Link googleId to existing account
    ```
 
 6. **Backend - Generate Tokens**
+
    ```
    → Generate JWT access token (15min)
    → Generate refresh token (7 days)
@@ -151,6 +166,7 @@ useEffect(() => {
 ## Security Features
 
 ✅ **Backend:**
+
 - Google token verified with Google's servers
 - Audience validation (checks Client ID)
 - Token expiry checking
@@ -160,6 +176,7 @@ useEffect(() => {
 - Account deactivation checks
 
 ✅ **Frontend:**
+
 - ID token immediately used and not stored
 - Tokens stored securely (via storage utils)
 - User confirmation of Google account
@@ -170,6 +187,7 @@ useEffect(() => {
 ## Environment Configuration
 
 ### Backend (.env)
+
 **⚠️ IMPORTANT: Keep these credentials secret and never commit them to version control**
 
 ```env
@@ -179,6 +197,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 ```
 
 **Setup Instructions:**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Select your project
 3. Navigate to Credentials
@@ -189,11 +208,13 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 ### Frontend (Environment Variables)
 
 Create `.env.local` in the frontend folder with:
+
 ```
 EXPO_PUBLIC_GOOGLE_CLIENT_ID=your_client_id_here
 ```
 
 The `googleAuth.service.ts` will automatically read from environment variables:
+
 ```typescript
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 ```
@@ -203,6 +224,7 @@ const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 ## Testing the Integration
 
 ### 1. Start Backend Server
+
 ```bash
 cd Backend
 npm run start:dev
@@ -210,18 +232,22 @@ npm run start:dev
 ```
 
 ### 2. Configure Environment
+
 Create `.env.local` in the frontend folder with your Google credentials:
+
 ```
 EXPO_PUBLIC_GOOGLE_CLIENT_ID=your_actual_client_id
 ```
 
 ### 3. Start Frontend App
+
 ```bash
 cd flifup
 npx expo start --clear
 ```
 
 ### 4. Test Google Sign-In
+
 - Open app in Expo Go or emulator
 - Go to Login screen
 - Tap Google Sign-In button
@@ -229,6 +255,7 @@ npx expo start --clear
 - App should authenticate and navigate to home screen
 
 ### 5. Verify with Backend
+
 ```bash
 # Check user was created with googleId
 curl http://localhost:3000/api/v1/users/profile \
@@ -240,6 +267,7 @@ curl http://localhost:3000/api/v1/users/profile \
 ## Error Handling
 
 ### Frontend Errors Handled:
+
 - Sign-in cancelled by user
 - Play Services not available
 - Invalid ID token
@@ -247,6 +275,7 @@ curl http://localhost:3000/api/v1/users/profile \
 - Backend validation errors
 
 ### Backend Errors Handled:
+
 - Invalid Google token
 - Token expired
 - Email not provided
@@ -260,46 +289,54 @@ curl http://localhost:3000/api/v1/users/profile \
 ### Common Issues:
 
 **1. "Google login is not configured"**
-   - Verify `GOOGLE_CLIENT_ID` in backend `.env`
-   - Restart backend server
+
+- Verify `GOOGLE_CLIENT_ID` in backend `.env`
+- Restart backend server
 
 **2. "Invalid Google token"**
-   - Token expired (they expire quickly)
-   - Verify Client ID matches
-   - Check token scope is correct
+
+- Token expired (they expire quickly)
+- Verify Client ID matches
+- Check token scope is correct
 
 **3. "Play Services not available"**
-   - Device needs Google Play Services
-   - Use Android emulator with Google Play or physical device
-   - iOS simulator won't work for Google Sign-In testing
+
+- Device needs Google Play Services
+- Use Android emulator with Google Play or physical device
+- iOS simulator won't work for Google Sign-In testing
 
 **4. Build errors after installing packages**
-   - Run: `npx expo prebuild --clean`
-   - Clear cache: `npx expo prebuild --clean`
+
+- Run: `npx expo prebuild --clean`
+- Clear cache: `npx expo prebuild --clean`
 
 **5. TypeScript errors about googleId**
-   - Run: `npx prisma generate` (Backend)
-   - Restart TypeScript server (VS Code)
+
+- Run: `npx prisma generate` (Backend)
+- Restart TypeScript server (VS Code)
 
 **6. GitHub Push Protection - Secrets Detected**
-   - Never hardcode Google credentials in source code
-   - Always use `.env` files for sensitive data
-   - Use environment variables for Client ID in frontend
-   - Visit GitHub Security settings to unblock if needed
+
+- Never hardcode Google credentials in source code
+- Always use `.env` files for sensitive data
+- Use environment variables for Client ID in frontend
+- Visit GitHub Security settings to unblock if needed
 
 ---
 
 ## What's Next?
 
 ### Optional Enhancements:
+
 1. ✅ Facebook Sign-In (button ready, just needs implementation)
 2. ✅ Apple Sign-In (for iOS)
 3. ✅ Linking existing accounts (prompt user)
 4. ✅ Social logout from profile screen
 
 ### Already Completed:
+
 ✅ Email/Password signup
-✅ Email/Password login  
+✅ Email/Password login
 ✅ OTP verification
 ✅ Password reset
 ✅ Refresh token rotation
@@ -316,6 +353,6 @@ curl http://localhost:3000/api/v1/users/profile \
 
 ---
 
-**Implementation Date:** 2025-01-04  
-**Status:** COMPLETE ✅  
+**Implementation Date:** 2025-01-04
+**Status:** COMPLETE ✅
 **Ready for Testing:** YES ✅

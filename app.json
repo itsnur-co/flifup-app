@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "flifup",
+    "name": "Flifup",
     "slug": "flifup",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,6 +14,7 @@
       "scheme": "com.flifup.googleauth"
     },
     "android": {
+      "package": "com.flifup.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -53,6 +54,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a8c71728-8d25-4e4a-ba71-00f960e44a0e"
+      }
     }
   }
 }
