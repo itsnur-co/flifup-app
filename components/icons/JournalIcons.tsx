@@ -14,6 +14,8 @@ import Reaction3SVG from "@/assets/svg/journal/react3.svg";
 import Reaction4SVG from "@/assets/svg/journal/react4.svg";
 import Reaction5SVG from "@/assets/svg/journal/react5.svg";
 import AddSVG from "@/assets/svg/add.svg";
+import PrivateSVG from "@/assets/svg/private.svg";
+import ArrowDropdownSVG from "@/assets/svg/arrow-color-dropdown.svg";
 
 
 interface IconProps {
@@ -152,6 +154,18 @@ export const AddIcon: React.FC<IconProps> = ({ size = 24 }) => (
   <AddSVG width={size} height={size} />
 );
 
+// Private/Lock icon from SVG
+export const PrivateIcon: React.FC<IconProps> = ({ size = 24 }) => (
+  <PrivateSVG width={size} height={size} />
+);
+
+// Arrow Dropdown icon from SVG
+export const ArrowDropdownIcon: React.FC<IconProps> = ({ size = 24 }) => (
+  <ArrowDropdownSVG width={size} height={size} />
+);
+
+
+
 // Mood/Smile icon
 export const MoodIcon: React.FC<IconProps> = ({
   size = 24,
@@ -280,6 +294,8 @@ export default {
   GlobeIcon,
   TextIcon,
   AddIcon,
+  PrivateIcon,
+  ArrowDropdownIcon,
   MoodIcon,
   FilterIcon,
   DropdownIcon,

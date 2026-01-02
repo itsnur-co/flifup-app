@@ -5,17 +5,19 @@
  */
 
 import {
-  CircleOutlineIcon,
-  DropdownIcon,
-  LockIcon,
+  ArrowDropdownIcon,
+  PrivateIcon,
   Reaction1Icon,
   Reaction2Icon,
   Reaction3Icon,
   Reaction4Icon,
   Reaction5Icon,
-  TextIcon,
 } from "@/components/icons/JournalIcons";
-import { TagIcon } from "@/components/icons/TaskIcons";
+import {
+  AlignLeftIcon,
+  DotIcon,
+  PriceTagLineIcon,
+} from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
 import {
@@ -163,7 +165,7 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
         >
           {/* Title Input */}
           <TouchableOpacity style={styles.inputRow} activeOpacity={1}>
-            <CircleOutlineIcon size={24} color={Colors.primary} />
+            <DotIcon size={24} color={Colors.primary} />
             <TextInput
               style={styles.titleInput}
               placeholder="Add Title"
@@ -177,7 +179,7 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
 
           {/* Description Input */}
           <TouchableOpacity style={styles.inputRow} activeOpacity={1}>
-            <TextIcon size={24} color={Colors.primary} />
+            <AlignLeftIcon size={24} color={Colors.primary} />
             <TextInput
               style={styles.descriptionInput}
               placeholder="Description"
@@ -196,7 +198,7 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
             onPress={onOpenCategorySheet}
             activeOpacity={0.7}
           >
-            <TagIcon size={22} color={Colors.primary} />
+            <PriceTagLineIcon size={22} color={Colors.primary} />
             <Text
               style={[
                 styles.formLabel,
@@ -213,11 +215,11 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
             onPress={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
             activeOpacity={0.7}
           >
-            <LockIcon size={22} color={Colors.primary} />
+            <PrivateIcon size={22} />
             <Text style={styles.formLabel}>
               {selectedVisibility?.label || "Only me"}
             </Text>
-            <DropdownIcon size={16} color="#8E8E93" />
+            <ArrowDropdownIcon size={26} />
           </TouchableOpacity>
 
           {/* Visibility Dropdown */}

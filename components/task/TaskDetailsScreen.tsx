@@ -9,6 +9,7 @@ import {
   AlignLeftIcon,
   CalendarLineIcon,
   ChevronDownIcon,
+  FlagIcon,
   ThreeDotIcon,
   UserAddLineIcon,
   PriceTagLineIcon,
@@ -283,7 +284,7 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
           </InfoRow>
 
           {/* Priority Badge */}
-          <InfoRow icon={<View style={styles.priorityDot} />}>
+          <InfoRow icon={<FlagIcon size={22} color={Colors.primary} />}>
             <Text style={[styles.infoValue, styles.priorityText]}>
               Priority: {task.priority}
             </Text>
