@@ -16,12 +16,11 @@ import { Task, isTaskCompleted, collaboratorToPerson } from "@/types/task";
 import { AvatarGroup } from "@/components/ui/Avatar";
 import {
   CalendarLineIcon,
-  CircleCheckIcon,
-  CircleIcon,
   MoreHorizontalIcon,
   PriceTagLineIcon,
   TimeLineIcon,
 } from "@/components/icons/TaskIcons";
+import { CompletionCheckbox } from "@/components/shared";
 import { Colors } from "@/constants/colors";
 import { formatTaskDate, formatTime, formatDuration } from "@/utils/dateTime";
 
@@ -65,17 +64,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     >
       {/* Top Row: Checkbox, Title, More Button */}
       <View style={styles.topRow}>
-        <TouchableOpacity
-          onPress={onToggleComplete}
+        <CompletionCheckbox
+          isCompleted={isCompleted}
+          onToggle={onToggleComplete || (() => {})}
+          size={24}
+          uncompletedColor="#5A5A5E"
           style={styles.checkboxContainer}
-          activeOpacity={0.7}
-        >
-          {isCompleted ? (
-            <CircleCheckIcon size={24} color={Colors.primary} />
-          ) : (
-            <CircleIcon size={24} color="#5A5A5E" />
-          )}
-        </TouchableOpacity>
+        />
 
         <TouchableOpacity
           activeOpacity={0.8}

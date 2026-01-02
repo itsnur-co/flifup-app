@@ -4,40 +4,39 @@
  * Matches Habit and Task bottom sheet design
  */
 
-import React, { useState, useEffect } from "react";
 import {
+  CircleOutlineIcon,
+  DropdownIcon,
+  LockIcon,
+  Reaction1Icon,
+  Reaction2Icon,
+  Reaction3Icon,
+  Reaction4Icon,
+  Reaction5Icon,
+  TextIcon,
+} from "@/components/icons/JournalIcons";
+import { TagIcon } from "@/components/icons/TaskIcons";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Colors } from "@/constants/colors";
+import {
+  DEFAULT_JOURNAL_FORM,
+  Journal,
+  JournalCategory,
+  JournalFormState,
+  MOOD_OPTIONS,
+  MoodType,
+  VISIBILITY_OPTIONS,
+} from "@/types/journal";
+import React, { useEffect, useState } from "react";
+import {
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BottomSheet } from "@/components/ui/BottomSheet";
-import {
-  CircleOutlineIcon,
-  TextIcon,
-  LockIcon,
-  DropdownIcon,
-  Reaction1Icon,
-  Reaction2Icon,
-  Reaction3Icon,
-  Reaction4Icon,
-  Reaction5Icon
-} from "@/components/icons/JournalIcons";
-import { TagIcon } from "@/components/icons/TaskIcons";
-import { Colors } from "@/constants/colors";
-import {
-  Journal,
-  JournalCategory,
-  JournalFormState,
-  MoodType,
-  VisibilityType,
-  MOOD_OPTIONS,
-  VISIBILITY_OPTIONS,
-  DEFAULT_JOURNAL_FORM,
-} from "@/types/journal";
 
 interface CreateJournalSheetProps {
   visible: boolean;
@@ -69,7 +68,8 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
   onOpenCategorySheet,
 }) => {
   const insets = useSafeAreaInsets();
-  const [formState, setFormState] = useState<JournalFormState>(DEFAULT_JOURNAL_FORM);
+  const [formState, setFormState] =
+    useState<JournalFormState>(DEFAULT_JOURNAL_FORM);
   const [showVisibilityDropdown, setShowVisibilityDropdown] = useState(false);
 
   // Reset form when modal opens/closes or journal changes
@@ -110,8 +110,12 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
     }));
   };
 
-  const selectedCategory = categories.find((c) => c.id === formState.categoryId);
-  const selectedVisibility = VISIBILITY_OPTIONS.find((v) => v.value === formState.visibility);
+  const selectedCategory = categories.find(
+    (c) => c.id === formState.categoryId
+  );
+  const selectedVisibility = VISIBILITY_OPTIONS.find(
+    (v) => v.value === formState.visibility
+  );
 
   const isEditing = !!journal;
   const canSubmit = formState.title.trim().length > 0;
@@ -157,115 +161,114 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-            {/* Title Input */}
-            <TouchableOpacity
-              style={styles.inputRow}
-              activeOpacity={1}
-            >
-              <CircleOutlineIcon size={24} color={Colors.primary} />
-              <TextInput
-                style={styles.titleInput}
-                placeholder="Add Title"
-                placeholderTextColor="#6B7280"
-                value={formState.title}
-                onChangeText={(text) =>
-                  setFormState((prev) => ({ ...prev, title: text }))
-                }
-              />
-            </TouchableOpacity>
+          {/* Title Input */}
+          <TouchableOpacity style={styles.inputRow} activeOpacity={1}>
+            <CircleOutlineIcon size={24} color={Colors.primary} />
+            <TextInput
+              style={styles.titleInput}
+              placeholder="Add Title"
+              placeholderTextColor="#6B7280"
+              value={formState.title}
+              onChangeText={(text) =>
+                setFormState((prev) => ({ ...prev, title: text }))
+              }
+            />
+          </TouchableOpacity>
 
-            {/* Description Input */}
-            <TouchableOpacity
-              style={styles.inputRow}
-              activeOpacity={1}
-            >
-              <TextIcon size={24} color={Colors.primary} />
-              <TextInput
-                style={styles.descriptionInput}
-                placeholder="Description"
-                placeholderTextColor="#6B7280"
-                value={formState.description}
-                onChangeText={(text) =>
-                  setFormState((prev) => ({ ...prev, description: text }))
-                }
-                multiline
-              />
-            </TouchableOpacity>
+          {/* Description Input */}
+          <TouchableOpacity style={styles.inputRow} activeOpacity={1}>
+            <TextIcon size={24} color={Colors.primary} />
+            <TextInput
+              style={styles.descriptionInput}
+              placeholder="Description"
+              placeholderTextColor="#6B7280"
+              value={formState.description}
+              onChangeText={(text) =>
+                setFormState((prev) => ({ ...prev, description: text }))
+              }
+              multiline
+            />
+          </TouchableOpacity>
 
-            {/* Category Selector */}
-            <TouchableOpacity
-              style={styles.inputRow}
-              onPress={onOpenCategorySheet}
-              activeOpacity={0.7}
+          {/* Category Selector */}
+          <TouchableOpacity
+            style={styles.inputRow}
+            onPress={onOpenCategorySheet}
+            activeOpacity={0.7}
+          >
+            <TagIcon size={22} color={Colors.primary} />
+            <Text
+              style={[
+                styles.formLabel,
+                selectedCategory && styles.formLabelSelected,
+              ]}
             >
-              <TagIcon size={22} color={Colors.primary} />
-              <Text
-                style={[
-                  styles.formLabel,
-                  selectedCategory && styles.formLabelSelected,
-                ]}
-              >
-                {selectedCategory?.name || "Add category"}
-              </Text>
-            </TouchableOpacity>
+              {selectedCategory?.name || "Add category"}
+            </Text>
+          </TouchableOpacity>
 
-            {/* Visibility Selector */}
-            <TouchableOpacity
-              style={styles.inputRow}
-              onPress={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
-              activeOpacity={0.7}
-            >
-              <LockIcon size={22} color={Colors.primary} />
-              <Text style={styles.formLabel}>
-                {selectedVisibility?.label || "Only me"}
-              </Text>
-              <DropdownIcon size={16} color="#8E8E93" />
-            </TouchableOpacity>
+          {/* Visibility Selector */}
+          <TouchableOpacity
+            style={styles.inputRow}
+            onPress={() => setShowVisibilityDropdown(!showVisibilityDropdown)}
+            activeOpacity={0.7}
+          >
+            <LockIcon size={22} color={Colors.primary} />
+            <Text style={styles.formLabel}>
+              {selectedVisibility?.label || "Only me"}
+            </Text>
+            <DropdownIcon size={16} color="#8E8E93" />
+          </TouchableOpacity>
 
-            {/* Visibility Dropdown */}
-            {showVisibilityDropdown && (
-              <View style={styles.dropdownContainer}>
-                {VISIBILITY_OPTIONS.map((option) => (
+          {/* Visibility Dropdown */}
+          {showVisibilityDropdown && (
+            <View style={styles.dropdownContainer}>
+              {VISIBILITY_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.dropdownItem,
+                    formState.visibility === option.value &&
+                      styles.dropdownItemSelected,
+                  ]}
+                  onPress={() => {
+                    setFormState((prev) => ({
+                      ...prev,
+                      visibility: option.value,
+                    }));
+                    setShowVisibilityDropdown(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.dropdownItemText}>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Mood Section */}
+          <View style={styles.moodSection}>
+            <Text style={styles.moodLabel}>Add your feelings</Text>
+            <View style={styles.moodContainer}>
+              {MOOD_OPTIONS.map((option) => {
+                const ReactionIcon = getReactionIcon(option.emoji);
+                return (
                   <TouchableOpacity
                     key={option.value}
                     style={[
-                      styles.dropdownItem,
-                      formState.visibility === option.value && styles.dropdownItemSelected,
+                      styles.moodButton,
+                      formState.mood === option.value &&
+                        styles.moodButtonSelected,
                     ]}
-                    onPress={() => {
-                      setFormState((prev) => ({ ...prev, visibility: option.value }));
-                      setShowVisibilityDropdown(false);
-                    }}
+                    onPress={() => handleMoodSelect(option.value)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.dropdownItemText}>{option.label}</Text>
+                    {ReactionIcon && <ReactionIcon size={48} />}
                   </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {/* Mood Section */}
-            <View style={styles.moodSection}>
-              <Text style={styles.moodLabel}>Add your feelings</Text>
-              <View style={styles.moodContainer}>
-                {MOOD_OPTIONS.map((option) => {
-                  const ReactionIcon = getReactionIcon(option.emoji);
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      style={[
-                        styles.moodButton,
-                        formState.mood === option.value && styles.moodButtonSelected,
-                      ]}
-                      onPress={() => handleMoodSelect(option.value)}
-                      activeOpacity={0.7}
-                    >
-                      {ReactionIcon && <ReactionIcon size={48} />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+                );
+              })}
             </View>
+          </View>
         </ScrollView>
       </View>
     </BottomSheet>

@@ -11,6 +11,7 @@ export { AddCustomMinutesSheet } from "./AddCustomMinutesSheet";
 export { RepeatSheet } from "./RepeatSheet";
 export { SelectDateSheet } from "./SelectDateSheet";
 export { SetReminderSheet } from "./SetReminderSheet";
+export { CompletionCheckbox } from "./CompletionCheckbox";
 
 // Re-export ReminderValue from types for convenience
 export type { ReminderValue } from "@/types/task";

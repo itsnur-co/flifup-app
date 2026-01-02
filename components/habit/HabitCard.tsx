@@ -5,12 +5,10 @@
 
 import { DurationIcon } from "@/components/icons/HabitIcons";
 import {
-  CircleCheckIcon,
-  CircleIcon,
   MoreHorizontalIcon,
   TagIcon,
 } from "@/components/icons/TaskIcons";
-import { Colors } from "@/constants/colors";
+import { CompletionCheckbox } from "@/components/shared";
 import { Habit } from "@/types/habit";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -34,17 +32,13 @@ export const HabitCard: React.FC<HabitCardProps> = ({
     <View style={styles.container}>
       {/* Top Row: Checkbox, Title, More Button */}
       <View style={styles.topRow}>
-        <TouchableOpacity
+        <CompletionCheckbox
+          isCompleted={isCompleted}
+          onToggle={onToggle || (() => {})}
+          size={24}
+          uncompletedColor="#3A3A3C"
           style={styles.checkbox}
-          onPress={onToggle}
-          activeOpacity={0.7}
-        >
-          {isCompleted ? (
-            <CircleCheckIcon size={24} color={Colors.primary} />
-          ) : (
-            <CircleIcon size={24} color="#3A3A3C" />
-          )}
-        </TouchableOpacity>
+        />
 
         <TouchableOpacity
           style={styles.titleContainer}

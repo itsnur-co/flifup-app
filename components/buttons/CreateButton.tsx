@@ -1,5 +1,5 @@
 import { Colors } from "@/constants/colors";
-import { Image } from "expo-image";
+import { AddIcon } from "@/components/icons/JournalIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
@@ -57,12 +57,7 @@ export const CreateButton: React.FC<CreateButtonProps> = ({
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
           <>
-            <Image
-              source={require("@/assets/icons/add.png")}
-              style={
-                compact ? { width: 28, height: 28 } : { width: 28, height: 28 }
-              }
-            />
+            <AddIcon size={28} />
             {!compact && <Text style={[styles.text, textStyle]}>{label}</Text>}
           </>
         )}

@@ -5,14 +5,16 @@
  */
 
 import React from "react";
-import Svg, { Circle, Path, Rect, Line } from "react-native-svg";
+import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
 // Import reaction SVG files
-import Reaction1SVG from '@/assets/svg/journal/react1.svg';
-import Reaction2SVG from '@/assets/svg/journal/react2.svg';
-import Reaction3SVG from '@/assets/svg/journal/react3.svg';
-import Reaction4SVG from '@/assets/svg/journal/react4.svg';
-import Reaction5SVG from '@/assets/svg/journal/react5.svg';
+import Reaction1SVG from "@/assets/svg/journal/react1.svg";
+import Reaction2SVG from "@/assets/svg/journal/react2.svg";
+import Reaction3SVG from "@/assets/svg/journal/react3.svg";
+import Reaction4SVG from "@/assets/svg/journal/react4.svg";
+import Reaction5SVG from "@/assets/svg/journal/react5.svg";
+import AddSVG from "@/assets/svg/add.svg";
+
 
 interface IconProps {
   size?: number;
@@ -121,10 +123,33 @@ export const TextIcon: React.FC<IconProps> = ({
   color = "#9039FF",
 }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M4 6H20" stroke={color} strokeWidth="2" strokeLinecap="round" />
-    <Path d="M4 12H16" stroke={color} strokeWidth="2" strokeLinecap="round" />
-    <Path d="M4 18H12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path
+      d="M4 7H20"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M4 12H20"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M4 17H12"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </Svg>
+);
+
+// Add/Plus icon from SVG
+export const AddIcon: React.FC<IconProps> = ({ size = 24 }) => (
+  <AddSVG width={size} height={size} />
 );
 
 // Mood/Smile icon
@@ -141,8 +166,24 @@ export const MoodIcon: React.FC<IconProps> = ({
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-    <Line x1="9" y1="9" x2="9.01" y2="9" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-    <Line x1="15" y1="9" x2="15.01" y2="9" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+    <Line
+      x1="9"
+      y1="9"
+      x2="9.01"
+      y2="9"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <Line
+      x1="15"
+      y1="9"
+      x2="15.01"
+      y2="9"
+      stroke={color}
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
   </Svg>
 );
 
@@ -212,33 +253,23 @@ export const CloseIcon: React.FC<IconProps> = ({
 );
 
 // Reaction Icons from SVG files
-export const Reaction1Icon: React.FC<IconProps> = ({
-  size = 48,
-}) => (
+export const Reaction1Icon: React.FC<IconProps> = ({ size = 48 }) => (
   <Reaction1SVG width={size} height={size} />
 );
 
-export const Reaction2Icon: React.FC<IconProps> = ({
-  size = 48,
-}) => (
+export const Reaction2Icon: React.FC<IconProps> = ({ size = 48 }) => (
   <Reaction2SVG width={size} height={size} />
 );
 
-export const Reaction3Icon: React.FC<IconProps> = ({
-  size = 48,
-}) => (
+export const Reaction3Icon: React.FC<IconProps> = ({ size = 48 }) => (
   <Reaction3SVG width={size} height={size} />
 );
 
-export const Reaction4Icon: React.FC<IconProps> = ({
-  size = 48,
-}) => (
+export const Reaction4Icon: React.FC<IconProps> = ({ size = 48 }) => (
   <Reaction4SVG width={size} height={size} />
 );
 
-export const Reaction5Icon: React.FC<IconProps> = ({
-  size = 48,
-}) => (
+export const Reaction5Icon: React.FC<IconProps> = ({ size = 48 }) => (
   <Reaction5SVG width={size} height={size} />
 );
 
@@ -248,6 +279,7 @@ export default {
   LockIcon,
   GlobeIcon,
   TextIcon,
+  AddIcon,
   MoodIcon,
   FilterIcon,
   DropdownIcon,

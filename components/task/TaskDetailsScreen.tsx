@@ -9,8 +9,6 @@ import {
   AlignLeftIcon,
   CalendarLineIcon,
   ChevronDownIcon,
-  CircleCheckIcon,
-  DotIcon,
   ThreeDotIcon,
   UserAddLineIcon,
   PriceTagLineIcon,
@@ -19,6 +17,7 @@ import {
 import { ScreenHeader } from "@/components/navigation";
 import { AvatarGroup } from "@/components/ui/Avatar";
 import { CreateButton } from "@/components/buttons";
+import { CompletionCheckbox } from "@/components/shared";
 import { Colors } from "@/constants/colors";
 import { Task, TaskDetail, TaskSubtask, collaboratorToPerson } from "@/types/task";
 import { formatDetailDate, formatTime, formatReminder } from "@/utils/dateTime";
@@ -106,17 +105,13 @@ const SubTaskSection: React.FC<SubTaskSectionProps> = ({
       <View style={styles.subTaskList}>
         {subTasks.map((subTask) => (
           <View key={subTask.id} style={styles.subTaskItem}>
-            <TouchableOpacity
+            <CompletionCheckbox
+              isCompleted={subTask.isCompleted}
+              onToggle={() => onToggleComplete(subTask.id)}
+              size={24}
+              uncompletedColor="#5A5A5E"
               style={styles.subTaskCheckbox}
-              onPress={() => onToggleComplete(subTask.id)}
-              activeOpacity={0.7}
-            >
-              {subTask.isCompleted ? (
-                <CircleCheckIcon size={24} color={Colors.primary} />
-              ) : (
-                <DotIcon size={24} color="#5A5A5E" />
-              )}
-            </TouchableOpacity>
+            />
             <Text
               style={[
                 styles.subTaskTitle,
