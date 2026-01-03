@@ -5,7 +5,7 @@
  */
 
 import { CreateButton } from "@/components/buttons/CreateButton";
-import { DeleteBinIcon, EditLineIcon } from "@/components/icons/TaskIcons";
+import { ThreeDotIcon } from "@/components/icons/TaskIcons";
 import { TaskCard } from "@/components/task/TaskCard";
 import { Colors } from "@/constants/colors";
 import { GoalDetail } from "@/types/goal";
@@ -20,6 +20,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScreenHeader } from "../navigation";
+import { GoalOptionsModal } from "./GoalOptionsModal";
 
 interface GoalDetailsScreenProps {
   goal: GoalDetail | null;
@@ -46,6 +48,7 @@ export function GoalDetailsScreen({
 }: GoalDetailsScreenProps) {
   const insets = useSafeAreaInsets();
   const [showCompleted, setShowCompleted] = useState(false);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
 
   if (isLoading || !goal) {
     return (
@@ -62,34 +65,18 @@ export function GoalDetailsScreen({
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <TouchableOpacity
-          onPress={onBack}
-          style={styles.backButton}
-          activeOpacity={0.7}
-        >
-          <Feather name="chevron-left" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          Goal Details
-        </Text>
-        <View style={styles.headerRight}>
+      <ScreenHeader
+        title={goal.title}
+        rightIcon={
           <TouchableOpacity
-            onPress={onEdit}
+            onPress={() => setShowOptionsModal(true)}
             style={styles.iconButton}
             activeOpacity={0.7}
           >
-            <EditLineIcon size={20} color="#FFFFFF" />
+            <ThreeDotIcon size={20} color="#FFFFFF" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={onDelete}
-            style={styles.iconButton}
-            activeOpacity={0.7}
-          >
-            <DeleteBinIcon size={20} color="#EF4444" />
-          </TouchableOpacity>
-        </View>
-      </View>
+        }
+      />
 
       <ScrollView
         style={styles.content}
@@ -232,6 +219,29 @@ export function GoalDetailsScreen({
         onPress={onCreateLevel || (() => {})}
         label="Create Level"
         style={styles.createButton}
+      />
+
+      {/* Goal Options Modal */}
+      <GoalOptionsModal
+        visible={showOptionsModal}
+        goal={goal}
+        onClose={() => setShowOptionsModal(false)}
+        onEdit={() => {
+          setShowOptionsModal(false);
+          onEdit?.();
+        }}
+        onDuplicate={() => {
+          setShowOptionsModal(false);
+          // Handle duplicate
+        }}
+        onFocus={() => {
+          setShowOptionsModal(false);
+          // Handle focus
+        }}
+        onDelete={() => {
+          setShowOptionsModal(false);
+          onDelete?.();
+        }}
       />
     </View>
   );
