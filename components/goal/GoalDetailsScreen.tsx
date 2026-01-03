@@ -13,6 +13,7 @@ import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -26,10 +27,12 @@ import { GoalOptionsModal } from "./GoalOptionsModal";
 interface GoalDetailsScreenProps {
   goal: GoalDetail | null;
   isLoading?: boolean;
+  isRefreshing?: boolean;
   onBack?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onCreateLevel?: () => void;
+  onRefresh?: () => void;
   onToggleTask?: (taskId: string) => void;
   onTaskPress?: (taskId: string) => void;
   onTaskMore?: (taskId: string) => void;
@@ -38,10 +41,12 @@ interface GoalDetailsScreenProps {
 export function GoalDetailsScreen({
   goal,
   isLoading = false,
+  isRefreshing = false,
   onBack,
   onEdit,
   onDelete,
   onCreateLevel,
+  onRefresh,
   onToggleTask,
   onTaskPress,
   onTaskMore,
@@ -85,6 +90,14 @@ export function GoalDetailsScreen({
           { paddingBottom: insets.bottom + 100 },
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
       >
         {/* Goal Info Card */}
         <View style={styles.goalCard}>
@@ -214,12 +227,14 @@ export function GoalDetailsScreen({
         )}
       </ScrollView>
 
-      {/* Create Level Button FAB */}
-      <CreateButton
-        onPress={onCreateLevel || (() => {})}
-        label="Create Level"
-        style={styles.createButton}
-      />
+      {/* Create Level FAB */}
+      <View style={styles.fabContainer}>
+        <CreateButton
+          label="New Level"
+          onPress={onCreateLevel || (() => {})}
+          compact={false}
+        />
+      </View>
 
       {/* Goal Options Modal */}
       <GoalOptionsModal
@@ -251,6 +266,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#1C1C1E",
+    overflow: "visible",
   },
   loadingContainer: {
     justifyContent: "center",
@@ -414,9 +430,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  createButton: {
+  fabContainer: {
     position: "absolute",
-    right: 20,
-    bottom: 30,
+    zIndex: 9999,
+    elevation: 20,
+    bottom: 32,
+    right: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
 });

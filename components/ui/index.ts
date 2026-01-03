@@ -3,3 +3,4 @@ export { Collapsible } from './collapsible';
 export { BottomSheet } from './BottomSheet';
 export { Avatar, AvatarGroup } from './Avatar';
 export { IconButton } from './IconButton';
+export { PeriodDropdown } from "./PeriodDropdown";

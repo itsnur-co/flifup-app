@@ -3,17 +3,17 @@
  * Displays goal information with tasks/levels
  */
 
-import React, { useEffect, useState } from "react";
-import { Alert } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { GoalDetailsScreen } from "@/components/goal";
-import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
-import { SelectDateSheet } from "@/components/shared/SelectDateSheet";
-import { AddCategorySheet } from "@/components/shared/AddCategorySheet";
 import { AddLevelSheet } from "@/components/goal/AddLevelSheet";
+import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
+import { AddCategorySheet } from "@/components/shared/AddCategorySheet";
+import { SelectDateSheet } from "@/components/shared/SelectDateSheet";
 import { useGoals, useTasks } from "@/hooks";
 import { GoalFormState } from "@/types/goal";
 import { TaskCategory } from "@/types/task";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert } from "react-native";
 
 export default function GoalDetailsRoute() {
   const router = useRouter();
@@ -29,7 +29,10 @@ export default function GoalDetailsRoute() {
     deleteGoal,
   } = useGoals({ autoFetch: false });
 
-  const { categories, fetchCategories, toggleTaskCompletion } = useTasks();
+  const { categories, fetchCategories, toggleTaskStatus } = useTasks();
+
+  // Refresh state
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Sheet states
   const [showEditSheet, setShowEditSheet] = useState(false);
@@ -39,7 +42,9 @@ export default function GoalDetailsRoute() {
 
   // Form states
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(
+    null
+  );
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
 
   // Fetch goal and categories on mount
@@ -52,7 +57,9 @@ export default function GoalDetailsRoute() {
 
   const handleEdit = () => {
     if (selectedGoal) {
-      setSelectedDate(selectedGoal.deadline ? new Date(selectedGoal.deadline) : null);
+      setSelectedDate(
+        selectedGoal.deadline ? new Date(selectedGoal.deadline) : null
+      );
       setSelectedCategory(selectedGoal.category || null);
       setSelectedLevels(selectedGoal.levels || []);
       setShowEditSheet(true);
@@ -86,8 +93,15 @@ export default function GoalDetailsRoute() {
     router.push(`/tasks?goalId=${goalId}&mode=create`);
   };
 
+  const handleRefresh = async () => {
+    if (!goalId) return;
+    setIsRefreshing(true);
+    await fetchGoal(goalId);
+    setIsRefreshing(false);
+  };
+
   const handleToggleTask = async (taskId: string) => {
-    await toggleTaskCompletion(taskId);
+    await toggleTaskStatus(taskId);
     // Refresh goal to update progress
     if (goalId) {
       await fetchGoal(goalId);
@@ -143,10 +157,12 @@ export default function GoalDetailsRoute() {
       <GoalDetailsScreen
         goal={selectedGoal}
         isLoading={isFetchingDetail}
+        isRefreshing={isRefreshing}
         onBack={() => router.back()}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onCreateLevel={handleCreateLevel}
+        onRefresh={handleRefresh}
         onToggleTask={handleToggleTask}
         onTaskPress={handleTaskPress}
         onTaskMore={handleTaskMore}

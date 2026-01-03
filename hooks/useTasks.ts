@@ -607,11 +607,24 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
 
   const toggleTaskStatus = useCallback(
     async (id: string): Promise<boolean> => {
-      const task =
+      let task =
         tasks.find((t) => t.id === id) ||
         todayTasks.find((t) => t.id === id) ||
         upcomingTasks.find((t) => t.id === id) ||
         overdueTasks.find((t) => t.id === id);
+
+      // If task not found in cached lists, fetch it from API
+      if (!task) {
+        try {
+          const response = await taskService.getTask(id);
+          if (response.data) {
+            task = response.data;
+          }
+        } catch (err) {
+          console.error("toggleTaskStatus: Failed to fetch task", err);
+          return false;
+        }
+      }
 
       if (!task) return false;
 
