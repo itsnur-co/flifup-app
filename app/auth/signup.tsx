@@ -32,6 +32,7 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
  * Sign Up Screen
  * Handles user registration with full name, email/phone, and password
  * Includes password strength validation and terms agreement
+ * Now includes Google and Facebook sign-up
  */
 export default function SignUpScreen() {
   const router = useRouter();
@@ -49,6 +50,7 @@ export default function SignUpScreen() {
     terms?: string;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<"google" | "facebook" | null>(null);
 
   // Password validation
   const passwordRequirements = useMemo(
@@ -165,11 +167,136 @@ export default function SignUpScreen() {
   };
 
   /**
+   * Handles Google Sign Up
+   */
+  const handleGoogleSignUp = async () => {
+    if (!agreeToTerms) {
+      setErrors({ terms: "You must agree to the Terms of Service" });
+      Alert.alert(
+        "Terms Required",
+        "Please agree to the Terms of Service to continue with Google Sign Up"
+      );
+      return;
+    }
+
+    setSocialLoading("google");
+
+    try {
+      const { signInWithGoogle } = await import("@/services/googleAuth.service");
+      const idToken = await signInWithGoogle();
+
+      // Use Google login endpoint (creates account if doesn't exist)
+      const response = await authService.googleLogin({ idToken });
+
+      if (response.error) {
+        Alert.alert("Google Sign-Up Failed", response.error);
+        return;
+      }
+
+      // Success - navigate to tabs
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      console.error("Google Sign-Up error:", error);
+
+      if (error.message?.includes("cancelled")) {
+        return;
+      }
+
+      if (error.message?.includes("not available in Expo Go")) {
+        Alert.alert(
+          "Google Sign-Up Not Available",
+          "Google Sign-Up requires a native build. Please use EAS Build.",
+          [{ text: "OK" }]
+        );
+      } else if (error.message?.includes("DEVELOPER_ERROR")) {
+        Alert.alert(
+          "Configuration Error",
+          "Google Sign-In is not configured correctly. Please check the console for details.",
+          [{ text: "OK" }]
+        );
+      } else {
+        Alert.alert(
+          "Google Sign-Up Error",
+          error.message || "An error occurred during Google Sign-Up"
+        );
+      }
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
+  /**
+   * Handles Facebook Sign Up
+   */
+  const handleFacebookSignUp = async () => {
+    if (!agreeToTerms) {
+      setErrors({ terms: "You must agree to the Terms of Service" });
+      Alert.alert(
+        "Terms Required",
+        "Please agree to the Terms of Service to continue with Facebook Sign Up"
+      );
+      return;
+    }
+
+    setSocialLoading("facebook");
+
+    try {
+      const { signInWithFacebook, isFacebookSDKAvailable } = await import(
+        "@/services/facebookAuth.service"
+      );
+
+      if (!isFacebookSDKAvailable()) {
+        Alert.alert(
+          "Facebook Sign-Up Not Available",
+          "Facebook Sign-Up requires a native build with the Facebook SDK.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      const { accessToken, user } = await signInWithFacebook();
+
+      // Use Facebook login endpoint (creates account if doesn't exist)
+      const response = await authService.facebookLogin({
+        accessToken,
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        picture: user.picture?.data?.url,
+      });
+
+      if (response.error) {
+        Alert.alert("Facebook Sign-Up Failed", response.error);
+        return;
+      }
+
+      // Success - navigate to tabs
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      console.error("Facebook Sign-Up error:", error);
+
+      if (error.message?.includes("cancelled")) {
+        return;
+      }
+
+      Alert.alert(
+        "Facebook Sign-Up Error",
+        error.message || "An error occurred during Facebook Sign-Up"
+      );
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
+  /**
    * Handles social sign up
    */
-  const handleSocialSignUp = (provider: "google" | "facebook") => {
-    // TODO: Implement social authentication
-    console.log(`Sign up with ${provider}`);
+  const handleSocialSignUp = async (provider: "google" | "facebook") => {
+    if (provider === "google") {
+      await handleGoogleSignUp();
+    } else if (provider === "facebook") {
+      await handleFacebookSignUp();
+    }
   };
 
   /**
@@ -186,6 +313,8 @@ export default function SignUpScreen() {
     // TODO: Open terms of service screen or modal
     console.log("Open Terms of Service");
   };
+
+  const isAnyLoading = isLoading || socialLoading !== null;
 
   return (
     <View style={styles.container}>
@@ -240,6 +369,7 @@ export default function SignUpScreen() {
               error={errors.fullName}
               autoCapitalize="words"
               autoCorrect={false}
+              editable={!isAnyLoading}
             />
 
             {/* Email/Phone Input */}
@@ -255,6 +385,7 @@ export default function SignUpScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              editable={!isAnyLoading}
             />
 
             {/* Password Input */}
@@ -271,6 +402,7 @@ export default function SignUpScreen() {
               error={errors.password}
               isPassword
               autoCapitalize="none"
+              editable={!isAnyLoading}
             />
 
             {/* Password Strength Indicator */}
@@ -308,6 +440,7 @@ export default function SignUpScreen() {
                   setAgreeToTerms(!agreeToTerms);
                   setErrors((prev) => ({ ...prev, terms: undefined }));
                 }}
+                disabled={isAnyLoading}
                 labelComponent={
                   <Text style={styles.termsText}>
                     Yes, I understand and agree to the{" "}
@@ -327,6 +460,7 @@ export default function SignUpScreen() {
               title="Sign Up"
               onPress={handleSignUp}
               loading={isLoading}
+              disabled={isAnyLoading}
               style={styles.signUpButton}
               textStyle={styles.signUpButtonText}
             />
@@ -343,17 +477,25 @@ export default function SignUpScreen() {
               <SocialButton
                 provider="facebook"
                 onPress={() => handleSocialSignUp("facebook")}
+                loading={socialLoading === "facebook"}
+                disabled={isAnyLoading}
               />
               <SocialButton
                 provider="google"
                 onPress={() => handleSocialSignUp("google")}
+                loading={socialLoading === "google"}
+                disabled={isAnyLoading}
               />
             </View>
 
             {/* Sign In Link */}
             <View style={styles.signInContainer}>
               <Text style={styles.signInText}>Have an account? </Text>
-              <TouchableOpacity onPress={handleSignIn} activeOpacity={0.7}>
+              <TouchableOpacity
+                onPress={handleSignIn}
+                activeOpacity={0.7}
+                disabled={isAnyLoading}
+              >
                 <Text style={styles.signInLink}>Sign In</Text>
               </TouchableOpacity>
             </View>
@@ -404,7 +546,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 500,
+    fontWeight: "500",
     color: Colors.ui.white,
     textAlign: "center",
     marginBottom: 46,
@@ -423,7 +565,7 @@ const styles = StyleSheet.create({
   },
   termsLink: {
     color: Colors.background.primary,
-    fontWeight: 500,
+    fontWeight: "500",
   },
   termsError: {
     fontSize: 12,

@@ -1,6 +1,8 @@
 /**
  * Auth Service
  * Handles all authentication-related API calls
+ *
+ * UPDATED: Added Facebook login support
  */
 
 import {
@@ -65,6 +67,14 @@ export interface RefreshTokenRequest {
 
 export interface GoogleLoginRequest {
   idToken: string;
+}
+
+export interface FacebookLoginRequest {
+  accessToken: string;
+  userId: string;
+  email?: string;
+  name?: string;
+  picture?: string;
 }
 
 class AuthService {
@@ -227,6 +237,27 @@ class AuthService {
     );
 
     // Store tokens and user data on successful Google login
+    if (response.data && !response.error) {
+      await setTokens(response.data.accessToken, response.data.refreshToken);
+      await setUserData(response.data.user);
+    }
+
+    return response;
+  }
+
+  /**
+   * Facebook Login
+   * Authenticates user with Facebook access token
+   */
+  async facebookLogin(
+    data: FacebookLoginRequest
+  ): Promise<ApiResponse<AuthResponse>> {
+    const response = await httpClient.post<AuthResponse>(
+      API_ENDPOINTS.AUTH.FACEBOOK,
+      data
+    );
+
+    // Store tokens and user data on successful Facebook login
     if (response.data && !response.error) {
       await setTokens(response.data.accessToken, response.data.refreshToken);
       await setUserData(response.data.user);

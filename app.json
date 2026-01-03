@@ -47,7 +47,20 @@
         "@react-native-google-signin/google-signin",
         {
           "isUserInteractionRequired": true,
-          "iosUrlScheme": "com.googleusercontent.apps.219478745190-7dda7gi7qd9s9itvc6oncm6b3p51tu86"
+          "iosUrlScheme": "com.googleusercontent.apps.219478745190-lv066nbokj8i9nm4r2vc7ot83ok5f30h",
+          "androidClientId": "219478745190-lv066nbokj8i9nm4r2vc7ot83ok5f30h.apps.googleusercontent.com"
+        }
+      ],
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "1788848185112042",
+          "clientToken": "EAAZAa8qyhdeoBQYBe5lTYeHo43t7wVH78fjFeEpiP3Ki7gQqDn4XzA9bcR2HXHkWAmoOqT6rLlOrqNFK4UixKQ2wl1ZCZB7olAze4B6nXdF42WcOlQGdDKKSPDoyPupU1hsRapuqxkVH6PZBYyxzgUZBzFZCTgDbUFFZB0aUvm4IHcB3YGhtkK0ZBPjwB6FaDu0PcCrGkUE4Xz7SBPBnq9KfeiibZC6bp0c194q9detZCU6rC6ImbP7rxG9ZALhrdFvqPN6eve1GXZAMR8fuZCQZA7z0rbSCGUh93dEFFOZAEcKhg24Sdyd0hS4XZBXdNzh1dD4vSVDbq8KYCoZAWHa0n",
+          "displayName": "Flifup",
+          "scheme": "fb1788848185112042",
+          "advertiserIDCollectionEnabled": false,
+          "autoLogAppEventsEnabled": false,
+          "isAutoInitEnabled": true
         }
       ]
     ],

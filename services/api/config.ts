@@ -1,6 +1,8 @@
 /**
  * API Configuration
  * Contains base URL and common headers for API requests
+ *
+ * UPDATED: Added Facebook auth endpoint
  */
 
 // Production API URL (Render deployment)
@@ -54,6 +56,7 @@ export const API_ENDPOINTS = {
     VERIFY_SIGNUP_OTP: "/auth/verify-signup-otp",
     LOGIN: "/auth/login",
     GOOGLE: "/auth/google",
+    FACEBOOK: "/auth/facebook",
     REFRESH: "/auth/refresh",
     LOGOUT: "/auth/logout",
     LOGOUT_ALL: "/auth/logout-all",

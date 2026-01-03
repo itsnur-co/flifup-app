@@ -1,47 +1,132 @@
-import { RoadLinesSVG } from '@/components/animations';
-import { Logo } from '@/components/logo';
-import { Colors } from '@/constants/colors';
-import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { Dimensions, StatusBar, StyleSheet, View } from 'react-native';
+import { RoadLinesSVG } from "@/components/animations";
+import { Logo } from "@/components/logo";
+import { Colors } from "@/constants/colors";
+import { useAuth } from "@/contexts/AuthContext";
+import * as SplashScreen from "expo-splash-screen";
+import { useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import { Dimensions, StatusBar, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withSequence,
   withTiming,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync().catch(() => {
+  /* Already hidden */
+});
 
 /**
  * Animated Splash Screen
  * Main splash screen with road lines animation, logo, and circle expansion
+ *
+ * FIXED:
+ * - Proper auth state checking before navigation
+ * - Road lines animation properly shown
+ * - Prevents navigation race conditions
+ * - Handles loading states correctly
  */
-export default function SplashScreen() {
+export default function SplashScreenComponent() {
   const router = useRouter();
+  const { isLoading, isAuthenticated } = useAuth();
+  const [animationComplete, setAnimationComplete] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
+  const navigationRef = useRef(false);
 
   // Animation values
   const logoOpacity = useSharedValue(0);
   const logoScale = useSharedValue(0.5);
   const circleScale = useSharedValue(1);
   const circleOpacity = useSharedValue(1);
-  const spinnerOpacity = useSharedValue(0);
+  const roadLinesOpacity = useSharedValue(1);
 
+  // Handle navigation after auth check and animation
   useEffect(() => {
-    // Start animations sequence
+    // Don't navigate if still loading or already navigated
+    if (isLoading || hasNavigated || navigationRef.current) {
+      console.log('[Splash] Waiting for auth loading or already navigated');
+      return;
+    }
+
+    // Wait for animation to complete
+    if (!animationComplete) {
+      console.log('[Splash] Waiting for animation to complete');
+      return;
+    }
+
+    // Prevent multiple navigations
+    navigationRef.current = true;
+    setHasNavigated(true);
+
+    console.log('[Splash] Navigating to:', isAuthenticated ? '/(tabs)' : '/auth/start');
+
+    // Hide the native splash screen
+    SplashScreen.hideAsync().catch(() => {});
+
+    // Small delay for smooth transition
+    const timer = setTimeout(() => {
+      if (isAuthenticated) {
+        router.replace("/(tabs)");
+      } else {
+        router.replace("/auth/start");
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isLoading, isAuthenticated, animationComplete, hasNavigated, router]);
+
+  // Fallback timeout - force navigation after 5 seconds if stuck
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      if (!hasNavigated && !navigationRef.current) {
+        console.warn('[Splash] Timeout reached - forcing navigation');
+        console.warn('[Splash] isLoading:', isLoading, 'animationComplete:', animationComplete);
+
+        navigationRef.current = true;
+        setHasNavigated(true);
+        SplashScreen.hideAsync().catch(() => {});
+
+        // Force navigation even if animation didn't complete
+        if (isAuthenticated) {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/auth/start");
+        }
+      }
+    }, 5000);
+
+    return () => clearTimeout(fallbackTimer);
+  }, [isAuthenticated, hasNavigated, isLoading, animationComplete, router]);
+
+  // Start animations on mount
+  useEffect(() => {
+    console.log('[Splash] Starting animation sequence');
     startAnimationSequence();
-
-    // Navigate after animation completes
-    const navigationTimer = setTimeout(() => {
-      router.replace('/auth/start');
-    }, 2500);
-
-    return () => clearTimeout(navigationTimer);
   }, []);
 
+  const handleAnimationComplete = () => {
+    console.log('[Splash] Animation complete callback triggered');
+    setAnimationComplete(true);
+  };
+
   const startAnimationSequence = () => {
+    console.log('[Splash] Initializing animations');
+    // Road lines are visible from start, fade out near end
+    roadLinesOpacity.value = withDelay(
+      1800,
+      withTiming(0, {
+        duration: 500,
+        easing: Easing.out(Easing.ease),
+      })
+    );
+
     // Logo fade in and scale
     logoOpacity.value = withDelay(
       500,
@@ -65,19 +150,21 @@ export default function SplashScreen() {
       )
     );
 
-    // Spinner appears
-    spinnerOpacity.value = withDelay(
-      800,
-      withTiming(1, { duration: 300 })
-    );
-
-    // Circle expansion
+    // Circle expansion (starts after logo appears)
     circleScale.value = withDelay(
       1500,
-      withTiming(20, {
-        duration: 800,
-        easing: Easing.bezier(0.4, 0, 0.2, 1),
-      })
+      withTiming(
+        20,
+        {
+          duration: 800,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+        },
+        (finished) => {
+          if (finished) {
+            runOnJS(handleAnimationComplete)();
+          }
+        }
+      )
     );
 
     circleOpacity.value = withDelay(
@@ -98,14 +185,21 @@ export default function SplashScreen() {
     opacity: circleOpacity.value,
   }));
 
-
+  const roadLinesStyle = useAnimatedStyle(() => ({
+    opacity: roadLinesOpacity.value,
+  }));
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background.primary} />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={Colors.background.primary}
+      />
 
       {/* Animated Road Lines SVG */}
-      <RoadLinesSVG width={SCREEN_WIDTH} height={SCREEN_HEIGHT} />
+      <Animated.View style={[styles.roadLinesContainer, roadLinesStyle]}>
+        <RoadLinesSVG width={SCREEN_WIDTH} height={SCREEN_HEIGHT} />
+      </Animated.View>
 
       {/* Logo Container with Circle Background */}
       <View style={styles.logoContainer}>
@@ -117,8 +211,6 @@ export default function SplashScreen() {
           </View>
         </Animated.View>
       </View>
-
-
     </View>
   );
 }
@@ -127,16 +219,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background.dark,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  roadLinesContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   logoContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 10,
   },
   circle: {
-    position: 'absolute',
+    position: "absolute",
     width: 200,
     height: 200,
     borderRadius: 100,
@@ -149,13 +245,5 @@ const styles = StyleSheet.create({
   },
   logoBorder: {
     padding: 20,
-  },
-  spinnerContainer: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.15,
-    left: 0,
-    right: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

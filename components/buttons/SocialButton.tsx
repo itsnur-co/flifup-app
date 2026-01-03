@@ -5,6 +5,8 @@ interface SocialButtonProps {
   provider: 'google' | 'facebook';
   onPress: () => void;
   style?: ViewStyle;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
 /**

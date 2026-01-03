@@ -30,14 +30,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * Load user data from storage on app start
    */
   const loadUser = async () => {
+    console.log('[AuthContext] Loading user data from storage...');
     try {
       const userData = await getUserData();
       if (userData) {
+        console.log('[AuthContext] User data found:', userData.email || userData.name || 'unknown');
         setUser(userData);
+      } else {
+        console.log('[AuthContext] No user data found in storage');
       }
     } catch (error) {
-      console.error('Error loading user:', error);
+      console.error('[AuthContext] Error loading user:', error);
     } finally {
+      console.log('[AuthContext] Finished loading user, setting isLoading to false');
       setIsLoading(false);
     }
   };
