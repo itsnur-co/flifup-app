@@ -3,8 +3,8 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
@@ -33,39 +33,7 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
 
-  // Initialize services on mount
-  useEffect(() => {
-    const initializeServices = async () => {
-      console.log('[RootLayout] Initializing third-party services...');
-      try {
-        // Initialize Google Sign-In
-        const { configureGoogleSignIn } = await import(
-          "@/services/googleAuth.service"
-        );
-        configureGoogleSignIn();
-        console.log('[RootLayout] Google Sign-In configured');
-      } catch (error) {
-        console.warn(
-          "Google Sign-In not available in this environment:",
-          error
-        );
-      }
-
-      try {
-        // Initialize Facebook SDK
-        const { initializeFacebookSDK } = await import(
-          "@/services/facebookAuth.service"
-        );
-        initializeFacebookSDK();
-        console.log('[RootLayout] Facebook SDK initialized');
-      } catch (error) {
-        console.warn("Facebook SDK not available:", error);
-      }
-      console.log('[RootLayout] Service initialization complete');
-    };
-
-    initializeServices();
-  }, []);
+  // Services initialization removed - no third-party auth providers
 
   // Handle navigation readiness
   useEffect(() => {
@@ -87,19 +55,19 @@ function RootLayoutNav() {
     const inSplash = segments[0] === "splash";
     const inTabs = segments[0] === "(tabs)";
 
-    // Don't redirect from splash - let splash handle navigation
+    // Always let splash screen handle initial navigation
     if (inSplash) {
       return;
     }
 
-    // If authenticated and in auth group, redirect to tabs
+    // If authenticated and trying to access auth screens, redirect to tabs
     if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
       return;
     }
 
-    // If not authenticated and not in auth group (and not splash), redirect to start
-    if (!isAuthenticated && !inAuthGroup && !inSplash) {
+    // If not authenticated and trying to access protected routes, redirect to start
+    if (!isAuthenticated && inTabs) {
       router.replace("/auth/start");
       return;
     }
@@ -114,7 +82,16 @@ function RootLayoutNav() {
           animationDuration: 200,
         }}
       >
-        {/* Splash Screen - Initial Route */}
+        {/* Root Index - Redirects to Splash */}
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+            animation: "none",
+          }}
+        />
+
+        {/* Splash Screen - Entry Point with Animation */}
         <Stack.Screen
           name="splash"
           options={{
@@ -284,12 +261,14 @@ function RootLayoutNav() {
   );
 }
 
+// Configure splash as the initial route
 export const unstable_settings = {
   initialRouteName: "splash",
 };
 
 /**
  * Root Layout with Auth Provider
+ * Ensures splash screen is always the entry point
  */
 export default function RootLayout() {
   return (

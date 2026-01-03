@@ -15,6 +15,7 @@ import {
   TimeLineIcon,
   UserAddLineIcon,
 } from "@/components/icons/TaskIcons";
+import { Feather } from "@expo/vector-icons";
 import { AvatarGroup } from "@/components/ui/Avatar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
@@ -54,6 +55,7 @@ interface CreateTaskSheetProps {
   selectedCategory?: TaskCategory | null;
   selectedPeople?: Person[];
   selectedReminder?: ReminderValue | null;
+  linkedGoalTitle?: string | null;
 }
 
 interface FormRowProps {
@@ -97,6 +99,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
   selectedCategory,
   selectedPeople = [],
   selectedReminder,
+  linkedGoalTitle,
 }) => {
   const insets = useSafeAreaInsets();
   const [formState, setFormState] = useState<TaskFormState>(DEFAULT_TASK_FORM);
@@ -240,6 +243,16 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Linked Goal Banner */}
+          {linkedGoalTitle && (
+            <View style={styles.goalBanner}>
+              <Feather name="target" size={16} color={Colors.primary} />
+              <Text style={styles.goalBannerText}>
+                Linked to: <Text style={styles.goalBannerTitle}>{linkedGoalTitle}</Text>
+              </Text>
+            </View>
+          )}
+
           {/* Title */}
           <FormRow icon={<DotIcon size={24} color={Colors.primary} />}>
             <TextInput
@@ -453,6 +466,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: 16,
+  },
+  goalBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(144, 57, 255, 0.1)",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(144, 57, 255, 0.3)",
+    gap: 8,
+  },
+  goalBannerText: {
+    fontSize: 14,
+    color: "#8E8E93",
+  },
+  goalBannerTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary,
   },
   formRow: {
     flexDirection: "row",

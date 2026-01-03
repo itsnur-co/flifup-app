@@ -65,18 +65,6 @@ export interface RefreshTokenRequest {
   refreshToken: string;
 }
 
-export interface GoogleLoginRequest {
-  idToken: string;
-}
-
-export interface FacebookLoginRequest {
-  accessToken: string;
-  userId: string;
-  email?: string;
-  name?: string;
-  picture?: string;
-}
-
 class AuthService {
   /**
    * Initiate Signup - Step 1
@@ -132,9 +120,7 @@ class AuthService {
    * Refresh Token
    * Gets new access token using refresh token
    */
-  async refreshToken(
-    data: RefreshTokenRequest
-  ): Promise<
+  async refreshToken(data: RefreshTokenRequest): Promise<
     ApiResponse<{
       accessToken: string;
       refreshToken: string;
@@ -222,48 +208,6 @@ class AuthService {
     data: ResetPasswordRequest
   ): Promise<ApiResponse<{ message: string }>> {
     return httpClient.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, data);
-  }
-
-  /**
-   * Google Login
-   * Authenticates user with Google ID token
-   */
-  async googleLogin(
-    data: GoogleLoginRequest
-  ): Promise<ApiResponse<AuthResponse>> {
-    const response = await httpClient.post<AuthResponse>(
-      API_ENDPOINTS.AUTH.GOOGLE,
-      data
-    );
-
-    // Store tokens and user data on successful Google login
-    if (response.data && !response.error) {
-      await setTokens(response.data.accessToken, response.data.refreshToken);
-      await setUserData(response.data.user);
-    }
-
-    return response;
-  }
-
-  /**
-   * Facebook Login
-   * Authenticates user with Facebook access token
-   */
-  async facebookLogin(
-    data: FacebookLoginRequest
-  ): Promise<ApiResponse<AuthResponse>> {
-    const response = await httpClient.post<AuthResponse>(
-      API_ENDPOINTS.AUTH.FACEBOOK,
-      data
-    );
-
-    // Store tokens and user data on successful Facebook login
-    if (response.data && !response.error) {
-      await setTokens(response.data.accessToken, response.data.refreshToken);
-      await setUserData(response.data.user);
-    }
-
-    return response;
   }
 }
 

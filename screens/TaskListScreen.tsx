@@ -4,8 +4,8 @@
  */
 
 import { useSound, useTasks } from "@/hooks";
-import { useRouter } from "expo-router";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -59,7 +59,8 @@ const formToApiRequest = (
   dueTime: string | null,
   category: TaskCategory | null,
   reminder: ReminderValue | null,
-  assignedPeople: Person[]
+  assignedPeople: Person[],
+  goalId?: string | null
 ): CreateTaskRequest => {
   return {
     title: form.title,
@@ -69,6 +70,7 @@ const formToApiRequest = (
     dueTime: dueTime || undefined,
     repeat: form.repeat,
     categoryId: category?.id,
+    goalId: goalId || undefined,
     status: "TODO",
     // Include inline subtasks if form has them
     subtasks:
@@ -88,6 +90,7 @@ const formToApiRequest = (
 
 export const TaskListScreen: React.FC = () => {
   const router = useRouter();
+  const params = useLocalSearchParams<{ goalId?: string; mode?: string }>();
   const insets = useSafeAreaInsets();
   const { playCompletionSound } = useSound();
 
@@ -114,6 +117,26 @@ export const TaskListScreen: React.FC = () => {
     fetchTasksByDate,
     fetchTodayTasks,
   } = useTasks({ autoFetch: true });
+
+  // Fetch linked goal if goalId is provided
+  const [linkedGoalTitle, setLinkedGoalTitle] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (params.goalId) {
+      // Fetch goal details to show which goal this task will be linked to
+      import('@/services/api/goal.service').then(({ goalService }) => {
+        goalService.getGoal(params.goalId!).then((response) => {
+          if (response.data) {
+            setLinkedGoalTitle(response.data.title);
+          }
+        }).catch((error) => {
+          console.error('Error fetching goal:', error);
+        });
+      });
+    } else {
+      setLinkedGoalTitle(null);
+    }
+  }, [params.goalId]);
 
   // Local state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -153,6 +176,13 @@ export const TaskListScreen: React.FC = () => {
   const [taskReminder, setTaskReminder] = useState<ReminderValue | null>(null);
   const [customMinutes, setCustomMinutes] = useState<number[]>([]);
   const [customHours, setCustomHours] = useState<number[]>([]);
+
+  // Open create task sheet if mode=create (from goal details)
+  useEffect(() => {
+    if (params.mode === 'create' && params.goalId) {
+      setIsCreateTaskVisible(true);
+    }
+  }, [params.mode, params.goalId]);
 
   // Check if selected date is today
   const isToday = useMemo(() => {
@@ -224,7 +254,8 @@ export const TaskListScreen: React.FC = () => {
         taskDueTime,
         taskCategory,
         taskReminder,
-        taskAssignedPeople
+        taskAssignedPeople,
+        params.goalId || null
       );
       const result = await createTask(apiRequest);
 
@@ -238,11 +269,16 @@ export const TaskListScreen: React.FC = () => {
         setTaskReminder(null);
         setIsCreateTaskVisible(false);
 
-        // Refresh tasks for current selected date
-        if (isToday) {
-          fetchTodayTasks();
+        // If created from goal, navigate back to goal details
+        if (params.goalId) {
+          router.back();
         } else {
-          fetchTasksByDate(selectedDate);
+          // Refresh tasks for current selected date
+          if (isToday) {
+            fetchTodayTasks();
+          } else {
+            fetchTasksByDate(selectedDate);
+          }
         }
       }
     },
@@ -253,6 +289,8 @@ export const TaskListScreen: React.FC = () => {
       taskCategory,
       taskReminder,
       taskAssignedPeople,
+      params.goalId,
+      router,
       isToday,
       selectedDate,
       fetchTodayTasks,
@@ -557,6 +595,7 @@ export const TaskListScreen: React.FC = () => {
         selectedCategory={taskCategory}
         selectedPeople={taskAssignedPeople}
         selectedReminder={taskReminder}
+        linkedGoalTitle={linkedGoalTitle}
       />
 
       {/* Select Date Bottom Sheet */}

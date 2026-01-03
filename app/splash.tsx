@@ -2,8 +2,8 @@ import { RoadLinesSVG } from "@/components/animations";
 import { Logo } from "@/components/logo";
 import { Colors } from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
-import * as SplashScreen from "expo-splash-screen";
 import { useRouter } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, StatusBar, StyleSheet, View } from "react-native";
 import Animated, {
@@ -37,7 +37,6 @@ export default function SplashScreenComponent() {
   const router = useRouter();
   const { isLoading, isAuthenticated } = useAuth();
   const [animationComplete, setAnimationComplete] = useState(false);
-  const [hasNavigated, setHasNavigated] = useState(false);
   const navigationRef = useRef(false);
 
   // Animation values
@@ -50,74 +49,52 @@ export default function SplashScreenComponent() {
   // Handle navigation after auth check and animation
   useEffect(() => {
     // Don't navigate if still loading or already navigated
-    if (isLoading || hasNavigated || navigationRef.current) {
-      console.log('[Splash] Waiting for auth loading or already navigated');
+    if (isLoading) {
+      console.log("[Splash] Still loading auth state...");
+      return;
+    }
+
+    if (navigationRef.current) {
+      console.log("[Splash] Already navigated, skipping...");
       return;
     }
 
     // Wait for animation to complete
     if (!animationComplete) {
-      console.log('[Splash] Waiting for animation to complete');
+      console.log("[Splash] Waiting for animation to complete");
       return;
     }
 
-    // Prevent multiple navigations
+    // Mark that we're navigating to prevent multiple navigations
     navigationRef.current = true;
-    setHasNavigated(true);
 
-    console.log('[Splash] Navigating to:', isAuthenticated ? '/(tabs)' : '/auth/start');
+    const destination = isAuthenticated ? "/(tabs)" : "/auth/start";
+    console.log("[Splash] Animation complete, navigating to:", destination);
 
     // Hide the native splash screen
     SplashScreen.hideAsync().catch(() => {});
 
-    // Small delay for smooth transition
-    const timer = setTimeout(() => {
-      if (isAuthenticated) {
-        router.replace("/(tabs)");
-      } else {
-        router.replace("/auth/start");
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [isLoading, isAuthenticated, animationComplete, hasNavigated, router]);
-
-  // Fallback timeout - force navigation after 5 seconds if stuck
-  useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
-      if (!hasNavigated && !navigationRef.current) {
-        console.warn('[Splash] Timeout reached - forcing navigation');
-        console.warn('[Splash] isLoading:', isLoading, 'animationComplete:', animationComplete);
-
-        navigationRef.current = true;
-        setHasNavigated(true);
-        SplashScreen.hideAsync().catch(() => {});
-
-        // Force navigation even if animation didn't complete
-        if (isAuthenticated) {
-          router.replace("/(tabs)");
-        } else {
-          router.replace("/auth/start");
-        }
-      }
-    }, 5000);
-
-    return () => clearTimeout(fallbackTimer);
-  }, [isAuthenticated, hasNavigated, isLoading, animationComplete, router]);
+    // Navigate immediately
+    if (isAuthenticated) {
+      router.replace("/(tabs)");
+    } else {
+      router.replace("/auth/start");
+    }
+  }, [isLoading, animationComplete, isAuthenticated, router]);
 
   // Start animations on mount
   useEffect(() => {
-    console.log('[Splash] Starting animation sequence');
+    console.log("[Splash] Starting animation sequence");
     startAnimationSequence();
   }, []);
 
   const handleAnimationComplete = () => {
-    console.log('[Splash] Animation complete callback triggered');
+    console.log("[Splash] Animation complete callback triggered");
     setAnimationComplete(true);
   };
 
   const startAnimationSequence = () => {
-    console.log('[Splash] Initializing animations');
+    console.log("[Splash] Initializing animations");
     // Road lines are visible from start, fade out near end
     roadLinesOpacity.value = withDelay(
       1800,

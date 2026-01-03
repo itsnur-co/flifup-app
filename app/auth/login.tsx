@@ -1,4 +1,4 @@
-import { PrimaryButton, SocialButton } from "@/components/buttons";
+import { PrimaryButton } from "@/components/buttons";
 import { TextInput } from "@/components/inputs";
 import { Logo } from "@/components/logo";
 import { Colors } from "@/constants/colors";
@@ -23,7 +23,6 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 /**
  * Login Screen
  * Handles user authentication with email/phone and password
- * Includes social login options (Google, Facebook)
  */
 export default function LoginScreen() {
   const router = useRouter();
@@ -37,7 +36,6 @@ export default function LoginScreen() {
     password?: string;
   }>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<"google" | "facebook" | null>(null);
 
   /**
    * Validates form inputs
@@ -112,160 +110,11 @@ export default function LoginScreen() {
   };
 
   /**
-   * Handles Google Sign In
-   */
-  const handleGoogleSignIn = async () => {
-    setSocialLoading("google");
-
-    try {
-      // Lazy-load Google Sign-In to avoid native module errors
-      const { signInWithGoogle } = await import("@/services/googleAuth.service");
-
-      // Get ID token from Google Sign-In
-      const idToken = await signInWithGoogle();
-
-      // Send ID token to backend
-      const response = await authService.googleLogin({ idToken });
-
-      if (response.error) {
-        Alert.alert("Google Sign-In Failed", response.error);
-        return;
-      }
-
-      // Success - navigate to tabs
-      router.replace("/(tabs)");
-    } catch (error: any) {
-      console.error("Google Sign-In error:", error);
-
-      // Check for specific error types
-      if (error.message?.includes("cancelled")) {
-        // User cancelled - no need to show alert
-        return;
-      }
-
-      if (error.message?.includes("not available in Expo Go")) {
-        Alert.alert(
-          "Google Sign-In Not Available",
-          "Google Sign-In requires a native build. Please:\n\n" +
-            "1. Use EAS Build: npx eas build --platform android\n" +
-            "2. Install the APK on your device\n\n" +
-            "For now, you can test with email/password login.",
-          [{ text: "OK" }]
-        );
-      } else if (error.message?.includes("DEVELOPER_ERROR")) {
-        Alert.alert(
-          "Configuration Error",
-          "Google Sign-In is not configured correctly. Please check:\n\n" +
-            "1. Web Client ID is correct in googleAuth.service.ts\n" +
-            "2. SHA-1 fingerprint is added to Google Cloud Console\n" +
-            "3. Package name matches (com.flifup.app)",
-          [{ text: "OK" }]
-        );
-      } else if (error.message?.includes("No ID token")) {
-        Alert.alert(
-          "Sign-In Error",
-          "Could not get authentication token from Google. This is usually caused by incorrect OAuth configuration.\n\n" +
-            "Please verify your Google Cloud Console settings.",
-          [{ text: "OK" }]
-        );
-      } else {
-        Alert.alert(
-          "Google Sign-In Error",
-          error.message || "An error occurred during Google Sign-In. Please try again."
-        );
-      }
-    } finally {
-      setSocialLoading(null);
-    }
-  };
-
-  /**
-   * Handles Facebook Sign In
-   */
-  const handleFacebookSignIn = async () => {
-    setSocialLoading("facebook");
-
-    try {
-      // Lazy-load Facebook Sign-In
-      const { signInWithFacebook, isFacebookSDKAvailable } = await import(
-        "@/services/facebookAuth.service"
-      );
-
-      // Check if SDK is available
-      if (!isFacebookSDKAvailable()) {
-        Alert.alert(
-          "Facebook Sign-In Not Available",
-          "Facebook Sign-In requires a native build with the Facebook SDK.\n\n" +
-            "Please rebuild your app with EAS Build after configuring Facebook SDK in app.json.",
-          [{ text: "OK" }]
-        );
-        return;
-      }
-
-      // Get access token and user from Facebook
-      const { accessToken, user } = await signInWithFacebook();
-
-      // Send to backend for authentication
-      const response = await authService.facebookLogin({
-        accessToken,
-        userId: user.id,
-        email: user.email,
-        name: user.name,
-        picture: user.picture?.data?.url,
-      });
-
-      if (response.error) {
-        Alert.alert("Facebook Sign-In Failed", response.error);
-        return;
-      }
-
-      // Success - navigate to tabs
-      router.replace("/(tabs)");
-    } catch (error: any) {
-      console.error("Facebook Sign-In error:", error);
-
-      if (error.message?.includes("cancelled")) {
-        // User cancelled - no need to show alert
-        return;
-      }
-
-      if (error.message?.includes("not available")) {
-        Alert.alert(
-          "Facebook Sign-In Not Available",
-          "Please install the Facebook SDK and rebuild your app.\n\n" +
-            "See the setup instructions in facebookAuth.service.ts",
-          [{ text: "OK" }]
-        );
-      } else {
-        Alert.alert(
-          "Facebook Sign-In Error",
-          error.message || "An error occurred during Facebook Sign-In"
-        );
-      }
-    } finally {
-      setSocialLoading(null);
-    }
-  };
-
-  /**
-   * Handles social sign in
-   */
-  const handleSocialSignIn = async (provider: "google" | "facebook") => {
-    if (provider === "google") {
-      await handleGoogleSignIn();
-    } else if (provider === "facebook") {
-      await handleFacebookSignIn();
-    }
-  };
-
-  /**
    * Navigates to sign up screen
    */
   const handleSignUp = () => {
     router.push("/auth/signup");
   };
-
-  const isAnyLoading = isLoading || socialLoading !== null;
 
   return (
     <View style={styles.container}>
@@ -321,7 +170,7 @@ export default function LoginScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              editable={!isAnyLoading}
+              editable={!isLoading}
             />
 
             {/* Password Input */}
@@ -336,7 +185,7 @@ export default function LoginScreen() {
               error={errors.password}
               isPassword
               autoCapitalize="none"
-              editable={!isAnyLoading}
+              editable={!isLoading}
             />
 
             {/* Forgot Password Link */}
@@ -344,7 +193,7 @@ export default function LoginScreen() {
               onPress={handleForgotPassword}
               style={styles.forgotPasswordContainer}
               activeOpacity={0.7}
-              disabled={isAnyLoading}
+              disabled={isLoading}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
@@ -354,19 +203,18 @@ export default function LoginScreen() {
               title="Sign In"
               onPress={handleSignIn}
               loading={isLoading}
-              disabled={isAnyLoading}
+              disabled={isLoading}
               style={styles.signInButton}
               textStyle={styles.signInButtonText}
             />
 
-            {/* Social Sign In Divider */}
-            <View style={styles.dividerContainer}>
+            {/* TEMPORARILY DISABLED: Social Sign In - Features not available yet */}
+            {/* <View style={styles.dividerContainer}>
               <View style={styles.divider} />
               <Text style={styles.dividerText}>Or Sign In with</Text>
               <View style={styles.divider} />
             </View>
 
-            {/* Social Sign In Buttons */}
             <View style={styles.socialButtonsContainer}>
               <SocialButton
                 provider="facebook"
@@ -380,7 +228,7 @@ export default function LoginScreen() {
                 loading={socialLoading === "google"}
                 disabled={isAnyLoading}
               />
-            </View>
+            </View> */}
 
             {/* Sign Up Link */}
             <View style={styles.signUpContainer}>
@@ -390,7 +238,7 @@ export default function LoginScreen() {
               <TouchableOpacity
                 onPress={handleSignUp}
                 activeOpacity={0.7}
-                disabled={isAnyLoading}
+                disabled={isLoading}
               >
                 <Text style={styles.signUpLink}>Sign Up</Text>
               </TouchableOpacity>
