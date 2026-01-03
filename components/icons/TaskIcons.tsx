@@ -11,8 +11,8 @@ import Svg, { Circle, Path, Rect } from "react-native-svg";
 import AddLineSVG from "@/assets/svg/add-line.svg";
 import AlarmLineSVG from "@/assets/svg/alarm-line.svg";
 import AlignLeftSVG from "@/assets/svg/align-left.svg";
-import CalendarLineSVG from "@/assets/svg/calendar-line.svg";
 import Calendar2LineSVG from "@/assets/svg/calendar-2-line.svg";
+import CalendarLineSVG from "@/assets/svg/calendar-line.svg";
 import DeleteBinSVG from "@/assets/svg/delete-bin-line.svg";
 import DotSVG from "@/assets/svg/dot.svg";
 import EditLineSVG from "@/assets/svg/edit-line.svg";
@@ -370,6 +370,9 @@ export const EditIcon: React.FC<IconProps> = ({
   size = 24,
   color = "#FFFFFF",
 }) => <EditLineSVG width={size} height={size} fill={color} />;
+
+// Alias for EditIcon using edit-line.svg
+export const EditLineIcon = EditIcon;
 
 // Trash icon
 export const TrashIcon: React.FC<IconProps> = ({
@@ -904,6 +907,7 @@ export default {
   AlignLeftIcon,
   DeleteBinIcon,
   AddLineIcon,
+  EditLineIcon,
   SunLineIcon,
   SofaLineIcon,
   NextIcon,

@@ -7,3 +7,4 @@ export * from './config';
 export * from './client';
 export * from './auth.service';
 export * from './profile.service';
+export * from './goal.service';

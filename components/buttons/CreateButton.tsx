@@ -1,5 +1,5 @@
+import { AddLineIcon } from "@/components/icons/TaskIcons";
 import { Colors } from "@/constants/colors";
-import { AddIcon } from "@/components/icons/JournalIcons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
@@ -31,6 +31,7 @@ export const CreateButton: React.FC<CreateButtonProps> = ({
   loading = false,
   disabled = false,
   style,
+  
   textStyle,
   compact = false,
 }) => {
@@ -57,7 +58,7 @@ export const CreateButton: React.FC<CreateButtonProps> = ({
           <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
           <>
-            <AddIcon size={28} />
+            <AddLineIcon size={28} color="#FFFFFF" />
             {!compact && <Text style={[styles.text, textStyle]}>{label}</Text>}
           </>
         )}

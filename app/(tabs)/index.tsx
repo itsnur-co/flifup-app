@@ -40,6 +40,13 @@ export default function HomeScreen() {
           >
             <Text style={styles.journalButtonText}>📔 Journal</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.journalButton}
+            onPress={() => router.push("/goals")}
+          >
+            <Text style={styles.journalButtonText}>🎯 Goals</Text>
+          </TouchableOpacity>
         </View>
       </View>
       <BottomTabBar
