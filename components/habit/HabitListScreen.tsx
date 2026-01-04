@@ -18,15 +18,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
-import {
-  AddCategorySheet,
-  AddGoalSheet,
-  CategoryFilter,
-  CreateHabitSheet,
-  HabitEditModal,
-  HabitSection,
-  RepeatSheet,
-} from "@/components/habit";
 import { ChartIcon } from "@/components/icons/HabitIcons";
 import { PlusIcon } from "@/components/icons/TaskIcons";
 import { ScreenHeader } from "@/components/navigation/screen-header";
@@ -39,6 +30,13 @@ import {
   SelectDateSheet,
   SetReminderSheet,
 } from "@/components/shared";
+import { AddCategorySheet } from "./AddCategorySheet";
+import { AddGoalSheet } from "./AddGoalSheet";
+import { CategoryFilter } from "./CategoryFilter";
+import { CreateHabitSheet } from "./CreateHabitSheet";
+import { HabitEditModal } from "./HabitEditModal";
+import { HabitSection } from "./HabitSection";
+import { RepeatSheet } from "./RepeatSheet";
 
 import { Colors } from "@/constants/colors";
 import {
@@ -47,10 +45,12 @@ import {
   HabitCategoryApi,
 } from "@/services/api/habit.service";
 import {
+  DayOfWeek,
   Habit,
   HabitCategory,
   HabitFormState,
   HabitGoal,
+  IntervalOption,
   RepeatConfig,
 } from "@/types/habit";
 
@@ -61,17 +61,25 @@ interface HabitListScreenProps {
 
 // Helper to convert API habit to local habit type
 const mapApiHabitToLocal = (apiHabit: HabitApi): Habit => {
+  // Map repeat type correctly based on the API type
+  const repeatType = apiHabit.repeatType.toLowerCase() as "daily" | "monthly" | "interval";
+  let repeat: RepeatConfig;
+
+  if (repeatType === "daily") {
+    // Convert day numbers (0-6) to day names
+    const dayNames: DayOfWeek[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const days = apiHabit.repeatDays.map(dayNum => dayNames[dayNum]).filter(Boolean) as DayOfWeek[];
+    repeat = { type: "daily", days };
+  } else if (repeatType === "monthly") {
+    repeat = { type: "monthly", dayOfMonth: apiHabit.repeatDays[0] || 1 };
+  } else {
+    repeat = { type: "interval", everyDays: (apiHabit.repeatInterval || 2) as IntervalOption };
+  }
+
   return {
     id: apiHabit.id,
     name: apiHabit.name,
-    repeat: {
-      type: apiHabit.repeatType.toLowerCase() as
-        | "daily"
-        | "monthly"
-        | "interval",
-      days: apiHabit.repeatDays,
-      interval: apiHabit.repeatInterval,
-    },
+    repeat,
     startDate: new Date(apiHabit.startDate),
     goal: apiHabit.goalValue
       ? {
@@ -100,20 +108,36 @@ const mapApiHabitToLocal = (apiHabit: HabitApi): Habit => {
 
 // Helper to convert local form to API request
 const mapFormToApiRequest = (form: HabitFormState): CreateHabitRequest => {
+  // Convert repeat config to API format
+  const repeatType = (form.repeat?.type?.toUpperCase() || "DAILY") as "DAILY" | "MONTHLY" | "INTERVAL";
+  let repeatDays: number[] = [];
+  let repeatInterval: number | undefined;
+
+  if (form.repeat?.type === "daily") {
+    // Convert day names to day numbers (0-6)
+    const dayMap: Record<DayOfWeek, number> = {
+      'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+      'thursday': 4, 'friday': 5, 'saturday': 6
+    };
+    repeatDays = form.repeat.days.map(day => dayMap[day]);
+  } else if (form.repeat?.type === "monthly") {
+    repeatDays = [form.repeat.dayOfMonth];
+  } else if (form.repeat?.type === "interval") {
+    repeatInterval = form.repeat.everyDays;
+  }
+
   return {
     name: form.name,
     description: form.comment || undefined,
-    repeatType: (form.repeat?.type?.toUpperCase() || "DAILY") as
-      | "DAILY"
-      | "MONTHLY"
-      | "INTERVAL",
-    repeatDays: form.repeat?.days || [],
-    repeatInterval: form.repeat?.interval,
+    repeatType,
+    repeatDays,
+    repeatInterval,
     startDate: form.startDate?.toISOString() || new Date().toISOString(),
     goalValue: form.goal?.value,
     goalUnit: form.goal?.unit as any,
     goalFrequency: form.goal?.frequency as any,
     categoryId: form.category?.id,
+    goalId: form.goalId || undefined,
     reminderTime: form.reminder || undefined,
     comment: form.comment,
     status: "ACTIVE",
@@ -462,7 +486,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
             title="Today"
             count={todayHabits.length}
             habits={todayHabits}
-            initialExpanded
+            initialExpanded={true}
             onHabitToggle={handleToggleHabit}
             onHabitMore={handleHabitMore}
           />
@@ -474,7 +498,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
             title="Completed"
             count={completedHabits.length}
             habits={completedHabits}
-            initialExpanded
+            initialExpanded={false}
             onHabitToggle={handleToggleHabit}
             onHabitMore={handleHabitMore}
           />

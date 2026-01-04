@@ -255,7 +255,17 @@ export const useHabits = (options: UseHabitsOptions = {}): UseHabitsReturn => {
         const response = await habitService.createHabit(data);
 
         if (response.error) {
-          setError(response.error);
+          // Extract user-friendly error message
+          let errorMessage = response.error;
+
+          // Parse common validation errors
+          if (errorMessage.includes("repeatDays is required")) {
+            errorMessage = "Please select at least one day for daily habits";
+          } else if (errorMessage.includes("repeatInterval is required")) {
+            errorMessage = "Please select interval for interval-based habits";
+          }
+
+          setError(errorMessage);
           return null;
         }
 

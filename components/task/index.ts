@@ -25,3 +25,4 @@ export { SetFocusDurationSheet } from "./SetFocusDurationSheet";
 export { TaskHeaderOptionsModal } from "./TaskHeaderOptionsModal";
 export { TaskHeaderOptionsSheet } from "./TaskHeaderOptionsSheet";
 export { TaskProgressScreen } from "./TaskProgressScreen";
+export { TaskInsightScreen } from "./TaskInsightScreen";

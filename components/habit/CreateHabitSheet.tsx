@@ -24,6 +24,7 @@ import {
 } from "@/types/habit";
 import React, { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -72,12 +73,53 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
   const [showCommentInput, setShowCommentInput] = useState(false);
 
   const handleCreate = () => {
-    if (!formState.name.trim()) return;
+    // Validate habit name
+    if (!formState.name.trim()) {
+      Alert.alert("Validation Error", "Please enter a habit name");
+      return;
+    }
+
+    // Get the repeat config
+    const repeat = selectedRepeat || formState.repeat;
+
+    // Validate repeat configuration
+    if (repeat.type === "daily") {
+      if (!repeat.days || repeat.days.length === 0) {
+        Alert.alert(
+          "Select Repeat Days",
+          "Please select at least one day for daily habits"
+        );
+        return;
+      }
+    } else if (repeat.type === "monthly") {
+      if (!repeat.dayOfMonth) {
+        Alert.alert(
+          "Select Day of Month",
+          "Please select a day of the month for monthly habits"
+        );
+        return;
+      }
+    } else if (repeat.type === "interval") {
+      if (!repeat.everyDays) {
+        Alert.alert(
+          "Select Interval",
+          "Please select how many days between each habit"
+        );
+        return;
+      }
+    }
+
+    // Validate start date
+    const startDate = selectedStartDate || formState.startDate;
+    if (!startDate) {
+      Alert.alert("Select Start Date", "Please select a start date for the habit");
+      return;
+    }
 
     onCreateHabit({
       ...formState,
-      repeat: selectedRepeat || formState.repeat,
-      startDate: selectedStartDate || formState.startDate,
+      repeat,
+      startDate,
       goal: selectedGoal || formState.goal,
       category: selectedCategory || formState.category,
       comment: comment || null,

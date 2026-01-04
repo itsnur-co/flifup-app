@@ -1,9 +1,9 @@
 /**
- * Task Progress Route
- * Full-screen task analytics and productivity reports
+ * Task Insights Route
+ * Full-screen task analytics and productivity reports with insights
  */
 
-import { TaskProgressScreen } from "@/components/task";
+import { TaskInsightScreen } from "@/components/task";
 import { useRouter } from "expo-router";
 import React from "react";
 
@@ -14,10 +14,15 @@ export default function TaskProgressRoute() {
     router.back();
   };
 
+  const handleNewTask = () => {
+    router.push("/tasks?mode=create");
+  };
+
   return (
-    <TaskProgressScreen
+    <TaskInsightScreen
       visible={true}
       onClose={handleClose}
+      onNewTask={handleNewTask}
     />
   );
 }

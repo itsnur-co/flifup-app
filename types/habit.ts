@@ -59,6 +59,7 @@ export interface Habit {
   startDate: Date | null;
   goal: HabitGoal | null;
   category: HabitCategory | null;
+  goalId?: string | null; // Link to Goal
   reminder: string | null; // Time string e.g., "08:00"
   comment: string | null;
   completed: boolean;
@@ -74,6 +75,7 @@ export interface HabitFormState {
   startDate: Date | null;
   goal: HabitGoal | null;
   category: HabitCategory | null;
+  goalId?: string | null; // Link to Goal
   reminder: string | null;
   comment: string | null;
 }
@@ -101,6 +103,7 @@ export const DEFAULT_HABIT_FORM: HabitFormState = {
   startDate: null,
   goal: null,
   category: null,
+  goalId: null,
   reminder: null,
   comment: null,
 };

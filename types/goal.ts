@@ -6,6 +6,7 @@
 
 import type { Task } from "./task";
 import type { TaskCategory } from "./task";
+import type { Habit } from "./habit";
 
 // ============================================
 // Core Interfaces
@@ -31,6 +32,7 @@ export interface Goal {
   updatedAt: string;
   _count?: {
     tasks: number;
+    habits: number;
   };
   // Computed fields (calculated on frontend)
   progress?: number; // 0-100
@@ -43,6 +45,7 @@ export interface Goal {
 
 export interface GoalDetail extends Goal {
   tasks: Task[];
+  habits: Habit[];
   tasksGrouped?: {
     incomplete: Task[];
     completed: Task[];
