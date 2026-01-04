@@ -130,7 +130,7 @@ export function CreateGoalSheet({
     <BottomSheet
       visible={visible}
       onClose={handleClose}
-      snapPoints={[0.9]}
+      snapPoints={[0.95]}
       initialSnapIndex={0}
       backgroundColor="#1C1C1E"
     >

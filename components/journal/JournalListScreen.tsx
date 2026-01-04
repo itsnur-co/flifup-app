@@ -222,7 +222,6 @@ export const JournalListScreen: React.FC<JournalListScreenProps> = ({
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <SearchIcon size={20} color="#8E8E93" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search..."
@@ -374,14 +373,14 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 12,
     paddingBottom: 4,
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#2C2C2E",
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#3A3A3C",
     paddingHorizontal: 14,

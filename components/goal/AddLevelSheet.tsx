@@ -63,8 +63,8 @@ export function AddLevelSheet({
     <BottomSheet
       visible={visible}
       onClose={handleClose}
-      snapPoints={[0.6]}
-      initialSnapIndex={0}
+      snapPoints={[0.95]}
+      initialSnapIndex={1}
       backgroundColor="#1C1C1E"
     >
       <View style={styles.container}>
