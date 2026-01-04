@@ -62,6 +62,8 @@ import {
 interface HabitListScreenProps {
   onBack?: () => void;
   onNavigateToProgress?: (habit?: Habit) => void;
+  goalId?: string;
+  mode?: string;
 }
 
 // Helper to convert API habit to local habit type
@@ -152,10 +154,15 @@ const mapFormToApiRequest = (form: HabitFormState): CreateHabitRequest => {
 export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   onBack,
   onNavigateToProgress,
+  goalId,
+  mode,
 }) => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { playCompletionSound } = useSound();
+
+  // Linked goal state (when creating from goal details)
+  const [linkedGoalTitle, setLinkedGoalTitle] = useState<string | null>(null);
 
   // API Hooks
   const {
@@ -178,6 +185,23 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     fetchGoals,
     createGoal,
   } = useGoals({ autoFetch: true });
+
+  // Fetch linked goal title when goalId is provided
+  React.useEffect(() => {
+    if (goalId) {
+      import('@/services/api/goal.service').then(({ goalService }) => {
+        goalService.getGoal(goalId).then((response) => {
+          if (response.data) {
+            setLinkedGoalTitle(response.data.title);
+          }
+        }).catch((error) => {
+          console.error('Error fetching goal:', error);
+        });
+      });
+    } else {
+      setLinkedGoalTitle(null);
+    }
+  }, [goalId]);
 
   // Map API habits to local format
   const habits = useMemo(() => {
@@ -233,6 +257,15 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const [goalFormDate, setGoalFormDate] = useState<Date | null>(null);
   const [goalFormCategory, setGoalFormCategory] = useState<TaskCategory | null>(null);
   const [goalFormLevels, setGoalFormLevels] = useState<string[]>([]);
+
+  // Open create habit sheet if mode=create (from goal details)
+  React.useEffect(() => {
+    if (mode === 'create' && goalId) {
+      setShowCreateSheet(true);
+      // Set the linked goalId in the form
+      setSelectedGoalId(goalId);
+    }
+  }, [mode, goalId]);
 
   // Category filter data
   const categoryFilters = useMemo(() => {
@@ -290,9 +323,17 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       if (result) {
         resetFormState();
         setShowCreateSheet(false);
+
+        // If created from goal details, navigate back
+        if (goalId) {
+          router.back();
+        } else {
+          // Refresh habits list
+          await refresh();
+        }
       }
     },
-    [createHabit]
+    [createHabit, goalId, router, refresh]
   );
 
   const resetFormState = () => {
@@ -593,6 +634,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         selectedGoal={selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null}
         selectedCategory={formCategory}
         selectedReminder={formReminder}
+        linkedGoalTitle={linkedGoalTitle}
       />
 
       {/* Repeat Sheet */}

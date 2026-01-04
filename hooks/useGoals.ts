@@ -14,6 +14,7 @@ import {
   goalFormToRequest,
   GoalFormState,
   groupTasksByCompletion,
+  groupHabits,
   QueryGoalsRequest,
   UpdateGoalRequest,
 } from "@/types/goal";
@@ -153,6 +154,7 @@ export const useGoals = (
           // Calculate task counts and grouping
           const taskCounts = calculateTaskCounts(response.data.tasks);
           const tasksGrouped = groupTasksByCompletion(response.data.tasks);
+          const habitsGrouped = groupHabits(response.data.habits || []);
           const progress = calculateGoalProgress({
             ...response.data,
             taskCounts,
@@ -162,6 +164,7 @@ export const useGoals = (
             ...response.data,
             taskCounts,
             tasksGrouped,
+            habitsGrouped,
             progress,
           };
 

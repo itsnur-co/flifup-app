@@ -7,6 +7,7 @@
 import { CreateButton } from "@/components/buttons/CreateButton";
 import { ThreeDotIcon } from "@/components/icons/TaskIcons";
 import { TaskCard } from "@/components/task/TaskCard";
+import { HabitCard } from "@/components/habit/HabitCard";
 import { Colors } from "@/constants/colors";
 import { GoalDetail } from "@/types/goal";
 import { Feather } from "@expo/vector-icons";
@@ -64,8 +65,14 @@ export function GoalDetailsScreen({
   }
 
   const progress = goal.progress || 0;
-  const incompleteTasks = goal.tasksGrouped?.incomplete || [];
-  const completedTasks = goal.tasksGrouped?.completed || [];
+
+  // For TASK goals, show tasks. For HABIT goals, show habits
+  const incompleteItems = goal.type === "HABIT"
+    ? (goal.habitsGrouped?.incomplete || [])
+    : (goal.tasksGrouped?.incomplete || []);
+  const completedItems = goal.type === "HABIT"
+    ? (goal.habitsGrouped?.completed || [])
+    : (goal.tasksGrouped?.completed || []);
 
   // Dynamic labels based on goal type
   const itemLabel = goal.type === "HABIT" ? "Habit" : "Task";
@@ -175,31 +182,42 @@ export function GoalDetailsScreen({
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Incomplete {itemsLabel}</Text>
             <View style={styles.countBadge}>
-              <Text style={styles.countText}>{incompleteTasks.length}</Text>
+              <Text style={styles.countText}>{incompleteItems.length}</Text>
             </View>
           </View>
 
-          {incompleteTasks.length === 0 ? (
+          {incompleteItems.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>
                 No incomplete {itemsLabel.toLowerCase()}. Create a {itemLabel.toLowerCase()} to get started!
               </Text>
             </View>
           ) : (
-            incompleteTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onPress={() => onTaskPress?.(task.id)}
-                onToggleComplete={() => onToggleTask?.(task.id)}
-                onMorePress={() => onTaskMore?.(task.id)}
-              />
-            ))
+            goal.type === "HABIT" ? (
+              incompleteItems.map((habit: any) => (
+                <HabitCard
+                  key={habit.id}
+                  habit={habit}
+                  onPress={() => onTaskPress?.(habit.id)}
+                  onToggle={() => onToggleTask?.(habit.id)}
+                />
+              ))
+            ) : (
+              incompleteItems.map((task: any) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onPress={() => onTaskPress?.(task.id)}
+                  onToggleComplete={() => onToggleTask?.(task.id)}
+                  onMorePress={() => onTaskMore?.(task.id)}
+                />
+              ))
+            )
           )}
         </View>
 
         {/* Completed Items Section */}
-        {completedTasks.length > 0 && (
+        {completedItems.length > 0 && (
           <View style={styles.section}>
             <TouchableOpacity
               style={styles.sectionHeader}
@@ -208,7 +226,7 @@ export function GoalDetailsScreen({
             >
               <Text style={styles.sectionTitle}>Completed {itemsLabel}</Text>
               <View style={styles.countBadge}>
-                <Text style={styles.countText}>{completedTasks.length}</Text>
+                <Text style={styles.countText}>{completedItems.length}</Text>
               </View>
               <Feather
                 name={showCompleted ? "chevron-up" : "chevron-down"}
@@ -218,16 +236,28 @@ export function GoalDetailsScreen({
               />
             </TouchableOpacity>
 
-            {showCompleted &&
-              completedTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onPress={() => onTaskPress?.(task.id)}
-                  onToggleComplete={() => onToggleTask?.(task.id)}
-                  onMorePress={() => onTaskMore?.(task.id)}
-                />
-              ))}
+            {showCompleted && (
+              goal.type === "HABIT" ? (
+                completedItems.map((habit: any) => (
+                  <HabitCard
+                    key={habit.id}
+                    habit={habit}
+                    onPress={() => onTaskPress?.(habit.id)}
+                    onToggle={() => onToggleTask?.(habit.id)}
+                  />
+                ))
+              ) : (
+                completedItems.map((task: any) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onPress={() => onTaskPress?.(task.id)}
+                    onToggleComplete={() => onToggleTask?.(task.id)}
+                    onMorePress={() => onTaskMore?.(task.id)}
+                  />
+                ))
+              )
+            )}
           </View>
         )}
       </ScrollView>

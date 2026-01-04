@@ -53,6 +53,10 @@ export interface GoalDetail extends Goal {
     incomplete: Task[];
     completed: Task[];
   };
+  habitsGrouped?: {
+    incomplete: Habit[];
+    completed: Habit[];
+  };
 }
 
 // ============================================
@@ -204,6 +208,17 @@ export function groupTasksByCompletion(tasks: Task[]): {
   const completed = tasks.filter((task) => task.status === "COMPLETED");
 
   return { incomplete, completed };
+}
+
+/**
+ * Group habits (all habits are considered "incomplete" as they are ongoing)
+ */
+export function groupHabits(habits: Habit[]): {
+  incomplete: Habit[];
+  completed: Habit[];
+} {
+  // Habits are ongoing activities, so we show all as "incomplete" (active)
+  return { incomplete: habits, completed: [] };
 }
 
 /**

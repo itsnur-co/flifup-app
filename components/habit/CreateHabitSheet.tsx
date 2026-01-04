@@ -12,6 +12,7 @@ import {
   PriceTagLineIcon,
   RepeatLineIcon,
 } from "@/components/icons/TaskIcons";
+import { Feather } from "@expo/vector-icons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
 import { ReminderValue } from "@/components/shared";
@@ -49,6 +50,7 @@ interface CreateHabitSheetProps {
   selectedGoal?: Goal | null;
   selectedCategory?: HabitCategory | null;
   selectedReminder?: ReminderValue | null;
+  linkedGoalTitle?: string | null;
 }
 
 export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
@@ -65,6 +67,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
   selectedGoal,
   selectedCategory,
   selectedReminder,
+  linkedGoalTitle,
 }) => {
   const insets = useSafeAreaInsets();
   const [formState, setFormState] =
@@ -213,6 +216,16 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
           ]}
           showsVerticalScrollIndicator={false}
         >
+          {/* Linked Goal Banner */}
+          {linkedGoalTitle && (
+            <View style={styles.goalBanner}>
+              <Feather name="target" size={16} color={Colors.primary} />
+              <Text style={styles.goalBannerText}>
+                Linked to: <Text style={styles.goalBannerTitle}>{linkedGoalTitle}</Text>
+              </Text>
+            </View>
+          )}
+
           {/* Name Input */}
           <TouchableOpacity style={styles.formRow} activeOpacity={1}>
             <DotIcon size={22} color={Colors.primary} />
@@ -376,6 +389,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: 8,
+  },
+  goalBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(144, 57, 255, 0.1)",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(144, 57, 255, 0.3)",
+    gap: 8,
+  },
+  goalBannerText: {
+    fontSize: 14,
+    color: "#8E8E93",
+  },
+  goalBannerTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary,
   },
   formRow: {
     flexDirection: "row",
