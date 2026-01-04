@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Colors } from "@/constants/colors";
-import { Goal, GoalFormState, DEFAULT_GOAL_FORM } from "@/types/goal";
+import { Goal, GoalFormState, GoalType, DEFAULT_GOAL_FORM } from "@/types/goal";
 import { TaskCategory } from "@/types/task";
 import { Feather } from "@expo/vector-icons";
 import {
@@ -64,6 +64,7 @@ export function CreateGoalSheet({
       setFormState({
         title: goal.title,
         description: goal.description || "",
+        type: goal.type, // Include type field
         deadline: goal.deadline ? new Date(goal.deadline) : null,
         levels: goal.levels || [],
         category: goal.category || null,
@@ -132,7 +133,6 @@ export function CreateGoalSheet({
       snapPoints={[0.9]}
       initialSnapIndex={0}
       backgroundColor="#1C1C1E"
-      enablePanDownToClose={!isLoading}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -201,6 +201,66 @@ export function CreateGoalSheet({
               numberOfLines={3}
               textAlignVertical="top"
             />
+          </View>
+
+          {/* Goal Type Selector - NEW */}
+          <View style={styles.formRow}>
+            <View style={styles.iconContainer}>
+              <Feather name="target" size={22} color="#8E8E93" />
+            </View>
+            <View style={styles.goalTypeContainer}>
+              <Text style={styles.goalTypeLabel}>Goal Type</Text>
+              <View style={styles.goalTypeButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.goalTypeButton,
+                    formState.type === "TASK" && styles.goalTypeButtonActive,
+                  ]}
+                  onPress={() =>
+                    setFormState((prev) => ({ ...prev, type: "TASK" }))
+                  }
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name="check-square"
+                    size={16}
+                    color={formState.type === "TASK" ? Colors.primary : "#8E8E93"}
+                  />
+                  <Text
+                    style={[
+                      styles.goalTypeButtonText,
+                      formState.type === "TASK" && styles.goalTypeButtonTextActive,
+                    ]}
+                  >
+                    Task
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.goalTypeButton,
+                    formState.type === "HABIT" && styles.goalTypeButtonActive,
+                  ]}
+                  onPress={() =>
+                    setFormState((prev) => ({ ...prev, type: "HABIT" }))
+                  }
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name="repeat"
+                    size={16}
+                    color={formState.type === "HABIT" ? Colors.primary : "#8E8E93"}
+                  />
+                  <Text
+                    style={[
+                      styles.goalTypeButtonText,
+                      formState.type === "HABIT" && styles.goalTypeButtonTextActive,
+                    ]}
+                  >
+                    Habit
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           {/* Achieving Date */}
@@ -363,5 +423,44 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: "#FFFFFF",
+  },
+  goalTypeContainer: {
+    flex: 1,
+    gap: 12,
+  },
+  goalTypeLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#8E8E93",
+    marginBottom: 4,
+  },
+  goalTypeButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  goalTypeButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#2C2C2E",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#3A3A3C",
+  },
+  goalTypeButtonActive: {
+    backgroundColor: Colors.primary + "20",
+    borderColor: Colors.primary,
+  },
+  goalTypeButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#8E8E93",
+  },
+  goalTypeButtonTextActive: {
+    color: Colors.primary,
   },
 });

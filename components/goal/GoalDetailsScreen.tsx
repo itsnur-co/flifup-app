@@ -67,6 +67,11 @@ export function GoalDetailsScreen({
   const incompleteTasks = goal.tasksGrouped?.incomplete || [];
   const completedTasks = goal.tasksGrouped?.completed || [];
 
+  // Dynamic labels based on goal type
+  const itemLabel = goal.type === "HABIT" ? "Habit" : "Task";
+  const itemsLabel = goal.type === "HABIT" ? "Habits" : "Tasks";
+  const createButtonLabel = goal.type === "HABIT" ? "Create Habit" : "Create Task";
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -165,10 +170,10 @@ export function GoalDetailsScreen({
           )}
         </View>
 
-        {/* Incomplete Tasks Section */}
+        {/* Incomplete Items Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Incomplete</Text>
+            <Text style={styles.sectionTitle}>Incomplete {itemsLabel}</Text>
             <View style={styles.countBadge}>
               <Text style={styles.countText}>{incompleteTasks.length}</Text>
             </View>
@@ -177,7 +182,7 @@ export function GoalDetailsScreen({
           {incompleteTasks.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>
-                No incomplete tasks. Create a level to get started!
+                No incomplete {itemsLabel.toLowerCase()}. Create a {itemLabel.toLowerCase()} to get started!
               </Text>
             </View>
           ) : (
@@ -193,7 +198,7 @@ export function GoalDetailsScreen({
           )}
         </View>
 
-        {/* Completed Tasks Section */}
+        {/* Completed Items Section */}
         {completedTasks.length > 0 && (
           <View style={styles.section}>
             <TouchableOpacity
@@ -201,7 +206,7 @@ export function GoalDetailsScreen({
               onPress={() => setShowCompleted(!showCompleted)}
               activeOpacity={0.7}
             >
-              <Text style={styles.sectionTitle}>Completed</Text>
+              <Text style={styles.sectionTitle}>Completed {itemsLabel}</Text>
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{completedTasks.length}</Text>
               </View>
@@ -227,10 +232,10 @@ export function GoalDetailsScreen({
         )}
       </ScrollView>
 
-      {/* Create Level FAB */}
+      {/* Create Item FAB */}
       <View style={styles.fabContainer}>
         <CreateButton
-          label="New Level"
+          label={createButtonLabel}
           onPress={onCreateLevel || (() => {})}
           compact={false}
         />

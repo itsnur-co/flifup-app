@@ -4,7 +4,7 @@
  * Integrated with API services
  */
 
-import { useHabits, useSound } from "@/hooks";
+import { useGoals, useHabits, useSound } from "@/hooks";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,6 +24,7 @@ import { ScreenHeader } from "@/components/navigation/screen-header";
 import {
   AddCustomHoursSheet,
   AddCustomMinutesSheet,
+  GoalSelectionSheet,
   ModalOption,
   OptionsModal,
   ReminderValue,
@@ -31,12 +32,16 @@ import {
   SetReminderSheet,
 } from "@/components/shared";
 import { AddCategorySheet } from "./AddCategorySheet";
-import { AddGoalSheet } from "./AddGoalSheet";
+import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
+import { AddLevelSheet } from "@/components/goal/AddLevelSheet";
 import { CategoryFilter } from "./CategoryFilter";
 import { CreateHabitSheet } from "./CreateHabitSheet";
 import { HabitEditModal } from "./HabitEditModal";
 import { HabitSection } from "./HabitSection";
 import { RepeatSheet } from "./RepeatSheet";
+import { Goal, GoalFormState } from "@/types/goal";
+import { TaskCategory } from "@/types/task";
+import { useRouter } from "expo-router";
 
 import { Colors } from "@/constants/colors";
 import {
@@ -149,9 +154,10 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   onNavigateToProgress,
 }) => {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { playCompletionSound } = useSound();
 
-  // API Hook
+  // API Hooks
   const {
     todayHabits: apiTodayHabits,
     categories: apiCategories,
@@ -166,6 +172,12 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     createCategory,
     refresh,
   } = useHabits({ autoFetch: true });
+
+  const {
+    goals,
+    fetchGoals,
+    createGoal,
+  } = useGoals({ autoFetch: true });
 
   // Map API habits to local format
   const habits = useMemo(() => {
@@ -195,7 +207,11 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const [showCreateSheet, setShowCreateSheet] = useState(false);
   const [showRepeatSheet, setShowRepeatSheet] = useState(false);
   const [showDateSheet, setShowDateSheet] = useState(false);
-  const [showGoalSheet, setShowGoalSheet] = useState(false);
+  const [showGoalSelectionSheet, setShowGoalSelectionSheet] = useState(false);
+  const [showGoalCreateSheet, setShowGoalCreateSheet] = useState(false);
+  const [showGoalDateSheet, setShowGoalDateSheet] = useState(false);
+  const [showGoalCategorySheet, setShowGoalCategorySheet] = useState(false);
+  const [showGoalLevelSheet, setShowGoalLevelSheet] = useState(false);
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [showHeaderOptions, setShowHeaderOptions] = useState(false);
@@ -206,12 +222,17 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   // Form states
   const [formRepeat, setFormRepeat] = useState<RepeatConfig | undefined>();
   const [formStartDate, setFormStartDate] = useState<Date | null>(null);
-  const [formGoal, setFormGoal] = useState<HabitGoal | null>(null);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [formCategory, setFormCategory] = useState<HabitCategory | null>(null);
   const [formReminder, setFormReminder] = useState<ReminderValue | null>(null);
   const [customMinutes, setCustomMinutes] = useState<number[]>([]);
   const [customHours, setCustomHours] = useState<number[]>([]);
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+
+  // Goal creation form states
+  const [goalFormDate, setGoalFormDate] = useState<Date | null>(null);
+  const [goalFormCategory, setGoalFormCategory] = useState<TaskCategory | null>(null);
+  const [goalFormLevels, setGoalFormLevels] = useState<string[]>([]);
 
   // Category filter data
   const categoryFilters = useMemo(() => {
@@ -277,7 +298,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const resetFormState = () => {
     setFormRepeat(undefined);
     setFormStartDate(null);
-    setFormGoal(null);
+    setSelectedGoalId(null);
     setFormCategory(null);
     setFormReminder(null);
   };
@@ -306,7 +327,6 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     if (!selectedHabit) return;
     setFormRepeat(selectedHabit.repeat);
     setFormStartDate(selectedHabit.startDate);
-    setFormGoal(selectedHabit.goal);
     setFormCategory(selectedHabit.category);
     setShowCreateSheet(true);
   }, [selectedHabit]);
@@ -397,6 +417,28 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     },
     [categories, createCategory]
   );
+
+  // Goal selection handlers
+  const handleSelectGoal = useCallback((goal: Goal) => {
+    setSelectedGoalId(goal.id);
+    setShowGoalSelectionSheet(false);
+  }, []);
+
+  const handleCreateNewGoal = useCallback(() => {
+    setShowGoalSelectionSheet(false);
+    setShowGoalCreateSheet(true);
+  }, []);
+
+  const handleSubmitGoal = useCallback(async (formData: GoalFormState) => {
+    const result = await createGoal(formData);
+    if (result) {
+      setSelectedGoalId(result.id);
+      setShowGoalCreateSheet(false);
+      setGoalFormDate(null);
+      setGoalFormCategory(null);
+      setGoalFormLevels([]);
+    }
+  }, [createGoal]);
 
   // Loading state for initial load
   if (isLoading && habits.length === 0) {
@@ -543,12 +585,12 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         onCreateHabit={handleCreateHabit}
         onSelectRepeat={() => setShowRepeatSheet(true)}
         onSelectStartDate={() => setShowDateSheet(true)}
-        onSelectGoal={() => setShowGoalSheet(true)}
+        onSelectGoal={() => setShowGoalSelectionSheet(true)}
         onSelectCategory={() => setShowCategorySheet(true)}
         onSetReminder={() => setShowReminderSheet(true)}
         selectedRepeat={formRepeat}
         selectedStartDate={formStartDate}
-        selectedGoal={formGoal}
+        selectedGoal={selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null}
         selectedCategory={formCategory}
         selectedReminder={formReminder}
       />
@@ -569,12 +611,66 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         selectedDate={formStartDate}
       />
 
-      {/* Add Goal Sheet */}
-      <AddGoalSheet
-        visible={showGoalSheet}
-        onClose={() => setShowGoalSheet(false)}
-        onConfirm={(goal) => setFormGoal(goal)}
-        initialValue={formGoal}
+      {/* Goal Selection Sheet */}
+      <GoalSelectionSheet
+        visible={showGoalSelectionSheet}
+        onClose={() => setShowGoalSelectionSheet(false)}
+        onSelectGoal={handleSelectGoal}
+        onCreateGoal={handleCreateNewGoal}
+        goals={goals}
+        type="HABIT"
+      />
+
+      {/* Create Goal Sheet */}
+      <CreateGoalSheet
+        visible={showGoalCreateSheet}
+        onClose={() => {
+          setShowGoalCreateSheet(false);
+          setGoalFormDate(null);
+          setGoalFormCategory(null);
+          setGoalFormLevels([]);
+        }}
+        onSubmit={handleSubmitGoal}
+        onOpenDateSheet={() => setShowGoalDateSheet(true)}
+        onOpenCategorySheet={() => setShowGoalCategorySheet(true)}
+        onOpenLevelSheet={() => setShowGoalLevelSheet(true)}
+        selectedDate={goalFormDate}
+        selectedCategory={goalFormCategory}
+        selectedLevels={goalFormLevels}
+      />
+
+      {/* Goal Form - Date Sheet */}
+      <SelectDateSheet
+        visible={showGoalDateSheet}
+        onClose={() => setShowGoalDateSheet(false)}
+        onSelectDate={(date) => {
+          setGoalFormDate(date);
+          setShowGoalDateSheet(false);
+        }}
+        selectedDate={goalFormDate}
+      />
+
+      {/* Goal Form - Category Sheet */}
+      <AddCategorySheet
+        visible={showGoalCategorySheet}
+        onClose={() => setShowGoalCategorySheet(false)}
+        onSelectCategory={(category) => {
+          setGoalFormCategory(category);
+          setShowGoalCategorySheet(false);
+        }}
+        selectedCategory={goalFormCategory}
+        categories={categories}
+      />
+
+      {/* Goal Form - Level Sheet */}
+      <AddLevelSheet
+        visible={showGoalLevelSheet}
+        onClose={() => setShowGoalLevelSheet(false)}
+        onSelectLevels={(levels) => {
+          setGoalFormLevels(levels);
+          setShowGoalLevelSheet(false);
+        }}
+        selectedLevels={goalFormLevels}
       />
 
       {/* Add Category Sheet */}

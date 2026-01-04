@@ -89,8 +89,14 @@ export default function GoalDetailsRoute() {
   };
 
   const handleCreateLevel = () => {
-    // Navigate to task creation with goalId pre-filled
-    router.push(`/tasks?goalId=${goalId}&mode=create`);
+    if (!selectedGoal) return;
+
+    // Navigate to appropriate creation screen based on goal type
+    if (selectedGoal.type === "HABIT") {
+      router.push(`/habit?goalId=${goalId}&mode=create`);
+    } else {
+      router.push(`/tasks?goalId=${goalId}&mode=create`);
+    }
   };
 
   const handleRefresh = async () => {

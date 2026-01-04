@@ -12,12 +12,15 @@ import type { Habit } from "./habit";
 // Core Interfaces
 // ============================================
 
+export type GoalType = "TASK" | "HABIT";
+
 export interface Goal {
   id: string;
   title: string;
   description?: string;
   icon?: string;
   color?: string;
+  type: GoalType; // NEW: Determines what can be linked (Task or Habit)
   targetValue?: number;
   currentValue: number;
   unit?: string;
@@ -61,6 +64,7 @@ export interface CreateGoalRequest {
   description?: string;
   icon?: string;
   color?: string;
+  type?: GoalType; // NEW: Goal type (defaults to TASK on backend)
   targetValue?: number;
   unit?: string;
   deadline?: string;
@@ -85,6 +89,7 @@ export interface UpdateGoalRequest {
 export interface QueryGoalsRequest {
   isCompleted?: boolean;
   search?: string;
+  type?: GoalType; // NEW: Filter by goal type
 }
 
 // ============================================
@@ -94,6 +99,7 @@ export interface QueryGoalsRequest {
 export interface GoalFormState {
   title: string;
   description: string;
+  type: GoalType; // NEW: Goal type
   deadline: Date | null;
   levels: string[]; // Selected level types
   category: TaskCategory | null;
@@ -106,6 +112,7 @@ export interface GoalFormState {
 export const DEFAULT_GOAL_FORM: GoalFormState = {
   title: "",
   description: "",
+  type: "TASK", // Default to TASK type
   deadline: null,
   levels: [],
   category: null,
@@ -258,6 +265,7 @@ export function goalFormToRequest(
   return {
     title: form.title,
     description: form.description || undefined,
+    type: form.type, // Include goal type
     icon: form.icon,
     color: form.color,
     targetValue: form.targetValue,

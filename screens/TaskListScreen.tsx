@@ -3,7 +3,7 @@
  * Complete task management flow with API integration
  */
 
-import { useSound, useTasks } from "@/hooks";
+import { useGoals, useSound, useTasks } from "@/hooks";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -23,6 +23,7 @@ import {
   AddCustomDateSheet,
   AddCustomHoursSheet,
   AddCustomMinutesSheet,
+  GoalSelectionSheet,
   RepeatSheet,
   SelectDateSheet,
   SetReminderSheet,
@@ -38,9 +39,12 @@ import {
   TaskHeaderOptionsModal,
   TaskSection,
 } from "@/components/task";
+import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
+import { AddLevelSheet } from "@/components/goal/AddLevelSheet";
 
 import { Colors } from "@/constants/colors";
 import { RepeatConfig } from "@/types/habit";
+import { Goal, GoalFormState } from "@/types/goal";
 import type {
   CreateTaskRequest,
   Person,
@@ -94,7 +98,7 @@ export const TaskListScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { playCompletionSound } = useSound();
 
-  // API Hook
+  // API Hooks
   const {
     todayTasks,
     upcomingTasks,
@@ -117,6 +121,12 @@ export const TaskListScreen: React.FC = () => {
     fetchTasksByDate,
     fetchTodayTasks,
   } = useTasks({ autoFetch: true });
+
+  const {
+    goals,
+    fetchGoals,
+    createGoal,
+  } = useGoals({ autoFetch: true });
 
   // Fetch linked goal if goalId is provided
   const [linkedGoalTitle, setLinkedGoalTitle] = useState<string | null>(null);
@@ -159,6 +169,11 @@ export const TaskListScreen: React.FC = () => {
   const [isAddCustomMinutesVisible, setIsAddCustomMinutesVisible] =
     useState(false);
   const [isAddCustomHoursVisible, setIsAddCustomHoursVisible] = useState(false);
+  const [isGoalSelectionVisible, setIsGoalSelectionVisible] = useState(false);
+  const [isGoalCreateVisible, setIsGoalCreateVisible] = useState(false);
+  const [isGoalDateVisible, setIsGoalDateVisible] = useState(false);
+  const [isGoalCategoryVisible, setIsGoalCategoryVisible] = useState(false);
+  const [isGoalLevelVisible, setIsGoalLevelVisible] = useState(false);
 
   // FAB compact state while scrolling
   const [isFabCompact, setIsFabCompact] = useState(false);
@@ -174,8 +189,14 @@ export const TaskListScreen: React.FC = () => {
   const [taskCategory, setTaskCategory] = useState<TaskCategory | null>(null);
   const [taskAssignedPeople, setTaskAssignedPeople] = useState<Person[]>([]);
   const [taskReminder, setTaskReminder] = useState<ReminderValue | null>(null);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [customMinutes, setCustomMinutes] = useState<number[]>([]);
   const [customHours, setCustomHours] = useState<number[]>([]);
+
+  // Goal creation form states
+  const [goalFormDate, setGoalFormDate] = useState<Date | null>(null);
+  const [goalFormCategory, setGoalFormCategory] = useState<TaskCategory | null>(null);
+  const [goalFormLevels, setGoalFormLevels] = useState<string[]>([]);
 
   // Open create task sheet if mode=create (from goal details)
   useEffect(() => {
@@ -255,7 +276,7 @@ export const TaskListScreen: React.FC = () => {
         taskCategory,
         taskReminder,
         taskAssignedPeople,
-        params.goalId || null
+        params.goalId || selectedGoalId || null
       );
       const result = await createTask(apiRequest);
 
@@ -267,6 +288,7 @@ export const TaskListScreen: React.FC = () => {
         setTaskCategory(null);
         setTaskAssignedPeople([]);
         setTaskReminder(null);
+        setSelectedGoalId(null);
         setIsCreateTaskVisible(false);
 
         // If created from goal, navigate back to goal details
@@ -289,6 +311,7 @@ export const TaskListScreen: React.FC = () => {
       taskCategory,
       taskReminder,
       taskAssignedPeople,
+      selectedGoalId,
       params.goalId,
       router,
       isToday,
@@ -430,6 +453,28 @@ export const TaskListScreen: React.FC = () => {
     setTaskRepeat(repeat);
     setIsRepeatVisible(false);
   }, []);
+
+  // Goal selection handlers
+  const handleSelectGoal = useCallback((goal: Goal) => {
+    setSelectedGoalId(goal.id);
+    setIsGoalSelectionVisible(false);
+  }, []);
+
+  const handleCreateNewGoal = useCallback(() => {
+    setIsGoalSelectionVisible(false);
+    setIsGoalCreateVisible(true);
+  }, []);
+
+  const handleSubmitGoal = useCallback(async (formData: GoalFormState) => {
+    const result = await createGoal(formData);
+    if (result) {
+      setSelectedGoalId(result.id);
+      setIsGoalCreateVisible(false);
+      setGoalFormDate(null);
+      setGoalFormCategory(null);
+      setGoalFormLevels([]);
+    }
+  }, [createGoal]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -589,12 +634,14 @@ export const TaskListScreen: React.FC = () => {
         onSelectCategory={() => setIsAddCategoryVisible(true)}
         onSelectPeople={() => setIsAddPeopleVisible(true)}
         onSetReminder={() => setIsSetReminderVisible(true)}
+        onSelectGoal={() => setIsGoalSelectionVisible(true)}
         selectedDate={taskDueDate}
         selectedTime={taskDueTime}
         selectedRepeat={taskRepeat}
         selectedCategory={taskCategory}
         selectedPeople={taskAssignedPeople}
         selectedReminder={taskReminder}
+        selectedGoal={selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null}
         linkedGoalTitle={linkedGoalTitle}
       />
 
@@ -722,6 +769,67 @@ export const TaskListScreen: React.FC = () => {
         visible={isAddCustomHoursVisible}
         onClose={() => setIsAddCustomHoursVisible(false)}
         onAddHours={handleAddCustomHours}
+      />
+
+      {/* Goal Selection Sheet */}
+      <GoalSelectionSheet
+        visible={isGoalSelectionVisible}
+        onClose={() => setIsGoalSelectionVisible(false)}
+        onSelectGoal={handleSelectGoal}
+        onCreateGoal={handleCreateNewGoal}
+        goals={goals}
+        type="TASK"
+      />
+
+      {/* Create Goal Sheet */}
+      <CreateGoalSheet
+        visible={isGoalCreateVisible}
+        onClose={() => {
+          setIsGoalCreateVisible(false);
+          setGoalFormDate(null);
+          setGoalFormCategory(null);
+          setGoalFormLevels([]);
+        }}
+        onSubmit={handleSubmitGoal}
+        onOpenDateSheet={() => setIsGoalDateVisible(true)}
+        onOpenCategorySheet={() => setIsGoalCategoryVisible(true)}
+        onOpenLevelSheet={() => setIsGoalLevelVisible(true)}
+        selectedDate={goalFormDate}
+        selectedCategory={goalFormCategory}
+        selectedLevels={goalFormLevels}
+      />
+
+      {/* Goal Form - Date Sheet */}
+      <SelectDateSheet
+        visible={isGoalDateVisible}
+        onClose={() => setIsGoalDateVisible(false)}
+        onSelectDate={(date) => {
+          setGoalFormDate(date);
+          setIsGoalDateVisible(false);
+        }}
+        selectedDate={goalFormDate}
+      />
+
+      {/* Goal Form - Category Sheet */}
+      <AddCategorySheet
+        visible={isGoalCategoryVisible}
+        onClose={() => setIsGoalCategoryVisible(false)}
+        onSelectCategory={(category) => {
+          setGoalFormCategory(category);
+          setIsGoalCategoryVisible(false);
+        }}
+        selectedCategory={goalFormCategory}
+      />
+
+      {/* Goal Form - Level Sheet */}
+      <AddLevelSheet
+        visible={isGoalLevelVisible}
+        onClose={() => setIsGoalLevelVisible(false)}
+        onSelectLevels={(levels) => {
+          setGoalFormLevels(levels);
+          setIsGoalLevelVisible(false);
+        }}
+        selectedLevels={goalFormLevels}
       />
 
       {/* Operation Loading Overlay */}

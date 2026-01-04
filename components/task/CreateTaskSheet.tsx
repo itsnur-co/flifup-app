@@ -10,6 +10,7 @@ import {
   AlignLeftIcon,
   CalendarLineIcon,
   DotIcon,
+  FlagIcon,
   PriceTagLineIcon,
   RepeatLineIcon,
   TimeLineIcon,
@@ -27,6 +28,7 @@ import {
   ReminderValue,
 } from "@/types/task";
 import { RepeatConfig } from "@/types/habit";
+import { Goal } from "@/types/goal";
 import { formatDate, formatReminder } from "@/utils/dateTime";
 import React, { useCallback, useState } from "react";
 import {
@@ -49,12 +51,14 @@ interface CreateTaskSheetProps {
   onSelectCategory?: () => void;
   onSelectPeople?: () => void;
   onSetReminder?: () => void;
+  onSelectGoal?: () => void;
   selectedDate?: Date | null;
   selectedTime?: string | null;
   selectedRepeat?: RepeatConfig | null;
   selectedCategory?: TaskCategory | null;
   selectedPeople?: Person[];
   selectedReminder?: ReminderValue | null;
+  selectedGoal?: Goal | null;
   linkedGoalTitle?: string | null;
 }
 
@@ -93,12 +97,14 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
   onSelectCategory,
   onSelectPeople,
   onSetReminder,
+  onSelectGoal,
   selectedDate,
   selectedTime,
   selectedRepeat,
   selectedCategory,
   selectedPeople = [],
   selectedReminder,
+  selectedGoal,
   linkedGoalTitle,
 }) => {
   const insets = useSafeAreaInsets();
@@ -157,6 +163,11 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     return `${hour12}:${minute} ${period}`;
   };
 
+  const formatGoalDisplay = (goal?: Goal | null): string => {
+    if (!goal) return "Add Goal";
+    return goal.title;
+  };
+
   const handleCreate = useCallback(() => {
     if (!formState.title.trim()) return;
 
@@ -166,6 +177,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
       dueTime: selectedTime ?? null,
       category: selectedCategory ?? null,
       categoryId: selectedCategory?.id ?? null,
+      goalId: selectedGoal?.id ?? null,
       subtasks: subTasks.map((st) => ({
         title: st.title,
         description: st.description,
@@ -181,6 +193,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     selectedDate,
     selectedTime,
     selectedCategory,
+    selectedGoal,
     subTasks,
     onCreateTask,
     onClose,
@@ -332,6 +345,18 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                 {selectedCategory?.name || "Add category"}
               </Text>
             </View>
+          </FormRow>
+
+          {/* Add Goal */}
+          <FormRow
+            icon={<FlagIcon size={24} color={Colors.primary} />}
+            onPress={onSelectGoal}
+          >
+            <Text
+              style={[styles.rowText, selectedGoal && styles.rowTextActive]}
+            >
+              {formatGoalDisplay(selectedGoal)}
+            </Text>
           </FormRow>
 
           {/* People */}

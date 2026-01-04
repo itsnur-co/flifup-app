@@ -19,9 +19,9 @@ import {
   DEFAULT_HABIT_FORM,
   HabitCategory,
   HabitFormState,
-  HabitGoal,
   RepeatConfig,
 } from "@/types/habit";
+import { Goal } from "@/types/goal";
 import React, { useState } from "react";
 import {
   Alert,
@@ -46,7 +46,7 @@ interface CreateHabitSheetProps {
   // Selected values from child sheets
   selectedRepeat?: RepeatConfig;
   selectedStartDate?: Date | null;
-  selectedGoal?: HabitGoal | null;
+  selectedGoal?: Goal | null;
   selectedCategory?: HabitCategory | null;
   selectedReminder?: ReminderValue | null;
 }
@@ -120,7 +120,7 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
       ...formState,
       repeat,
       startDate,
-      goal: selectedGoal || formState.goal,
+      goalId: selectedGoal?.id || formState.goalId,
       category: selectedCategory || formState.category,
       comment: comment || null,
     });
@@ -155,19 +155,19 @@ export const CreateHabitSheet: React.FC<CreateHabitSheetProps> = ({
     });
   };
 
-  const formatGoal = (goal?: HabitGoal | null): string => {
+  const formatGoal = (goal?: Goal | null): string => {
     if (!goal) return "Add Goal";
-    return `${goal.value} ${goal.unit} ${goal.frequency}`;
+    return goal.title;
   };
 
-  const formatReminderText = (reminder: ReminderValue | null): string => {
+  const formatReminderText = (reminder: ReminderValue | null | undefined): string => {
     if (!reminder) return "Set Reminder";
     const { type, value } = reminder;
-    if (type === "minutes") {
+    if (type === "MINUTES") {
       return `${value} minute${value > 1 ? "s" : ""} before`;
-    } else if (type === "hours") {
+    } else if (type === "HOURS") {
       return `${value} hour${value > 1 ? "s" : ""} before`;
-    } else if (type === "days") {
+    } else if (type === "DAYS") {
       return `${value} day${value > 1 ? "s" : ""} before`;
     }
     return "Set Reminder";
