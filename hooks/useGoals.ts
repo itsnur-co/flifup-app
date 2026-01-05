@@ -18,7 +18,52 @@ import {
   QueryGoalsRequest,
   UpdateGoalRequest,
 } from "@/types/goal";
+import { DayOfWeek, Habit } from "@/types/habit";
+import { HabitApi } from "@/services/api/habit.service";
 import { useCallback, useEffect, useState } from "react";
+
+// Helper to convert API habit to local habit type
+const mapApiHabitToLocal = (apiHabit: HabitApi): Habit => {
+  const repeatType = apiHabit.repeatType.toLowerCase() as "daily" | "monthly" | "interval";
+  let repeat: any;
+
+  if (repeatType === "daily") {
+    const dayNames: DayOfWeek[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const days = apiHabit.repeatDays.map(dayNum => dayNames[dayNum]).filter(Boolean) as DayOfWeek[];
+    repeat = { type: "daily", days };
+  } else if (repeatType === "monthly") {
+    repeat = { type: "monthly", dayOfMonth: apiHabit.repeatDays[0] || 1 };
+  } else {
+    repeat = { type: "interval", everyDays: (apiHabit.repeatInterval || 2) as any };
+  }
+
+  return {
+    id: apiHabit.id,
+    name: apiHabit.name,
+    repeat,
+    startDate: new Date(apiHabit.startDate),
+    goal: apiHabit.goalValue
+      ? {
+          value: apiHabit.goalValue,
+          unit: (apiHabit.goalUnit?.toLowerCase() || "count") as any,
+          frequency: (apiHabit.goalFrequency?.toLowerCase().replace('_', '') || "perday") as any,
+        }
+      : null,
+    category: apiHabit.category
+      ? {
+          id: apiHabit.category.id,
+          name: apiHabit.category.name,
+          color: apiHabit.category.color || "#9039FF",
+        }
+      : null,
+    reminder: apiHabit.reminderTime || null,
+    comment: apiHabit.comment || null,
+    completed: apiHabit.isCompletedToday || false,
+    completedDates: apiHabit.completions?.map((c) => c.date.split("T")[0]) || [],
+    createdAt: new Date(apiHabit.createdAt),
+    updatedAt: new Date(apiHabit.updatedAt),
+  };
+};
 
 interface UseGoalsOptions {
   autoFetch?: boolean;
@@ -154,7 +199,13 @@ export const useGoals = (
           // Calculate task counts and grouping
           const taskCounts = calculateTaskCounts(response.data.tasks);
           const tasksGrouped = groupTasksByCompletion(response.data.tasks);
-          const habitsGrouped = groupHabits(response.data.habits || []);
+
+          // Map API habits to local format and group them
+          const mappedHabits = (response.data.habits || []).map((apiHabit: any) =>
+            mapApiHabitToLocal(apiHabit as HabitApi)
+          );
+          const habitsGrouped = groupHabits(mappedHabits);
+
           const progress = calculateGoalProgress({
             ...response.data,
             taskCounts,
@@ -162,6 +213,7 @@ export const useGoals = (
 
           const enrichedGoal: GoalDetail = {
             ...response.data,
+            habits: mappedHabits,
             taskCounts,
             tasksGrouped,
             habitsGrouped,

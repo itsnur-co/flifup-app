@@ -198,6 +198,7 @@ export function GoalDetailsScreen({
                 <HabitCard
                   key={habit.id}
                   habit={habit}
+                  isCompleted={habit.completed || false}
                   onPress={() => onTaskPress?.(habit.id)}
                   onToggle={() => onToggleTask?.(habit.id)}
                 />
@@ -242,6 +243,7 @@ export function GoalDetailsScreen({
                   <HabitCard
                     key={habit.id}
                     habit={habit}
+                    isCompleted={habit.completed || false}
                     onPress={() => onTaskPress?.(habit.id)}
                     onToggle={() => onToggleTask?.(habit.id)}
                   />

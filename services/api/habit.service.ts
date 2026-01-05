@@ -253,14 +253,19 @@ export const habitService = {
    * Mark habit as complete for today
    */
   async completeHabit(id: string, data?: CompleteHabitRequest): Promise<ApiResponse<HabitCompletion>> {
-    return httpClient.post<HabitCompletion>(`/habits/${id}/complete`, data || {}, true);
+    const requestData = {
+      date: new Date().toISOString(),
+      ...data,
+    };
+    return httpClient.post<HabitCompletion>(`/habits/${id}/complete`, requestData, true);
   },
 
   /**
    * Uncomplete habit for today
    */
   async uncompleteHabit(id: string): Promise<ApiResponse<{ message: string }>> {
-    return httpClient.delete<{ message: string }>(`/habits/${id}/complete`, true);
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    return httpClient.delete<{ message: string }>(`/habits/${id}/complete/${today}`, true);
   },
 
   /**

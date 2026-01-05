@@ -8,7 +8,7 @@ import { AddLevelSheet } from "@/components/goal/AddLevelSheet";
 import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
 import { AddCategorySheet } from "@/components/shared/AddCategorySheet";
 import { SelectDateSheet } from "@/components/shared/SelectDateSheet";
-import { useGoals, useTasks } from "@/hooks";
+import { useGoals, useHabits, useTasks } from "@/hooks";
 import { GoalFormState } from "@/types/goal";
 import { TaskCategory } from "@/types/task";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -30,6 +30,7 @@ export default function GoalDetailsRoute() {
   } = useGoals({ autoFetch: false });
 
   const { categories, fetchCategories, toggleTaskStatus } = useTasks();
+  const { toggleHabitCompletion } = useHabits();
 
   // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -107,7 +108,12 @@ export default function GoalDetailsRoute() {
   };
 
   const handleToggleTask = async (taskId: string) => {
-    await toggleTaskStatus(taskId);
+    // Toggle task or habit based on goal type
+    if (selectedGoal?.type === "HABIT") {
+      await toggleHabitCompletion(taskId);
+    } else {
+      await toggleTaskStatus(taskId);
+    }
     // Refresh goal to update progress
     if (goalId) {
       await fetchGoal(goalId);
