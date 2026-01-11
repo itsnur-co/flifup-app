@@ -276,7 +276,11 @@ export const habitService = {
     date: string,
     data?: CompleteHabitRequest
   ): Promise<ApiResponse<HabitCompletion>> {
-    return httpClient.post<HabitCompletion>(`/habits/${id}/complete/${date}`, data || {}, true);
+    const requestData = {
+      date: date,
+      ...data,
+    };
+    return httpClient.post<HabitCompletion>(`/habits/${id}/complete`, requestData, true);
   },
 
   /**

@@ -86,7 +86,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </TouchableOpacity>
 
         {/* Priority indicator */}
-        <View style={[styles.priorityDot, { backgroundColor: getPriorityColor() }]} />
+        {/* <View style={[styles.priorityDot, { backgroundColor: getPriorityColor() }]} /> */}
 
         <TouchableOpacity
           onPress={onMorePress}

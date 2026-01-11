@@ -72,6 +72,7 @@ interface UseHabitsReturn {
     date: string,
     data?: CompleteHabitRequest
   ) => Promise<boolean>;
+  uncompleteHabitForDate: (id: string, date: string) => Promise<boolean>;
   toggleHabitCompletion: (id: string) => Promise<boolean>;
 
   // Category actions
@@ -381,9 +382,25 @@ export const useHabits = (options: UseHabitsOptions = {}): UseHabitsReturn => {
           return false;
         }
 
-        // Update local state
-        const updateHabitCompletion = (habit: HabitApi) =>
-          habit.id === id ? { ...habit, isCompletedToday: true } : habit;
+        // Update local state - add today's date to completions
+        const todayStr = new Date().toISOString().split('T')[0];
+        const updateHabitCompletion = (habit: HabitApi) => {
+          if (habit.id === id) {
+            const existingCompletions = habit.completions || [];
+            const dateExists = existingCompletions.some(c => c.date.split('T')[0] === todayStr);
+            const completions = dateExists
+              ? existingCompletions
+              : [...existingCompletions, {
+                  id: `temp-${Date.now()}`,
+                  habitId: id,
+                  date: todayStr,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                }];
+            return { ...habit, isCompletedToday: true, completions };
+          }
+          return habit;
+        };
 
         setHabits((prev) => prev.map(updateHabitCompletion));
         setTodayHabits((prev) => prev.map(updateHabitCompletion));
@@ -412,9 +429,16 @@ export const useHabits = (options: UseHabitsOptions = {}): UseHabitsReturn => {
         return false;
       }
 
-      // Update local state
-      const updateHabitCompletion = (habit: HabitApi) =>
-        habit.id === id ? { ...habit, isCompletedToday: false } : habit;
+      // Update local state - remove today's date from completions
+      const todayStr = new Date().toISOString().split('T')[0];
+      const updateHabitCompletion = (habit: HabitApi) => {
+        if (habit.id === id) {
+          const existingCompletions = habit.completions || [];
+          const completions = existingCompletions.filter(c => c.date.split('T')[0] !== todayStr);
+          return { ...habit, isCompletedToday: false, completions };
+        }
+        return habit;
+      };
 
       setHabits((prev) => prev.map(updateHabitCompletion));
       setTodayHabits((prev) => prev.map(updateHabitCompletion));
@@ -450,10 +474,78 @@ export const useHabits = (options: UseHabitsOptions = {}): UseHabitsReturn => {
           return false;
         }
 
+        // Update local state - add the specified date to completions
+        const dateStr = date.split('T')[0]; // Ensure YYYY-MM-DD format
+        const updateHabitCompletion = (habit: HabitApi) => {
+          if (habit.id === id) {
+            const existingCompletions = habit.completions || [];
+            const dateExists = existingCompletions.some(c => c.date.split('T')[0] === dateStr);
+            const completions = dateExists
+              ? existingCompletions
+              : [...existingCompletions, {
+                  id: `temp-${Date.now()}`,
+                  habitId: id,
+                  date: dateStr,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                }];
+            // Update isCompletedToday only if the date is today
+            const todayStr = new Date().toISOString().split('T')[0];
+            const isCompletedToday = dateStr === todayStr ? true : habit.isCompletedToday;
+            return { ...habit, isCompletedToday, completions };
+          }
+          return habit;
+        };
+
+        setHabits((prev) => prev.map(updateHabitCompletion));
+        setTodayHabits((prev) => prev.map(updateHabitCompletion));
+
         return true;
       } catch (err) {
         setError("Failed to complete habit for date");
         console.error("completeHabitForDate error:", err);
+        return false;
+      } finally {
+        setIsCompleting(false);
+      }
+    },
+    []
+  );
+
+  const uncompleteHabitForDate = useCallback(
+    async (id: string, date: string): Promise<boolean> => {
+      setIsCompleting(true);
+      setError(null);
+
+      try {
+        const response = await habitService.uncompleteHabitForDate(id, date);
+
+        if (response.error) {
+          setError(response.error);
+          return false;
+        }
+
+        // Update local state - remove the specified date from completions
+        const dateStr = date.split('T')[0]; // Ensure YYYY-MM-DD format
+        const updateHabitCompletion = (habit: HabitApi) => {
+          if (habit.id === id) {
+            const existingCompletions = habit.completions || [];
+            const completions = existingCompletions.filter(c => c.date.split('T')[0] !== dateStr);
+            // Update isCompletedToday only if the date is today
+            const todayStr = new Date().toISOString().split('T')[0];
+            const isCompletedToday = dateStr === todayStr ? false : habit.isCompletedToday;
+            return { ...habit, isCompletedToday, completions };
+          }
+          return habit;
+        };
+
+        setHabits((prev) => prev.map(updateHabitCompletion));
+        setTodayHabits((prev) => prev.map(updateHabitCompletion));
+
+        return true;
+      } catch (err) {
+        setError("Failed to uncomplete habit for date");
+        console.error("uncompleteHabitForDate error:", err);
         return false;
       } finally {
         setIsCompleting(false);
@@ -674,6 +766,7 @@ export const useHabits = (options: UseHabitsOptions = {}): UseHabitsReturn => {
     completeHabit,
     uncompleteHabit,
     completeHabitForDate,
+    uncompleteHabitForDate,
     toggleHabitCompletion,
 
     // Category actions

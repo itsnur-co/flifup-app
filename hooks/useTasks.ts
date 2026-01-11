@@ -216,6 +216,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     setTodayTasks(updateInList);
     setUpcomingTasks(updateInList);
     setOverdueTasks(updateInList);
+    setSelectedDateTasks(updateInList);
   }, []);
 
   const removeTaskFromAllLists = useCallback((taskId: string) => {
@@ -226,6 +227,7 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
     setTodayTasks(removeFromList);
     setUpcomingTasks(removeFromList);
     setOverdueTasks(removeFromList);
+    setSelectedDateTasks(removeFromList);
   }, []);
 
   // ============================================

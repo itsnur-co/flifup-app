@@ -176,6 +176,8 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     createHabit,
     deleteHabit,
     toggleHabitCompletion,
+    completeHabitForDate,
+    uncompleteHabitForDate,
     createCategory,
     refresh,
   } = useHabits({ autoFetch: true });
@@ -301,10 +303,10 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     const dateStr = selectedDate.toISOString().split("T")[0];
 
     const today = filteredHabits.filter(
-      (h) => !h.completedDates.includes(dateStr)
+      (h) => !(h.completedDates || []).includes(dateStr)
     );
     const completed = filteredHabits.filter((h) =>
-      h.completedDates.includes(dateStr)
+      (h.completedDates || []).includes(dateStr)
     );
 
     return { todayHabits: today, completedHabits: completed };
@@ -327,13 +329,11 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         // If created from goal details, navigate back
         if (goalId) {
           router.back();
-        } else {
-          // Refresh habits list
-          await refresh();
         }
+        // Note: No need to refresh - the createHabit hook already updates the state optimistically
       }
     },
-    [createHabit, goalId, router, refresh]
+    [createHabit, goalId, router]
   );
 
   const resetFormState = () => {
@@ -346,17 +346,21 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
 
   const handleToggleHabit = useCallback(
     async (habit: Habit) => {
-      const wasCompleted = habit.completedDates.includes(
-        selectedDate.toISOString().split("T")[0]
-      );
+      const dateStr = selectedDate.toISOString().split("T")[0];
+      const wasCompleted = (habit.completedDates || []).includes(dateStr);
 
-      const success = await toggleHabitCompletion(habit.id);
+      let success: boolean;
+      if (wasCompleted) {
+        success = await uncompleteHabitForDate(habit.id, dateStr);
+      } else {
+        success = await completeHabitForDate(habit.id, dateStr);
+      }
 
       if (success && !wasCompleted) {
         playCompletionSound();
       }
     },
-    [selectedDate, toggleHabitCompletion, playCompletionSound]
+    [selectedDate, completeHabitForDate, uncompleteHabitForDate, playCompletionSound]
   );
 
   const handleHabitMore = useCallback((habit: Habit) => {
@@ -581,7 +585,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
             title="Completed"
             count={completedHabits.length}
             habits={completedHabits}
-            initialExpanded={false}
+            initialExpanded
             onHabitToggle={handleToggleHabit}
             onHabitMore={handleHabitMore}
           />

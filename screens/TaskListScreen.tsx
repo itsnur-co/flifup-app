@@ -229,9 +229,21 @@ export const TaskListScreen: React.FC = () => {
     [displayTasks]
   );
 
+  // Filter upcoming tasks into pending and completed
+  const pendingUpcomingTasks = useMemo(
+    () => upcomingTasks.filter((t) => !isTaskCompleted(t)),
+    [upcomingTasks]
+  );
+
+  const completedUpcomingTasks = useMemo(
+    () => upcomingTasks.filter((t) => isTaskCompleted(t)),
+    [upcomingTasks]
+  );
+
+  // Combine completed tasks from display tasks and upcoming tasks
   const completedTasks = useMemo(
-    () => displayTasks.filter((t) => isTaskCompleted(t)),
-    [displayTasks]
+    () => [...displayTasks.filter((t) => isTaskCompleted(t)), ...completedUpcomingTasks],
+    [displayTasks, completedUpcomingTasks]
   );
 
   // Format selected date for section title
@@ -294,14 +306,8 @@ export const TaskListScreen: React.FC = () => {
         // If created from goal, navigate back to goal details
         if (params.goalId) {
           router.back();
-        } else {
-          // Refresh tasks for current selected date
-          if (isToday) {
-            fetchTodayTasks();
-          } else {
-            fetchTasksByDate(selectedDate);
-          }
         }
+        // Note: No need to refresh - the createTask hook already updates the state optimistically
       }
     },
     [
@@ -314,10 +320,6 @@ export const TaskListScreen: React.FC = () => {
       selectedGoalId,
       params.goalId,
       router,
-      isToday,
-      selectedDate,
-      fetchTodayTasks,
-      fetchTasksByDate,
     ]
   );
 
@@ -584,12 +586,12 @@ export const TaskListScreen: React.FC = () => {
         )}
 
         {/* Upcoming Section */}
-        {upcomingTasks.length > 0 && (
+        {pendingUpcomingTasks.length > 0 && (
           <TaskSection
             title="Upcoming"
-            count={upcomingTasks.length}
-            tasks={upcomingTasks}
-            initialExpanded={false}
+            count={pendingUpcomingTasks.length}
+            tasks={pendingUpcomingTasks}
+            initialExpanded
             onTaskPress={handleTaskPress}
             onTaskToggle={handleToggleTask}
             onTaskMore={handleTaskMore}
@@ -597,7 +599,7 @@ export const TaskListScreen: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {displayTasks.length === 0 && upcomingTasks.length === 0 && (
+        {displayTasks.length === 0 && pendingUpcomingTasks.length === 0 && completedTasks.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>
               {isToday ? "No tasks yet" : `No tasks for ${selectedDateTitle}`}
