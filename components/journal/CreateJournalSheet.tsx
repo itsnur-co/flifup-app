@@ -14,11 +14,11 @@ import {
   Reaction5Icon,
 } from "@/components/icons/JournalIcons";
 import {
-  AlignLeftIcon,
   DotIcon,
   PriceTagLineIcon,
 } from "@/components/icons/TaskIcons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { RichTextEditor } from "@/components/shared";
 import { Colors } from "@/constants/colors";
 import {
   DEFAULT_JOURNAL_FORM,
@@ -177,20 +177,17 @@ export const CreateJournalSheet: React.FC<CreateJournalSheetProps> = ({
             />
           </TouchableOpacity>
 
-          {/* Description Input */}
-          <TouchableOpacity style={styles.inputRow} activeOpacity={1}>
-            <AlignLeftIcon size={24} color={Colors.primary} />
-            <TextInput
-              style={styles.descriptionInput}
-              placeholder="Description"
-              placeholderTextColor="#6B7280"
+          {/* Description Input with Rich Text Editor */}
+          <View style={styles.editorContainer}>
+            <RichTextEditor
               value={formState.description}
               onChangeText={(text) =>
                 setFormState((prev) => ({ ...prev, description: text }))
               }
-              multiline
+              placeholder="Write your thoughts, feelings, or experiences..."
+              minHeight={180}
             />
-          </TouchableOpacity>
+          </View>
 
           {/* Category Selector */}
           <TouchableOpacity
@@ -324,12 +321,9 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     padding: 0,
   },
-  descriptionInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#FFFFFF",
-    padding: 0,
-    minHeight: 24,
+  editorContainer: {
+    paddingHorizontal: 20,
+    marginVertical: 16,
   },
   formLabel: {
     flex: 1,

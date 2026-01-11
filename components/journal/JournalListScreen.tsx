@@ -35,11 +35,13 @@ import { Journal, JournalCategory, JournalFormState } from "@/types/journal";
 interface JournalListScreenProps {
   onBack?: () => void;
   onNavigateToInsights?: () => void;
+  onJournalPress?: (journal: Journal) => void;
 }
 
 export const JournalListScreen: React.FC<JournalListScreenProps> = ({
   onBack,
   onNavigateToInsights,
+  onJournalPress,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -139,6 +141,13 @@ export const JournalListScreen: React.FC<JournalListScreenProps> = ({
       setShowOptionsSheet(false);
     }
   }, [selectedJournal, deleteJournal]);
+
+  const handleJournalPress = useCallback(
+    (journal: Journal) => {
+      onJournalPress?.(journal);
+    },
+    [onJournalPress]
+  );
 
   const handleJournalMore = useCallback((journal: Journal) => {
     setSelectedJournal(journal);
@@ -282,6 +291,7 @@ export const JournalListScreen: React.FC<JournalListScreenProps> = ({
             <JournalCard
               key={journal.id}
               journal={journal}
+              onPress={() => handleJournalPress(journal)}
               onMore={() => handleJournalMore(journal)}
             />
           ))

@@ -8,6 +8,7 @@ export { JournalCard } from "./JournalCard";
 export { JournalCategoryFilter } from "./JournalCategoryFilter";
 export { JournalInsightsScreen } from "./JournalInsightsScreen";
 export { JournalListScreen } from "./JournalListScreen";
+export { JournalReadScreen } from "./JournalReadScreen";
 export {
   JournalHeaderOptionsSheet,
   JournalOptionsSheet,
