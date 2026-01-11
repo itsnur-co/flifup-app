@@ -20,6 +20,7 @@ import {
 } from "@/components/icons/TaskIcons";
 import { Colors } from "@/constants/colors";
 import { Feather } from "@expo/vector-icons";
+import { ProgressBar } from "@/components/shared";
 
 interface GoalCardProps {
   goal: Goal;
@@ -69,26 +70,17 @@ export const GoalCard: React.FC<GoalCardProps> = ({
       </View>
 
       {/* Progress Section */}
-      <View style={styles.progressSection}>
-        <View style={styles.progressHeader}>
-          <Text style={styles.progressLabel}>Overall Progress</Text>
-          <Text style={styles.progressPercentage}>{progress}%</Text>
-        </View>
-
-        <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBarFill,
-              {
-                width: `${progress}%`,
-                backgroundColor: goal.isCompleted
-                  ? "#22C55E"
-                  : Colors.primary,
-              },
-            ]}
-          />
-        </View>
-      </View>
+      <ProgressBar
+        progress={progress}
+        label="Overall Progress"
+        height={6}
+        borderRadius={3}
+        useGradient={false}
+        progressColor={goal.isCompleted ? "#22C55E" : Colors.primary}
+        labelStyle={styles.progressLabel}
+        percentageStyle={styles.progressPercentage}
+        containerStyle={styles.progressSection}
+      />
 
       {/* Meta Info Row */}
       <View style={styles.metaRow}>
@@ -181,12 +173,6 @@ const styles = StyleSheet.create({
   progressSection: {
     marginBottom: 12,
   },
-  progressHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
   progressLabel: {
     fontSize: 13,
     fontWeight: "500",
@@ -196,16 +182,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: "#FFFFFF",
-  },
-  progressBarContainer: {
-    height: 6,
-    backgroundColor: "#3A3A3C",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    borderRadius: 3,
   },
   metaRow: {
     flexDirection: "row",

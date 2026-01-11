@@ -8,9 +8,11 @@ import { AddLevelSheet } from "@/components/goal/AddLevelSheet";
 import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
 import { AddCategorySheet } from "@/components/shared/AddCategorySheet";
 import { SelectDateSheet } from "@/components/shared/SelectDateSheet";
+import { HabitOptionsSheet } from "@/components/habit/HabitOptionsSheet";
 import { useGoals, useHabits, useTasks } from "@/hooks";
 import { GoalFormState } from "@/types/goal";
 import { TaskCategory } from "@/types/task";
+import { Habit } from "@/types/habit";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert } from "react-native";
@@ -30,7 +32,7 @@ export default function GoalDetailsRoute() {
   } = useGoals({ autoFetch: false });
 
   const { categories, fetchCategories, toggleTaskStatus } = useTasks();
-  const { toggleHabitCompletion } = useHabits();
+  const { completeHabitForDate, uncompleteHabitForDate, deleteHabit } = useHabits();
 
   // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -40,6 +42,10 @@ export default function GoalDetailsRoute() {
   const [showDateSheet, setShowDateSheet] = useState(false);
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [showLevelSheet, setShowLevelSheet] = useState(false);
+  const [showHabitOptionsModal, setShowHabitOptionsModal] = useState(false);
+
+  // Habit management state
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
 
   // Form states
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -110,13 +116,52 @@ export default function GoalDetailsRoute() {
   const handleToggleTask = async (taskId: string) => {
     // Toggle task or habit based on goal type
     if (selectedGoal?.type === "HABIT") {
-      await toggleHabitCompletion(taskId);
+      // Get today's date string
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      // Find the habit to check if it's completed today
+      const allHabits = [...(selectedGoal.habits || [])];
+      const habit = allHabits.find(h => h.id === taskId);
+
+      if (!habit) {
+        console.log('[DEBUG] Habit not found:', taskId);
+        return;
+      }
+
+      // Check if habit is completed today
+      const isCompletedToday = (habit.completedDates || []).includes(todayStr);
+
+      console.log('[DEBUG] Toggling habit:', {
+        habitId: taskId,
+        habitName: habit.name,
+        todayStr,
+        completedDates: habit.completedDates,
+        isCompletedToday,
+      });
+
+      let success: boolean;
+      if (isCompletedToday) {
+        success = await uncompleteHabitForDate(taskId, todayStr);
+        console.log('[DEBUG] Uncomplete result:', success);
+      } else {
+        success = await completeHabitForDate(taskId, todayStr);
+        console.log('[DEBUG] Complete result:', success);
+      }
+
+      if (success && goalId) {
+        console.log('[DEBUG] Refreshing goal...');
+        await fetchGoal(goalId);
+        console.log('[DEBUG] Goal refreshed');
+      } else if (!success) {
+        console.error('[DEBUG] Habit completion failed');
+        Alert.alert("Error", "Failed to update habit completion. Please try again.");
+      }
     } else {
       await toggleTaskStatus(taskId);
-    }
-    // Refresh goal to update progress
-    if (goalId) {
-      await fetchGoal(goalId);
+      // Refresh goal to update progress
+      if (goalId) {
+        await fetchGoal(goalId);
+      }
     }
   };
 
@@ -125,8 +170,49 @@ export default function GoalDetailsRoute() {
   };
 
   const handleTaskMore = (taskId: string) => {
-    // Could implement task options modal here
-    console.log("Task more:", taskId);
+    // Handle task or habit based on goal type
+    if (selectedGoal?.type === "HABIT") {
+      // Find habit and show options modal
+      const allHabits = [...(selectedGoal.habits || [])];
+      const habit = allHabits.find(h => h.id === taskId);
+      if (habit) {
+        setSelectedHabit(habit);
+        setShowHabitOptionsModal(true);
+      }
+    } else {
+      // Could implement task options modal here
+      console.log("Task more:", taskId);
+    }
+  };
+
+  const handleHabitEdit = (habit: Habit) => {
+    // Navigate to habit edit screen
+    router.push(`/habit?habitId=${habit.id}&mode=edit`);
+  };
+
+  const handleHabitProgress = (habit: Habit) => {
+    // Navigate to habit progress screen
+    router.push(`/habit-progress?habitId=${habit.id}`);
+  };
+
+  const handleHabitDelete = async (habit: Habit) => {
+    Alert.alert(
+      "Delete Habit",
+      `Are you sure you want to delete "${habit.name}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const success = await deleteHabit(habit.id);
+            if (success && goalId) {
+              await fetchGoal(goalId);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleUpdateGoal = async (formData: GoalFormState) => {
@@ -222,6 +308,16 @@ export default function GoalDetailsRoute() {
         onClose={() => setShowLevelSheet(false)}
         onSelectLevels={handleSelectLevels}
         selectedLevels={selectedLevels}
+      />
+
+      {/* Habit Options Sheet */}
+      <HabitOptionsSheet
+        visible={showHabitOptionsModal}
+        onClose={() => setShowHabitOptionsModal(false)}
+        habit={selectedHabit}
+        onEdit={handleHabitEdit}
+        onProgress={handleHabitProgress}
+        onDelete={handleHabitDelete}
       />
     </>
   );

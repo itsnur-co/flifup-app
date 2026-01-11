@@ -13,6 +13,7 @@ export { SelectDateSheet } from "./SelectDateSheet";
 export { SetReminderSheet } from "./SetReminderSheet";
 export { CompletionCheckbox } from "./CompletionCheckbox";
 export { GoalSelectionSheet } from "./GoalSelectionSheet";
+export { ProgressBar } from "./ProgressBar";
 
 // Re-export ReminderValue from types for convenience
 export type { ReminderValue } from "@/types/task";
