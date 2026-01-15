@@ -1,8 +1,3 @@
-/**
- * Task Card Component
- * Displays individual task in the task list
- * Works with API Task type
- */
 
 import React from "react";
 import {
@@ -16,12 +11,11 @@ import { Task, isTaskCompleted, collaboratorToPerson } from "@/types/task";
 import { AvatarGroup } from "@/components/ui/Avatar";
 import {
   CalendarLineIcon,
-  MoreHorizontalIcon,
+  DotIcon,
   PriceTagLineIcon,
   TimeLineIcon,
 } from "@/components/icons/TaskIcons";
 import { CompletionCheckbox } from "@/components/shared";
-import { Colors } from "@/constants/colors";
 import { formatTaskDate, formatTime, formatDuration } from "@/utils/dateTime";
 
 interface TaskCardProps {
@@ -44,25 +38,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   // Convert collaborators to display format
   const assignedPeople = task.collaborators?.map(collaboratorToPerson) || [];
 
-  // Get priority color
-  const getPriorityColor = (): string => {
-    switch (task.priority) {
-      case "HIGH":
-        return "#EF4444";
-      case "MEDIUM":
-        return "#F59E0B";
-      case "LOW":
-        return "#22C55E";
-      default:
-        return "#8E8E93";
-    }
-  };
 
   return (
     <View
       style={[styles.container, isCompleted && styles.containerCompleted, style]}
     >
-      {/* Top Row: Checkbox, Title, More Button */}
+
       <View style={styles.topRow}>
         <CompletionCheckbox
           isCompleted={isCompleted}
@@ -93,7 +74,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           style={styles.moreButton}
           activeOpacity={0.7}
         >
-          <MoreHorizontalIcon size={20} color="#8E8E93" />
+          <DotIcon size={20} color="#8E8E93" />
         </TouchableOpacity>
       </View>
 

@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { DotIcon } from "../icons";
 
 // Custom Chevron Left Icon (thinner stroke for elegance)
 const ChevronLeftIcon: React.FC<{ size?: number; color?: string }> = ({
@@ -152,7 +153,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
               onPress={onRightPress}
               activeOpacity={0.7}
             >
-              <MoreHorizontalIcon size={24} color="#FFFFFF" />
+               <DotIcon size={20} color="#FFFFFF" />
             </TouchableOpacity>
           ) : (
             <View style={styles.rightButton}>{rightIcon}</View>

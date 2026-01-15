@@ -16,7 +16,6 @@ import UpgradeSVG from '@/assets/svg/upgrade.svg';
 import SecuritySVG from '@/assets/svg/security.svg';
 import HelpSVG from '@/assets/svg/message-question.svg';
 import LogoutSVG from '@/assets/svg/logout.svg';
-import ThreeDotSVG from '@/assets/svg/three-dot.svg';
 
 interface IconProps {
   size?: number;
@@ -39,13 +38,7 @@ export const NotificationOutlineIcon: React.FC<IconProps> = ({
   <NotificationSVG width={size} height={size} color={color} stroke={color} />
 );
 
-// Three Dots (Horizontal)
-export const ThreeDotsIcon: React.FC<IconProps> = ({
-  size = 24,
-  color = '#FFFFFF'
-}) => (
-  <ThreeDotSVG width={size} height={size} color={color} fill={color} />
-);
+
 
 // Lock / Change Password
 export const LockIcon: React.FC<IconProps> = ({

@@ -5,7 +5,7 @@
  */
 
 import { CreateButton } from "@/components/buttons/CreateButton";
-import { ThreeDotIcon } from "@/components/icons/TaskIcons";
+import { DotIcon } from "@/components/icons/TaskIcons";
 import { TaskCard } from "@/components/task/TaskCard";
 import { HabitCard } from "@/components/habit/HabitCard";
 import { Colors } from "@/constants/colors";
@@ -91,7 +91,7 @@ export function GoalDetailsScreen({
             style={styles.iconButton}
             activeOpacity={0.7}
           >
-            <ThreeDotIcon size={20} color="#FFFFFF" />
+            <DotIcon size={20} color="#FFFFFF" />
           </TouchableOpacity>
         }
       />

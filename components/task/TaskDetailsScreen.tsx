@@ -10,10 +10,10 @@ import {
   CalendarLineIcon,
   ChevronDownIcon,
   FlagIcon,
-  ThreeDotIcon,
   UserAddLineIcon,
   PriceTagLineIcon,
   TimeLineIcon,
+  DotIcon,
 } from "@/components/icons/TaskIcons";
 import { ScreenHeader } from "@/components/navigation";
 import { AvatarGroup } from "@/components/ui/Avatar";
@@ -126,7 +126,7 @@ const SubTaskSection: React.FC<SubTaskSectionProps> = ({
               onPress={() => onOptions(subTask)}
               activeOpacity={0.7}
             >
-              <ThreeDotIcon size={20} color="#6B7280" />
+              <DotIcon size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
         ))}

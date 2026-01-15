@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
 import { ChartIcon } from "@/components/icons/HabitIcons";
-import { PlusIcon } from "@/components/icons/TaskIcons";
+import { BarIcon, EditIcon, PlusIcon, TrashIcon } from "@/components/icons/TaskIcons";
 import { ScreenHeader } from "@/components/navigation/screen-header";
 import {
   AddCustomHoursSheet,
@@ -36,7 +36,6 @@ import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
 import { AddLevelSheet } from "@/components/goal/AddLevelSheet";
 import { CategoryFilter } from "./CategoryFilter";
 import { CreateHabitSheet } from "./CreateHabitSheet";
-import { HabitEditModal } from "./HabitEditModal";
 import { HabitSection } from "./HabitSection";
 import { RepeatSheet } from "./RepeatSheet";
 import { Goal, GoalFormState } from "@/types/goal";
@@ -390,6 +389,33 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     onNavigateToProgress?.(selectedHabit);
   }, [selectedHabit, onNavigateToProgress]);
 
+  // Habit options modal
+  const habitModalOptions: ModalOption[] = useMemo(() => {
+    if (!selectedHabit) return [];
+    return [
+      {
+        id: "edit",
+        label: "Edit Habit",
+        icon: <EditIcon size={20} color="#FFFFFF" />,
+        onPress: handleEditHabit,
+      },
+      {
+        id: "progress",
+        label: "Progress",
+        icon: <BarIcon size={20} color="#FFFFFF" />,
+        onPress: handleHabitProgress,
+      },
+      {
+        id: "delete",
+        label: "Delete Habit",
+        icon: <TrashIcon size={20} color="#FFFFFF" />,
+        onPress: handleDeleteHabit,
+        isDanger: true,
+      },
+
+    ];
+  }, [selectedHabit, handleEditHabit, handleHabitProgress, handleDeleteHabit]);
+
   const handleOverallProgress = useCallback(() => {
     onNavigateToProgress?.();
   }, [onNavigateToProgress]);
@@ -728,16 +754,15 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         categories={categories}
       />
 
-      {/* Habit Edit Modal */}
-      <HabitEditModal
+      {/* Habit Options Modal */}
+      <OptionsModal
         visible={showOptionsSheet}
         onClose={() => {
           setShowOptionsSheet(false);
           setSelectedHabit(null);
         }}
-        onEdit={handleEditHabit}
-        onProgress={handleHabitProgress}
-        onDelete={handleDeleteHabit}
+        options={habitModalOptions}
+        cancelLabel="Cancel"
       />
 
       {/* Set Reminder Sheet */}

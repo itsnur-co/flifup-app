@@ -29,10 +29,11 @@ import RoadLineSVG from "@/assets/svg/road-line.svg";
 import SofaLineSVG from "@/assets/svg/sofa-line.svg";
 import StopSVG from "@/assets/svg/stop.svg";
 import SunSVG from "@/assets/svg/sun.svg";
-import ThreeDotSVG from "@/assets/svg/three-dot.svg";
 import TimeLineSVG from "@/assets/svg/time-line.svg";
 import TimerSVG from "@/assets/svg/timer.svg";
 import UserAddLineSVG from "@/assets/svg/user-add-line (1).svg";
+import BarSVG from "@/assets/svg/bar.svg";
+
 
 interface IconProps {
   size?: number;
@@ -57,6 +58,8 @@ export const CircleIcon: React.FC<IconProps> = ({
     />
   </Svg>
 );
+
+
 
 // Circle checkbox (checked) - rounded square filled
 export const CircleCheckIcon: React.FC<IconProps> = ({
@@ -379,36 +382,7 @@ export const TrashIcon: React.FC<IconProps> = ({
   size = 24,
   color = "#FFFFFF",
 }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 6H5H21"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M10 11V17"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M14 11V17"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+  <DeleteBinSVG width={size} height={size} fill={color} />
 );
 
 // More horizontal (three dots) icon
@@ -809,7 +783,7 @@ export const FocusLineIcon: React.FC<IconProps> = ({
 export const ThreeDotIcon: React.FC<IconProps> = ({
   size = 24,
   color = "#FFFFFF",
-}) => <ThreeDotSVG width={size} height={size} fill={color} />;
+}) => <DotSVG width={size} height={size} fill={color} />;
 
 // Flag/Priority icon (from SVG file)
 export const FlagIcon: React.FC<IconProps> = ({
@@ -834,6 +808,12 @@ export const UserAddLineIcon: React.FC<IconProps> = ({
   size = 24,
   color = "#9039FF",
 }) => <UserAddLineSVG width={size} height={size} fill={color} />;
+
+// Bar/Report icon (from SVG file)
+export const BarIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#9039FF",
+}) => <BarSVG width={size} height={size} fill={color} />;
 
 // Dot / Circle icon (from SVG file)
 export const DotIcon: React.FC<IconProps> = ({
@@ -912,7 +892,6 @@ export default {
   SofaLineIcon,
   NextIcon,
   FocusLineIcon,
-  ThreeDotIcon,
   FlagIcon,
   LaterWeekIcon,
   NotificationLineIcon,
@@ -920,4 +899,5 @@ export default {
   DotIcon,
   RoadLineIcon,
   RepeatLineIcon,
+  BarIcon,
 };

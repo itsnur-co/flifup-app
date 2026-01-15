@@ -5,13 +5,14 @@
 
 import { DurationIcon } from "@/components/icons/HabitIcons";
 import {
-  MoreHorizontalIcon,
+  DotIcon,
   TagIcon,
 } from "@/components/icons/TaskIcons";
 import { CompletionCheckbox } from "@/components/shared";
 import { Habit } from "@/types/habit";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 
 interface HabitCardProps {
   habit: Habit;
@@ -58,7 +59,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
           onPress={onMore}
           activeOpacity={0.7}
         >
-          <MoreHorizontalIcon size={20} color="#8E8E93" />
+          <DotIcon size={16} color="#8E8E93"  />
         </TouchableOpacity>
       </View>
 

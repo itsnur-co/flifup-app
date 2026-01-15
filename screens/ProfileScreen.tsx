@@ -31,12 +31,12 @@ import {
   NotificationOutlineIcon,
   ReferIcon,
   ShieldIcon,
-  ThreeDotsIcon,
+
   UpgradeIcon,
 } from "@/components/icons/ProfileIcons";
 
 // Constants
-import { ChevronRightIcon } from "@/components/icons";
+import { ChevronRightIcon, DotIcon } from "@/components/icons";
 import {
   BottomTabBar,
   ScreenHeader,
@@ -245,7 +245,7 @@ export default function ProfileScreen() {
               <NotificationFilledIcon size={20} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
-              <ThreeDotsIcon size={20} color="#FFFFFF" />
+              <DotIcon size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         }
