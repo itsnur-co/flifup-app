@@ -18,25 +18,15 @@ import Animated, {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-// Keep the splash screen visible while we fetch resources
+
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* Already hidden */
 });
 
-/**
- * Animated Splash Screen
- * Main splash screen with road lines animation, logo, and circle expansion
- *
- * FIXED:
- * - Proper auth state checking before navigation
- * - Road lines animation properly shown
- * - Prevents navigation race conditions
- * - Handles loading states correctly
- */
 export default function SplashScreenComponent() {
   const router = useRouter();
   const { isLoading, isAuthenticated } = useAuth();
-  const [animationComplete, setAnimationComplete] = useState(false);
+  const [canNavigate, setCanNavigate] = useState(false);
   const navigationRef = useRef(false);
 
   // Animation values
@@ -46,22 +36,23 @@ export default function SplashScreenComponent() {
   const circleOpacity = useSharedValue(1);
   const roadLinesOpacity = useSharedValue(1);
 
-  // Handle navigation after auth check and animation
+  // Handle navigation after auth check and 2-second animation
   useEffect(() => {
-    // Don't navigate if still loading or already navigated
+    // Don't navigate if still loading auth state
     if (isLoading) {
       console.log("[Splash] Still loading auth state...");
       return;
     }
 
+    // Don't navigate if we've already navigated
     if (navigationRef.current) {
       console.log("[Splash] Already navigated, skipping...");
       return;
     }
 
-    // Wait for animation to complete
-    if (!animationComplete) {
-      console.log("[Splash] Waiting for animation to complete");
+    // Wait for minimum 2 seconds (animation complete)
+    if (!canNavigate) {
+      console.log("[Splash] Waiting for 2-second animation to complete");
       return;
     }
 
@@ -69,28 +60,36 @@ export default function SplashScreenComponent() {
     navigationRef.current = true;
 
     const destination = isAuthenticated ? "/(tabs)" : "/auth/start";
-    console.log("[Splash] Animation complete, navigating to:", destination);
+    console.log("[Splash] Navigating to:", destination, "(authenticated:", isAuthenticated, ")");
 
     // Hide the native splash screen
     SplashScreen.hideAsync().catch(() => {});
 
-    // Navigate immediately
+    // Navigate to appropriate screen
     if (isAuthenticated) {
       router.replace("/(tabs)");
     } else {
       router.replace("/auth/start");
     }
-  }, [isLoading, animationComplete, isAuthenticated, router]);
+  }, [isLoading, canNavigate, isAuthenticated, router]);
 
-  // Start animations on mount
+  // Start animations on mount and set timer for 2 seconds
   useEffect(() => {
-    console.log("[Splash] Starting animation sequence");
+    console.log("[Splash] Starting animation sequence and 2-second timer");
     startAnimationSequence();
+
+    // Set minimum 2-second display time
+    const timer = setTimeout(() => {
+      console.log("[Splash] 2-second timer complete, enabling navigation");
+      setCanNavigate(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleAnimationComplete = () => {
     console.log("[Splash] Animation complete callback triggered");
-    setAnimationComplete(true);
+    // Animation is complete but we still respect the 2-second minimum
   };
 
   const startAnimationSequence = () => {

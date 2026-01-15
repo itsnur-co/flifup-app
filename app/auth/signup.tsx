@@ -7,6 +7,7 @@ import {
 } from "@/components/inputs";
 import { Logo } from "@/components/logo";
 import { Colors } from "@/constants/colors";
+import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/api/auth.service";
 import {
   calculatePasswordStrength,
@@ -36,6 +37,7 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
  */
 export default function SignUpScreen() {
   const router = useRouter();
+  const { login } = useAuth();
 
   // Form state
   const [fullName, setFullName] = useState("");

@@ -54,20 +54,29 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === "auth";
     const inSplash = segments[0] === "splash";
     const inTabs = segments[0] === "(tabs)";
+    const inIndex = segments.length === 0 || segments[0] === undefined;
+
+    // Check if in protected routes (tasks, habits, goals, journal, profile, etc.)
+    const protectedRoutes = ["tasks", "habit", "habit-progress", "goals", "goal-details",
+                            "journal", "journal-insights", "journal-read", "focus",
+                            "profile", "edit-profile", "task-details", "task-progress"];
+    const inProtectedRoute = protectedRoutes.includes(segments[0] || "");
 
     // Always let splash screen handle initial navigation
-    if (inSplash) {
+    if (inSplash || inIndex) {
       return;
     }
 
     // If authenticated and trying to access auth screens, redirect to tabs
     if (isAuthenticated && inAuthGroup) {
+      console.log("[RootLayout] Authenticated user accessing auth screen, redirecting to tabs");
       router.replace("/(tabs)");
       return;
     }
 
     // If not authenticated and trying to access protected routes, redirect to start
-    if (!isAuthenticated && inTabs) {
+    if (!isAuthenticated && (inTabs || inProtectedRoute)) {
+      console.log("[RootLayout] Unauthenticated user accessing protected route, redirecting to start");
       router.replace("/auth/start");
       return;
     }

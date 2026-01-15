@@ -19,6 +19,7 @@ import {
 import { authService, User } from "@/services/api/auth.service";
 import { profileService } from "@/services/api/profile.service";
 import { getRefreshToken, getUserData } from "@/utils/storage";
+import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
 // Icons
 import {
@@ -54,6 +55,7 @@ interface MenuItem {
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { logout: authLogout } = useAuth();
 
   const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState("English");
@@ -117,28 +119,17 @@ export default function ProfileScreen() {
         onPress: async () => {
           setIsLoggingOut(true);
           try {
-            const refreshToken = await getRefreshToken();
+            console.log("[ProfileScreen] Starting logout process...");
 
-            if (!refreshToken) {
-              // No refresh token, just clear storage and navigate
-              await authService.logout("");
-              router.replace("/auth/login");
-              return;
-            }
+            // Use AuthContext logout which handles everything
+            await authLogout();
 
-            // Call logout API
-            const response = await authService.logout(refreshToken);
+            console.log("[ProfileScreen] Logout complete, navigating to start screen");
 
-            if (response.error) {
-              Alert.alert("Error", response.error);
-              setIsLoggingOut(false);
-              return;
-            }
-
-            // Navigate to login screen
-            router.replace("/auth/login");
+            // Navigate to start screen
+            router.replace("/auth/start");
           } catch (error) {
-            console.error("Logout error:", error);
+            console.error("[ProfileScreen] Logout error:", error);
             Alert.alert("Error", "Failed to logout. Please try again.");
             setIsLoggingOut(false);
           }

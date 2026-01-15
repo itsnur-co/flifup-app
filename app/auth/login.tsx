@@ -80,21 +80,30 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
+      console.log("[LoginScreen] Starting login...");
       const response = await authService.login({
         email: emailOrPhone.trim(),
         password,
       });
 
       if (response.error) {
+        console.log("[LoginScreen] Login failed:", response.error);
         setErrors({ emailOrPhone: response.error });
         Alert.alert("Login Failed", response.error);
         return;
       }
 
-      // Success - navigate to tabs
-      router.replace("/(tabs)");
+      if (response.data) {
+        console.log("[LoginScreen] Login successful, updating auth context...");
+        // Update AuthContext with user data
+        login(response.data.user);
+
+        console.log("[LoginScreen] Auth context updated, navigating to tabs...");
+        // Navigate to tabs
+        router.replace("/(tabs)");
+      }
     } catch (error) {
-      console.error("Sign in error:", error);
+      console.error("[LoginScreen] Sign in error:", error);
       setErrors({ emailOrPhone: "Invalid credentials. Please try again." });
       Alert.alert("Error", "An unexpected error occurred. Please try again.");
     } finally {

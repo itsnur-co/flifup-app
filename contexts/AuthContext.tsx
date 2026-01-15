@@ -51,25 +51,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * Set user after successful login/signup
    */
   const login = (userData: User) => {
+    console.log('[AuthContext] Login called with user:', userData.email || userData.fullName);
     setUser(userData);
+    console.log('[AuthContext] User state updated, isAuthenticated will be true');
   };
 
   /**
    * Logout user and clear storage
    */
   const logout = async () => {
+    console.log('[AuthContext] Starting logout process...');
     try {
       const refreshToken = await getRefreshToken();
       if (refreshToken) {
+        console.log('[AuthContext] Calling logout API...');
         await authService.logout(refreshToken);
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[AuthContext] Logout API error:', error);
     } finally {
       // Always clear local state and storage
+      console.log('[AuthContext] Clearing user state and storage...');
       setUser(null);
       await removeTokens();
       await removeUserData();
+      console.log('[AuthContext] Logout complete - user state cleared');
     }
   };
 
