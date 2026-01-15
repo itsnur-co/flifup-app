@@ -1,15 +1,27 @@
 /**
- * Tab Layout with Custom Bottom Navigation
+ * Tab Layout with Custom Bottom Navigation & Create Modal
+ * Integrates disclosure modal for quick feature access
  */
 
 import BottomTabBar, { TabName } from "@/components/navigation/BottomTabBar";
+import { CreateModal } from "@/components/shared/CreateModal";
+import {
+  TaskIcon,
+  GoalIcon,
+  NoteIcon,
+  ProjectIcon,
+  MilestoneIcon,
+  ReminderIcon,
+} from "@/components/shared";
+import type { CreateOption } from "@/components/shared";
 import { Slot, usePathname, useRouter } from "expo-router";
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function TabLayout() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
   // Determine active tab from pathname
   const getActiveTab = (): TabName => {
@@ -18,6 +30,79 @@ export default function TabLayout() {
     if (pathname.includes("/profile")) return "profile";
     return "home";
   };
+
+  // Create options with navigation handlers
+  const createOptions: CreateOption[] = useMemo(
+    () => [
+      {
+        id: "task",
+        label: "Task",
+        icon: <TaskIcon size={32} />,
+        onPress: () => {
+          router.push({
+            pathname: "/tasks",
+            params: { createNew: "true" },
+          });
+        },
+      },
+      {
+        id: "goal",
+        label: "Goal",
+        icon: <GoalIcon size={32} />,
+        onPress: () => {
+          router.push({
+            pathname: "/goals",
+            params: { createNew: "true" },
+          });
+        },
+      },
+      {
+        id: "note",
+        label: "Note",
+        icon: <NoteIcon size={32} />,
+        onPress: () => {
+          router.push({
+            pathname: "/journal",
+            params: { createNew: "true" },
+          });
+        },
+      },
+      {
+        id: "project",
+        label: "Project",
+        icon: <ProjectIcon size={32} />,
+        onPress: () => {
+          router.push({
+            pathname: "/goals",
+            params: { createNew: "project" },
+          });
+        },
+      },
+      {
+        id: "milestone",
+        label: "Milestone",
+        icon: <MilestoneIcon size={32} />,
+        onPress: () => {
+          router.push({
+            pathname: "/goals",
+            params: { createNew: "milestone" },
+          });
+        },
+      },
+      {
+        id: "habit",
+        label: "Reminder",
+        icon: <ReminderIcon size={32} />,
+        onPress: () => {
+          router.push({
+            pathname: "/habit",
+            params: { createNew: "true" },
+          });
+        },
+      },
+    ],
+    [router]
+  );
 
   const handleTabPress = (tab: TabName) => {
     switch (tab) {
@@ -37,19 +122,11 @@ export default function TabLayout() {
   };
 
   const handleAddPress = () => {
-    // Open create modal or navigate to create screen
-    // Based on current tab, open relevant create sheet
-    const activeTab = getActiveTab();
-    if (activeTab === "tasks") {
-      // Open create task sheet
-      console.log("Create Task");
-    } else if (activeTab === "habits") {
-      // Open create habit sheet
-      console.log("Create Habit");
-    } else {
-      // Default action
-      console.log("Add new item");
-    }
+    setIsCreateModalVisible(true);
+  };
+
+  const handleCreateModalClose = () => {
+    setIsCreateModalVisible(false);
   };
 
   return (
@@ -59,6 +136,13 @@ export default function TabLayout() {
         activeTab={getActiveTab()}
         onTabPress={handleTabPress}
         onAddPress={handleAddPress}
+      />
+
+      {/* Create Modal */}
+      <CreateModal
+        visible={isCreateModalVisible}
+        onClose={handleCreateModalClose}
+        options={createOptions}
       />
     </View>
   );

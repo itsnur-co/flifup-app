@@ -15,6 +15,16 @@ export { CompletionCheckbox } from "./CompletionCheckbox";
 export { GoalSelectionSheet } from "./GoalSelectionSheet";
 export { ProgressBar } from "./ProgressBar";
 export { RichTextEditor } from "./RichTextEditor";
+export { CreateModal } from "./CreateModal";
+export type { CreateOption } from "./CreateModal";
+export {
+  TaskIcon,
+  GoalIcon,
+  NoteIcon,
+  ProjectIcon,
+  MilestoneIcon,
+  ReminderIcon,
+} from "./CreateModalIcons";
 
 // Re-export ReminderValue from types for convenience
 export type { ReminderValue } from "@/types/task";

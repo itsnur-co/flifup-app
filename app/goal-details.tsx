@@ -9,7 +9,7 @@ import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
 import { AddCategorySheet } from "@/components/shared/AddCategorySheet";
 import { SelectDateSheet } from "@/components/shared/SelectDateSheet";
 import { HabitOptionsSheet } from "@/components/habit/HabitOptionsSheet";
-import { useGoals, useHabits, useTasks } from "@/hooks";
+import { useGoals, useHabits, useTasks, useSound } from "@/hooks";
 import { GoalFormState } from "@/types/goal";
 import { TaskCategory } from "@/types/task";
 import { Habit } from "@/types/habit";
@@ -33,6 +33,7 @@ export default function GoalDetailsRoute() {
 
   const { categories, fetchCategories, toggleTaskStatus } = useTasks();
   const { completeHabitForDate, uncompleteHabitForDate, deleteHabit } = useHabits();
+  const { playCompletionSound } = useSound();
 
   // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -109,19 +110,25 @@ export default function GoalDetailsRoute() {
   const handleRefresh = async () => {
     if (!goalId) return;
     setIsRefreshing(true);
-    await fetchGoal(goalId);
-    setIsRefreshing(false);
+    try {
+      await fetchGoal(goalId);
+    } catch (err) {
+      console.error('handleRefresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleToggleTask = async (taskId: string) => {
+    if (!selectedGoal) return;
+
     // Toggle task or habit based on goal type
-    if (selectedGoal?.type === "HABIT") {
+    if (selectedGoal.type === "HABIT") {
       // Get today's date string
       const todayStr = new Date().toISOString().split('T')[0];
 
       // Find the habit to check if it's completed today
-      const allHabits = [...(selectedGoal.habits || [])];
-      const habit = allHabits.find(h => h.id === taskId);
+      const habit = selectedGoal.habits?.find(h => h.id === taskId);
 
       if (!habit) {
         console.log('[DEBUG] Habit not found:', taskId);
@@ -131,36 +138,35 @@ export default function GoalDetailsRoute() {
       // Check if habit is completed today
       const isCompletedToday = (habit.completedDates || []).includes(todayStr);
 
-      console.log('[DEBUG] Toggling habit:', {
-        habitId: taskId,
-        habitName: habit.name,
-        todayStr,
-        completedDates: habit.completedDates,
-        isCompletedToday,
-      });
-
-      let success: boolean;
-      if (isCompletedToday) {
-        success = await uncompleteHabitForDate(taskId, todayStr);
-        console.log('[DEBUG] Uncomplete result:', success);
-      } else {
-        success = await completeHabitForDate(taskId, todayStr);
-        console.log('[DEBUG] Complete result:', success);
-      }
-
-      if (success && goalId) {
-        console.log('[DEBUG] Refreshing goal...');
-        await fetchGoal(goalId);
-        console.log('[DEBUG] Goal refreshed');
-      } else if (!success) {
-        console.error('[DEBUG] Habit completion failed');
-        Alert.alert("Error", "Failed to update habit completion. Please try again.");
+      try {
+        // API call (no full screen reload - habit hooks handle state updates)
+        if (isCompletedToday) {
+          await uncompleteHabitForDate(taskId, todayStr);
+        } else {
+          await completeHabitForDate(taskId, todayStr);
+          // Play sound when habit is completed
+          playCompletionSound();
+        }
+      } catch (err) {
+        console.error('[DEBUG] Habit toggle error:', err);
+        Alert.alert("Error", "Failed to update habit. Please try again.");
       }
     } else {
-      await toggleTaskStatus(taskId);
-      // Refresh goal to update progress
-      if (goalId) {
-        await fetchGoal(goalId);
+      // TASK type
+      const task = selectedGoal.tasks?.find(t => t.id === taskId);
+      const isCompleted = task?.status === "COMPLETED";
+
+      try {
+        // API call (no full screen reload - task hooks handle state updates)
+        await toggleTaskStatus(taskId);
+
+        // Play sound when task is marked as complete
+        if (isCompleted === false) {
+          playCompletionSound();
+        }
+      } catch (err) {
+        console.error('[DEBUG] Task toggle error:', err);
+        Alert.alert("Error", "Failed to update task. Please try again.");
       }
     }
   };
@@ -205,9 +211,12 @@ export default function GoalDetailsRoute() {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            const success = await deleteHabit(habit.id);
-            if (success && goalId) {
-              await fetchGoal(goalId);
+            try {
+              await deleteHabit(habit.id);
+              // Hook will handle state update - no full refresh needed
+            } catch (err) {
+              console.error('handleHabitDelete error:', err);
+              Alert.alert("Error", "Failed to delete habit. Please try again.");
             }
           },
         },
@@ -218,14 +227,14 @@ export default function GoalDetailsRoute() {
   const handleUpdateGoal = async (formData: GoalFormState) => {
     if (!selectedGoal) return;
 
-    const result = await updateGoal(selectedGoal.id, formData);
-    if (result) {
+    try {
+      await updateGoal(selectedGoal.id, formData);
+      // updateGoal hook handles state - no full refresh needed
       setShowEditSheet(false);
       resetFormState();
-      // Refresh goal
-      if (goalId) {
-        await fetchGoal(goalId);
-      }
+    } catch (err) {
+      console.error('handleUpdateGoal error:', err);
+      Alert.alert("Error", "Failed to update goal. Please try again.");
     }
   };
 
