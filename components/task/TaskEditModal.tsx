@@ -8,6 +8,7 @@ import {
   DeleteBinIcon,
   EditIcon,
   FocusLineIcon,
+  FocusWhiteIcon,
 } from "@/components/icons/TaskIcons";
 import { ModalOption, OptionsModal } from "@/components/shared";
 import { Colors } from "@/constants/colors";
@@ -36,7 +37,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
       opts.push({
         id: "setFocus",
         label: "Set Focus",
-        icon: <FocusLineIcon size={22} color={Colors.primary} />,
+        icon: <FocusWhiteIcon size={22} />,
         onPress: onSetFocus,
       });
     }
@@ -45,7 +46,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
     opts.push({
       id: "edit",
       label: "Edit Task",
-      icon: <EditIcon size={22} color="#FFFFFF" />,
+      icon: <EditIcon size={22}  />,
       onPress: onEdit,
     });
 

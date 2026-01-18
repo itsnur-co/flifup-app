@@ -14,6 +14,7 @@ import {
   PriceTagLineIcon,
   TimeLineIcon,
   DotIcon,
+  ClockIcon,
 } from "@/components/icons/TaskIcons";
 import { ScreenHeader } from "@/components/navigation";
 import { AvatarGroup } from "@/components/ui/Avatar";
@@ -228,12 +229,6 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
       >
         {/* Task Info Section */}
         <View style={styles.infoSection}>
-          {/* Description */}
-          <InfoRow icon={<AlignLeftIcon size={22} color={Colors.primary} />}>
-            <Text style={styles.infoText}>
-              {task.description || "No description provided."}
-            </Text>
-          </InfoRow>
 
           {/* Date */}
           <InfoRow icon={<CalendarLineIcon size={22} color={Colors.primary} />}>
@@ -243,7 +238,7 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
           </InfoRow>
 
           {/* Time */}
-          <InfoRow icon={<TimeLineIcon size={22} color={Colors.primary} />}>
+          <InfoRow icon={<ClockIcon size={22} color={Colors.primary} />}>
             <Text style={styles.infoValue}>
               {formatTime(task.dueTime) || "No time set"}
             </Text>

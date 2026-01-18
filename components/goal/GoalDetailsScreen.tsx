@@ -1,8 +1,4 @@
-/**
- * Goal Details Screen
- * Displays goal information with tasks grouped by completion
- * Allows creating new levels (tasks) linked to the goal
- */
+
 
 import { CreateButton } from "@/components/buttons/CreateButton";
 import { DotIcon } from "@/components/icons/TaskIcons";
@@ -114,7 +110,7 @@ export function GoalDetailsScreen({
       >
         {/* Goal Info Card */}
         <View style={styles.goalCard}>
-          <Text style={styles.goalTitle}>{goal.title}</Text>
+
 
           {goal.description && (
             <Text style={styles.goalDescription}>{goal.description}</Text>
@@ -337,12 +333,9 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   goalCard: {
-    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "#3A3A3C",
   },
   goalTitle: {
     fontSize: 20,
