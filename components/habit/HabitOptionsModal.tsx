@@ -1,7 +1,3 @@
-/**
- * Habit Options Modal Component
- * Action sheet for habit operations (Edit, Duplicate, Delete)
- */
 
 import DuplicateSVG from "@/assets/svg/duplicate-white.svg";
 import {

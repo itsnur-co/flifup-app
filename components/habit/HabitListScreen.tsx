@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateButton } from "@/components/buttons";
 import { WeekCalendar } from "@/components/calendar";
 import { ChartIcon } from "@/components/icons/HabitIcons";
-import { BarIcon, EditIcon, PlusIcon, TrashIcon } from "@/components/icons/TaskIcons";
+import { BarIcon, DeleteBinIcon, EditIcon, PlusIcon, TrashIcon } from "@/components/icons/TaskIcons";
 import { ScreenHeader } from "@/components/navigation/screen-header";
 import {
   AddCustomHoursSheet,
@@ -32,6 +32,7 @@ import {
   SetReminderSheet,
 } from "@/components/shared";
 import { AddCategorySheet } from "./AddCategorySheet";
+import { DeleteAllHabitsConfirmModal } from "./DeleteAllHabitsConfirmModal";
 import { CreateGoalSheet } from "@/components/goal/CreateGoalSheet";
 import { AddLevelSheet } from "@/components/goal/AddLevelSheet";
 import { CategoryFilter } from "./CategoryFilter";
@@ -112,15 +113,15 @@ const mapApiHabitToLocal = (apiHabit: HabitApi): Habit => {
   };
 };
 
-// Helper to convert local form to API request
+
 const mapFormToApiRequest = (form: HabitFormState): CreateHabitRequest => {
-  // Convert repeat config to API format
+
   const repeatType = (form.repeat?.type?.toUpperCase() || "DAILY") as "DAILY" | "MONTHLY" | "INTERVAL";
   let repeatDays: number[] = [];
   let repeatInterval: number | undefined;
 
   if (form.repeat?.type === "daily") {
-    // Convert day names to day numbers (0-6)
+
     const dayMap: Record<DayOfWeek, number> = {
       'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
       'thursday': 4, 'friday': 5, 'saturday': 6
@@ -174,6 +175,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     error,
     createHabit,
     deleteHabit,
+    deleteAllHabits,
     toggleHabitCompletion,
     completeHabitForDate,
     uncompleteHabitForDate,
@@ -204,7 +206,6 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     }
   }, [goalId]);
 
-  // Map API habits to local format
   const habits = useMemo(() => {
     return apiTodayHabits.map(mapApiHabitToLocal);
   }, [apiTodayHabits]);
@@ -243,6 +244,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const [showReminderSheet, setShowReminderSheet] = useState(false);
   const [showCustomMinutesSheet, setShowCustomMinutesSheet] = useState(false);
   const [showCustomHoursSheet, setShowCustomHoursSheet] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   // Form states
   const [formRepeat, setFormRepeat] = useState<RepeatConfig | undefined>();
@@ -425,6 +427,18 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
     setShowCreateSheet(true);
   }, []);
 
+  const handleDeleteAllHabits = useCallback(() => {
+    setShowHeaderOptions(false);
+    setShowDeleteAllConfirm(true);
+  }, []);
+
+  const handleConfirmDeleteAll = useCallback(async () => {
+    const result = await deleteAllHabits();
+    if (result.success) {
+      console.log(`Deleted ${result.count} habits`);
+    }
+  }, [deleteAllHabits]);
+
   // Header options configuration
   const headerOptions: ModalOption[] = useMemo(
     () => [
@@ -437,11 +451,18 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       {
         id: "overall-progress",
         label: "Overall Progress",
-        icon: <ChartIcon size={22} color="#FFFFFF" />,
+        icon: <BarIcon size={22} color="#FFFFFF" />,
         onPress: handleOverallProgress,
       },
+      {
+        id: "delete-all",
+        label: "Delete All Habits",
+        icon: <DeleteBinIcon size={22} color="#EF4444" />,
+        onPress: handleDeleteAllHabits,
+        isDanger: true,
+      },
     ],
-    [openCreateSheet, handleOverallProgress]
+    [openCreateSheet, handleOverallProgress, handleDeleteAllHabits]
   );
 
   const handleSetReminder = useCallback((reminder: ReminderValue) => {
@@ -789,6 +810,14 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         visible={showCustomHoursSheet}
         onClose={() => setShowCustomHoursSheet(false)}
         onAddHours={handleAddCustomHours}
+      />
+
+      {/* Delete All Habits Confirmation Modal */}
+      <DeleteAllHabitsConfirmModal
+        visible={showDeleteAllConfirm}
+        onClose={() => setShowDeleteAllConfirm(false)}
+        onConfirm={handleConfirmDeleteAll}
+        habitCount={habits.length}
       />
 
       {/* Operation Loading Overlay */}

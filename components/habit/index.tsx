@@ -6,6 +6,7 @@ export { AddCategorySheet } from "./AddCategorySheet";
 export { AddGoalSheet } from "./AddGoalSheet";
 export { CategoryFilter } from "./CategoryFilter";
 export { CreateHabitSheet } from "./CreateHabitSheet";
+export { DeleteAllHabitsConfirmModal } from "./DeleteAllHabitsConfirmModal";
 export { HabitCard } from "./HabitCard";
 export { HabitEditModal } from "./HabitEditModal";
 export { HabitListScreen } from "./HabitListScreen";

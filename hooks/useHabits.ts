@@ -62,6 +62,7 @@ interface UseHabitsReturn {
     data: UpdateHabitRequest
   ) => Promise<HabitApi | null>;
   deleteHabit: (id: string) => Promise<boolean>;
+  deleteAllHabits: () => Promise<{ success: boolean; count: number }>;
   setSelectedHabit: (habit: HabitApi | null) => void;
 
   // Completion actions
@@ -363,6 +364,42 @@ export const useHabits = (options: UseHabitsOptions = {}): UseHabitsReturn => {
       }
     },
     [selectedHabit]
+  );
+
+  const deleteAllHabits = useCallback(
+    async (): Promise<{ success: boolean; count: number }> => {
+      setIsDeleting(true);
+      setError(null);
+
+      try {
+        const response = await habitService.deleteAllHabits();
+
+        if (response.error) {
+          setError(response.error);
+          return { success: false, count: 0 };
+        }
+
+        const count = response.data?.count || 0;
+
+        // Clear all habits from state
+        setHabits([]);
+        setTodayHabits([]);
+        setPagination((prev) => ({
+          ...prev,
+          total: 0,
+        }));
+        setSelectedHabit(null);
+
+        return { success: true, count };
+      } catch (err) {
+        setError("Failed to delete all habits");
+        console.error("deleteAllHabits error:", err);
+        return { success: false, count: 0 };
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    []
   );
 
   // ============================================
@@ -760,6 +797,7 @@ export const useHabits = (options: UseHabitsOptions = {}): UseHabitsReturn => {
     createHabit,
     updateHabit,
     deleteHabit,
+    deleteAllHabits,
     setSelectedHabit,
 
     // Completion actions

@@ -227,6 +227,13 @@ export const habitService = {
     return httpClient.delete<{ message: string }>(`/habits/${id}`, true);
   },
 
+  /**
+   * Delete all habits for the current user
+   */
+  async deleteAllHabits(): Promise<ApiResponse<{ message: string; count: number }>> {
+    return httpClient.delete<{ message: string; count: number }>('/habits', true);
+  },
+
   // ============================================
   // Today & Date Operations
   // ============================================
