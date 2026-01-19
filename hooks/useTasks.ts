@@ -690,11 +690,27 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
 
           // Also update taskDetail if it matches
           if (taskDetail?.id === taskId) {
-            setTaskDetail((prev) =>
-              prev
-                ? { ...prev, subtasks: [...prev.subtasks, response.data!] }
-                : null
-            );
+            setTaskDetail((prev) => {
+              if (!prev) return null;
+
+              const updatedSubtasks = [...prev.subtasks, response.data!];
+              const incomplete = updatedSubtasks.filter((st) => !st.isCompleted);
+              const completed = updatedSubtasks.filter((st) => st.isCompleted);
+
+              return {
+                ...prev,
+                subtasks: updatedSubtasks,
+                subtasksGrouped: {
+                  incomplete,
+                  completed,
+                },
+                subtaskCounts: {
+                  total: updatedSubtasks.length,
+                  completed: completed.length,
+                  incomplete: incomplete.length,
+                },
+              };
+            });
           }
 
           return response.data;
@@ -756,16 +772,32 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
 
           // Also update taskDetail if it matches
           if (taskDetail?.id === taskId) {
-            setTaskDetail((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    subtasks: prev.subtasks.map((st) =>
-                      st.id === subtaskId ? response.data! : st
-                    ),
-                  }
-                : null
-            );
+            setTaskDetail((prev) => {
+              if (!prev) return null;
+
+              // Update subtasks array
+              const updatedSubtasks = prev.subtasks.map((st) =>
+                st.id === subtaskId ? response.data! : st
+              );
+
+              // Recompute subtasksGrouped
+              const incomplete = updatedSubtasks.filter((st) => !st.isCompleted);
+              const completed = updatedSubtasks.filter((st) => st.isCompleted);
+
+              return {
+                ...prev,
+                subtasks: updatedSubtasks,
+                subtasksGrouped: {
+                  incomplete,
+                  completed,
+                },
+                subtaskCounts: {
+                  total: updatedSubtasks.length,
+                  completed: completed.length,
+                  incomplete: incomplete.length,
+                },
+              };
+            });
           }
 
           return true;
@@ -835,16 +867,29 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
 
           // Also update taskDetail if it matches
           if (taskDetail?.id === taskId) {
-            setTaskDetail((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    subtasks: prev.subtasks.map((st) =>
-                      st.id === subtaskId ? response.data! : st
-                    ),
-                  }
-                : null
-            );
+            setTaskDetail((prev) => {
+              if (!prev) return null;
+
+              const updatedSubtasks = prev.subtasks.map((st) =>
+                st.id === subtaskId ? response.data! : st
+              );
+              const incomplete = updatedSubtasks.filter((st) => !st.isCompleted);
+              const completed = updatedSubtasks.filter((st) => st.isCompleted);
+
+              return {
+                ...prev,
+                subtasks: updatedSubtasks,
+                subtasksGrouped: {
+                  incomplete,
+                  completed,
+                },
+                subtaskCounts: {
+                  total: updatedSubtasks.length,
+                  completed: completed.length,
+                  incomplete: incomplete.length,
+                },
+              };
+            });
           }
 
           return response.data;
@@ -937,14 +982,27 @@ export const useTasks = (options: UseTasksOptions = {}): UseTasksReturn => {
 
         // Also update taskDetail if it matches
         if (taskDetail?.id === taskId) {
-          setTaskDetail((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  subtasks: prev.subtasks.filter((st) => st.id !== subtaskId),
-                }
-              : null
-          );
+          setTaskDetail((prev) => {
+            if (!prev) return null;
+
+            const updatedSubtasks = prev.subtasks.filter((st) => st.id !== subtaskId);
+            const incomplete = updatedSubtasks.filter((st) => !st.isCompleted);
+            const completed = updatedSubtasks.filter((st) => st.isCompleted);
+
+            return {
+              ...prev,
+              subtasks: updatedSubtasks,
+              subtasksGrouped: {
+                incomplete,
+                completed,
+              },
+              subtaskCounts: {
+                total: updatedSubtasks.length,
+                completed: completed.length,
+                incomplete: incomplete.length,
+              },
+            };
+          });
         }
 
         return true;

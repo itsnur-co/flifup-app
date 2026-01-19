@@ -1,11 +1,15 @@
 
 
 import { CreateButton } from "@/components/buttons/CreateButton";
-import { DotIcon } from "@/components/icons/TaskIcons";
+import { Calendar2LineIcon, CalendarIcon, CalendarLineIcon, DotIcon } from "@/components/icons/TaskIcons";
 import { TaskCard } from "@/components/task/TaskCard";
+import { TaskOptionsModal } from "@/components/task/TaskOptionsModal";
 import { HabitCard } from "@/components/habit/HabitCard";
+import { HabitOptionsModal } from "@/components/habit/HabitOptionsModal";
 import { Colors } from "@/constants/colors";
 import { GoalDetail } from "@/types/goal";
+import { Task } from "@/types/task";
+import { Habit } from "@/types/habit";
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -33,7 +37,16 @@ interface GoalDetailsScreenProps {
   onRefresh?: () => void;
   onToggleTask?: (taskId: string) => void;
   onTaskPress?: (taskId: string) => void;
-  onTaskMore?: (taskId: string) => void;
+  // Task options callbacks
+  onTaskEdit?: (task: Task) => void;
+  onTaskDuplicate?: (task: Task) => void;
+  onTaskFocus?: (task: Task) => void;
+  onTaskDelete?: (task: Task) => void;
+  // Habit options callbacks
+  onHabitEdit?: (habit: Habit) => void;
+  onHabitDuplicate?: (habit: Habit) => void;
+  onHabitFocus?: (habit: Habit) => void;
+  onHabitDelete?: (habit: Habit) => void;
 }
 
 export function GoalDetailsScreen({
@@ -47,11 +60,38 @@ export function GoalDetailsScreen({
   onRefresh,
   onToggleTask,
   onTaskPress,
-  onTaskMore,
+  // Task options callbacks
+  onTaskEdit,
+  onTaskDuplicate,
+  onTaskFocus,
+  onTaskDelete,
+  // Habit options callbacks
+  onHabitEdit,
+  onHabitDuplicate,
+  onHabitFocus,
+  onHabitDelete,
 }: GoalDetailsScreenProps) {
   const insets = useSafeAreaInsets();
   const [showCompleted, setShowCompleted] = useState(false);
   const [showOptionsModal, setShowOptionsModal] = useState(false);
+
+  // Task options modal state
+  const [showTaskOptionsModal, setShowTaskOptionsModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  // Habit options modal state
+  const [showHabitOptionsModal, setShowHabitOptionsModal] = useState(false);
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+
+  const handleTaskMore = (task: Task) => {
+    setSelectedTask(task);
+    setShowTaskOptionsModal(true);
+  };
+
+  const handleHabitMore = (habit: Habit) => {
+    setSelectedHabit(habit);
+    setShowHabitOptionsModal(true);
+  };
 
   if (isLoading || !goal) {
     return (
@@ -81,6 +121,7 @@ export function GoalDetailsScreen({
       {/* Header */}
       <ScreenHeader
         title={goal.title}
+        subtitle={`${completedItems.length}/${incompleteItems.length} ${itemsLabel}`}
         rightIcon={
           <TouchableOpacity
             onPress={() => setShowOptionsModal(true)}
@@ -116,6 +157,28 @@ export function GoalDetailsScreen({
             <Text style={styles.goalDescription}>{goal.description}</Text>
           )}
 
+
+          {/* Meta Info */}
+          <View style={styles.metaRow}>
+            {goal.category && (
+              <View style={styles.metaItem}>
+                <Feather name="tag" size={14} color="#8E8E93" />
+                <Text style={styles.metaText}>{goal.category.name}</Text>
+              </View>
+            )}
+            {goal.deadline && (
+              <View style={styles.metaItem}>
+              <CalendarLineIcon size={24} color="#8E8E93" />
+                <Text style={styles.metaText}>
+                  {new Date(goal.deadline).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </Text>
+              </View>
+            )}
+          </View>
+
           {/* Progress Section */}
           <ProgressBar
             progress={progress}
@@ -129,26 +192,6 @@ export function GoalDetailsScreen({
             containerStyle={styles.progressSection}
           />
 
-          {/* Meta Info */}
-          <View style={styles.metaRow}>
-            {goal.category && (
-              <View style={styles.metaItem}>
-                <Feather name="tag" size={14} color="#8E8E93" />
-                <Text style={styles.metaText}>{goal.category.name}</Text>
-              </View>
-            )}
-            {goal.deadline && (
-              <View style={styles.metaItem}>
-                <Feather name="calendar" size={14} color="#8E8E93" />
-                <Text style={styles.metaText}>
-                  {new Date(goal.deadline).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </Text>
-              </View>
-            )}
-          </View>
 
           {/* Levels */}
           {goal.levels && goal.levels.length > 0 && (
@@ -189,7 +232,7 @@ export function GoalDetailsScreen({
                   isCompleted={habit.completed || false}
                   onPress={() => onTaskPress?.(habit.id)}
                   onToggle={() => onToggleTask?.(habit.id)}
-                  onMore={() => onTaskMore?.(habit.id)}
+                  onMore={() => handleHabitMore(habit)}
                 />
               ))
             ) : (
@@ -199,7 +242,7 @@ export function GoalDetailsScreen({
                   task={task}
                   onPress={() => onTaskPress?.(task.id)}
                   onToggleComplete={() => onToggleTask?.(task.id)}
-                  onMorePress={() => onTaskMore?.(task.id)}
+                  onMorePress={() => handleTaskMore(task)}
                 />
               ))
             )
@@ -235,7 +278,7 @@ export function GoalDetailsScreen({
                     isCompleted={habit.completed || false}
                     onPress={() => onTaskPress?.(habit.id)}
                     onToggle={() => onToggleTask?.(habit.id)}
-                    onMore={() => onTaskMore?.(habit.id)}
+                    onMore={() => handleHabitMore(habit)}
                   />
                 ))
               ) : (
@@ -245,7 +288,7 @@ export function GoalDetailsScreen({
                     task={task}
                     onPress={() => onTaskPress?.(task.id)}
                     onToggleComplete={() => onToggleTask?.(task.id)}
-                    onMorePress={() => onTaskMore?.(task.id)}
+                    onMorePress={() => handleTaskMore(task)}
                   />
                 ))
               )
@@ -283,6 +326,66 @@ export function GoalDetailsScreen({
         onDelete={() => {
           setShowOptionsModal(false);
           onDelete?.();
+        }}
+      />
+
+      {/* Task Options Modal */}
+      <TaskOptionsModal
+        visible={showTaskOptionsModal}
+        task={selectedTask}
+        onClose={() => {
+          setShowTaskOptionsModal(false);
+          setSelectedTask(null);
+        }}
+        onEdit={(task) => {
+          setShowTaskOptionsModal(false);
+          setSelectedTask(null);
+          onTaskEdit?.(task);
+        }}
+        onDuplicate={(task) => {
+          setShowTaskOptionsModal(false);
+          setSelectedTask(null);
+          onTaskDuplicate?.(task);
+        }}
+        onFocus={(task) => {
+          setShowTaskOptionsModal(false);
+          setSelectedTask(null);
+          onTaskFocus?.(task);
+        }}
+        onDelete={(task) => {
+          setShowTaskOptionsModal(false);
+          setSelectedTask(null);
+          onTaskDelete?.(task);
+        }}
+      />
+
+      {/* Habit Options Modal */}
+      <HabitOptionsModal
+        visible={showHabitOptionsModal}
+        habit={selectedHabit}
+        onClose={() => {
+          setShowHabitOptionsModal(false);
+          setSelectedHabit(null);
+        }}
+        onEdit={(habit) => {
+          setShowHabitOptionsModal(false);
+          setSelectedHabit(null);
+          onHabitEdit?.(habit);
+        }}
+        onDuplicate={(habit) => {
+          setShowHabitOptionsModal(false);
+          setSelectedHabit(null);
+          onHabitDuplicate?.(habit);
+        }}
+        onFocus={(habit) => {
+          setShowHabitOptionsModal(false);
+          setSelectedHabit(null);
+          onHabitFocus?.(habit);
+        }}
+        onDelete={(habit) => {
+          setShowHabitOptionsModal(false);
+          setSelectedHabit(null);
+          onHabitDelete?.(habit);
         }}
       />
     </View>

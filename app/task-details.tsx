@@ -9,7 +9,7 @@ import {
   SubtaskOptionsSheet,
   TaskDetailsScreen,
 } from "@/components/task";
-import { useTasks } from "@/hooks";
+import { useTasks, useSound } from "@/hooks";
 import { Colors } from "@/constants/colors";
 import { TaskSubtask } from "@/types/task";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -19,6 +19,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 export default function TaskDetailsRoute() {
   const router = useRouter();
   const { taskId } = useLocalSearchParams<{ taskId: string }>();
+  const { playCompletionSound } = useSound();
 
   const {
     taskDetail: task,
@@ -82,9 +83,18 @@ export default function TaskDetailsRoute() {
   const handleToggleSubTask = useCallback(
     async (subtaskId: string) => {
       if (!task) return;
-      await toggleSubtask(task.id, subtaskId);
+      // Find subtask to check if it's being completed
+      const subtask = task.subtasks.find((st) => st.id === subtaskId);
+      const wasIncomplete = subtask && !subtask.isCompleted;
+
+      const success = await toggleSubtask(task.id, subtaskId);
+
+      // Play sound only when marking as complete
+      if (success && wasIncomplete) {
+        playCompletionSound();
+      }
     },
-    [task, toggleSubtask]
+    [task, toggleSubtask, playCompletionSound]
   );
 
   const handleSubTaskOptions = useCallback((subtask: TaskSubtask) => {
@@ -95,9 +105,20 @@ export default function TaskDetailsRoute() {
   const handleSubtaskToggleComplete = useCallback(
     async (subtaskId: string): Promise<boolean> => {
       if (!task) return false;
-      return await toggleSubtask(task.id, subtaskId);
+      // Find subtask to check if it's being completed
+      const subtask = task.subtasks.find((st) => st.id === subtaskId);
+      const wasIncomplete = subtask && !subtask.isCompleted;
+
+      const success = await toggleSubtask(task.id, subtaskId);
+
+      // Play sound only when marking as complete
+      if (success && wasIncomplete) {
+        playCompletionSound();
+      }
+
+      return success;
     },
-    [task, toggleSubtask]
+    [task, toggleSubtask, playCompletionSound]
   );
 
   const handleSubtaskUpdateTitle = useCallback(

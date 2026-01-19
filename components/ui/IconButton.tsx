@@ -1,8 +1,3 @@
-/**
- * Reusable Icon Button Component
- * For action items in headers, lists, etc.
- */
-
 import React from 'react';
 import {
   StyleSheet,

@@ -134,7 +134,7 @@ export const SubtaskOptionsSheet: React.FC<SubtaskOptionsSheetProps> = ({
     <BottomSheet
       visible={visible}
       onClose={handleClose}
-      snapPoints={[0.45, 0.6]}
+      snapPoints={[0.55, 0.75]}
       initialSnapIndex={0}
       backgroundColor="#1C1C1E"
     >
