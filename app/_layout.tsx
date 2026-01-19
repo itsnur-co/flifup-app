@@ -6,11 +6,12 @@ import {
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "react-native-reanimated";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { notificationService } from "@/services/notifications";
 
 // Keep splash screen visible until we're ready
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -32,8 +33,17 @@ function RootLayoutNav() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const hasRequestedNotificationPermission = useRef(false);
 
-  // Services initialization removed - no third-party auth providers
+  // Request notification permissions when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !hasRequestedNotificationPermission.current) {
+      hasRequestedNotificationPermission.current = true;
+      notificationService.requestPermissions().catch((err) => {
+        console.warn("Failed to request notification permissions:", err);
+      });
+    }
+  }, [isAuthenticated]);
 
   // Handle navigation readiness
   useEffect(() => {

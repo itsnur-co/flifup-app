@@ -131,3 +131,25 @@ export const INTERVAL_OPTIONS: IntervalOption[] = [2, 3, 4, 5, 6, 7];
 
 export const GOAL_UNITS: GoalUnit[] = ['km', 'mins', 'hours'];
 export const GOAL_FREQUENCIES: GoalFrequency[] = ['per day', 'per week', 'per month'];
+
+// Habit Reminder Types
+export type HabitReminderType = 'TIME_BASED' | 'OFFSET_BASED';
+
+export type HabitReminderUnit = 'MINUTES' | 'HOURS';
+
+export interface HabitReminder {
+  id: string;
+  type: HabitReminderType;
+  time?: string; // HH:mm for TIME_BASED
+  value?: number; // For OFFSET_BASED
+  unit?: HabitReminderUnit; // For OFFSET_BASED
+  isActive: boolean;
+}
+
+// Habit Reminder Form Value (for UI)
+export interface HabitReminderValue {
+  type: HabitReminderType;
+  time?: string; // HH:mm for TIME_BASED
+  value?: number; // For OFFSET_BASED
+  unit?: HabitReminderUnit; // For OFFSET_BASED
+}

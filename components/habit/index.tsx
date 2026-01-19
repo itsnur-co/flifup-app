@@ -16,3 +16,4 @@ export { HabitSection } from "./HabitSection";
 export { HeaderOptionsSheet } from "./HeaderOptionsSheet";
 export { ProgressChart } from "./ProgressChart";
 export { RepeatSheet } from "./RepeatSheet";
+export { SetHabitReminderSheet } from "./SetHabitReminderSheet";

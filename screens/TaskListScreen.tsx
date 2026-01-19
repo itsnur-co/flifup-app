@@ -3,7 +3,7 @@
  * Complete task management flow with API integration
  */
 
-import { useGoals, useSound, useTasks } from "@/hooks";
+import { useGoals, useNotifications, useSound, useTasks } from "@/hooks";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -89,6 +89,14 @@ const formToApiRequest = (
       assignedPeople.length > 0
         ? assignedPeople.map((p) => ({ email: p.email }))
         : undefined,
+    // Include inline reminders from form
+    reminders:
+      form.reminders && form.reminders.length > 0
+        ? form.reminders.map((r) => ({
+            value: r.value,
+            unit: r.unit,
+          }))
+        : undefined,
   };
 };
 
@@ -97,6 +105,7 @@ export const TaskListScreen: React.FC = () => {
   const params = useLocalSearchParams<{ goalId?: string; mode?: string }>();
   const insets = useSafeAreaInsets();
   const { playCompletionSound } = useSound();
+  const { scheduleAllTaskReminders, cancelTaskReminders } = useNotifications();
 
   // API Hooks
   const {
@@ -308,6 +317,17 @@ export const TaskListScreen: React.FC = () => {
       const result = await createTask(apiRequest);
 
       if (result) {
+        // Schedule notifications for reminders if task has a due date
+        if (taskDueDate && formState.reminders && formState.reminders.length > 0) {
+          scheduleAllTaskReminders(
+            result.id,
+            result.title,
+            taskDueDate,
+            taskDueTime,
+            formState.reminders
+          );
+        }
+
         // Reset form states
         setTaskDueDate(null);
         setTaskDueTime(null);
@@ -335,6 +355,7 @@ export const TaskListScreen: React.FC = () => {
       selectedGoalId,
       params.goalId,
       router,
+      scheduleAllTaskReminders,
     ]
   );
 
@@ -449,12 +470,15 @@ export const TaskListScreen: React.FC = () => {
 
   const handleDeleteTask = useCallback(async () => {
     if (!selectedTask) return;
-    const success = await deleteTask(selectedTask.id);
+    const taskId = selectedTask.id;
+    const success = await deleteTask(taskId);
     if (success) {
+      // Cancel any scheduled notifications for this task
+      cancelTaskReminders(taskId);
       setSelectedTask(null);
       setIsTaskOptionsVisible(false);
     }
-  }, [selectedTask, deleteTask]);
+  }, [selectedTask, deleteTask, cancelTaskReminders]);
 
   const handleDeleteAllTasks = useCallback(() => {
     setIsDeleteAllConfirmVisible(true);

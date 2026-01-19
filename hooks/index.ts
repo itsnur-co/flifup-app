@@ -11,3 +11,4 @@ export { useJournals } from "./useJournals";
 export { useTasks } from "./useTasks";
 export { useFocus } from './useFocus';
 export { useGoals } from "./useGoals";
+export { useNotifications } from "./useNotifications";

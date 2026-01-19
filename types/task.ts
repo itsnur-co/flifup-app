@@ -145,6 +145,13 @@ export interface CreateCollaboratorInline {
   email: string;
 }
 
+// Inline reminder for creating with task
+export interface CreateReminderInline {
+  value: number;
+  unit: ReminderUnit;
+  isCustom?: boolean;
+}
+
 export interface CreateTaskRequest {
   title: string;
   description?: string;
@@ -162,6 +169,8 @@ export interface CreateTaskRequest {
   subtasks?: CreateSubtaskInline[];
   // Inline collaborators - added when task is created
   collaborators?: CreateCollaboratorInline[];
+  // Inline reminders - created with the task
+  reminders?: CreateReminderInline[];
 }
 
 export interface UpdateTaskRequest {
