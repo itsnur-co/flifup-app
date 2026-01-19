@@ -20,6 +20,8 @@ interface TaskEditModalProps {
   onEdit: () => void;
   onDelete: () => void;
   onSetFocus?: () => void;
+  /** Whether the current user can delete this task (only owner can delete) */
+  canDelete?: boolean;
 }
 
 export const TaskEditModal: React.FC<TaskEditModalProps> = ({
@@ -28,6 +30,7 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
   onEdit,
   onDelete,
   onSetFocus,
+  canDelete = true, // Default to true for backwards compatibility
 }) => {
   const options: ModalOption[] = useMemo(() => {
     const opts: ModalOption[] = [];
@@ -50,17 +53,19 @@ export const TaskEditModal: React.FC<TaskEditModalProps> = ({
       onPress: onEdit,
     });
 
-    // Delete Option
-    opts.push({
-      id: "delete",
-      label: "Delete Task",
-      icon: <DeleteBinIcon size={22} color="#EF4444" />,
-      onPress: onDelete,
-      isDanger: true,
-    });
+    // Delete Option - only show if user can delete (owner only)
+    if (canDelete) {
+      opts.push({
+        id: "delete",
+        label: "Delete Task",
+        icon: <DeleteBinIcon size={22} color="#EF4444" />,
+        onPress: onDelete,
+        isDanger: true,
+      });
+    }
 
     return opts;
-  }, [onEdit, onDelete, onSetFocus]);
+  }, [onEdit, onDelete, onSetFocus, canDelete]);
 
   return <OptionsModal visible={visible} onClose={onClose} options={options} />;
 };

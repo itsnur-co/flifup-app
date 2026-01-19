@@ -78,6 +78,7 @@ interface UseTasksReturn {
   createTask: (data: CreateTaskRequest) => Promise<Task | null>;
   updateTask: (id: string, data: UpdateTaskRequest) => Promise<Task | null>;
   deleteTask: (id: string) => Promise<boolean>;
+  deleteAllTasksByDate: (date: string) => Promise<{ success: boolean; count: number }>;
   setSelectedTask: (task: Task | null) => void;
 
   // Status actions

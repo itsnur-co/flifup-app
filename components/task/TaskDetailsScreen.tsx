@@ -362,6 +362,7 @@ export const TaskDetailsScreen: React.FC<TaskDetailsScreenProps> = ({
           setShowEditModal(false);
           onDelete?.();
         }}
+        canDelete={task.isOwner !== false}
       />
     </View>
   );

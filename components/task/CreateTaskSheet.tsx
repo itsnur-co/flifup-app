@@ -45,6 +45,7 @@ interface CreateTaskSheetProps {
   visible: boolean;
   onClose: () => void;
   onCreateTask: (task: TaskFormState) => void;
+  onUpdateTask?: (task: TaskFormState) => void;
   onSelectDate?: () => void;
   onSelectTime?: () => void;
   onSelectRepeat?: () => void;
@@ -60,6 +61,10 @@ interface CreateTaskSheetProps {
   selectedReminder?: ReminderValue | null;
   selectedGoal?: Goal | null;
   linkedGoalTitle?: string | null;
+  /** Edit mode - if true, shows "Edit Task" and calls onUpdateTask */
+  editMode?: boolean;
+  /** Initial form values for edit mode */
+  initialFormState?: Partial<TaskFormState>;
 }
 
 interface FormRowProps {
@@ -91,6 +96,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
   visible,
   onClose,
   onCreateTask,
+  onUpdateTask,
   onSelectDate,
   onSelectTime,
   onSelectRepeat,
@@ -106,12 +112,42 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
   selectedReminder,
   selectedGoal,
   linkedGoalTitle,
+  editMode = false,
+  initialFormState,
 }) => {
   const insets = useSafeAreaInsets();
   const [formState, setFormState] = useState<TaskFormState>(DEFAULT_TASK_FORM);
   const [subTasks, setSubTasks] = useState<
     { title: string; description: string }[]
   >([]);
+
+  // Initialize form state when sheet opens in edit mode
+  React.useEffect(() => {
+    if (visible && editMode && initialFormState) {
+      setFormState({
+        ...DEFAULT_TASK_FORM,
+        title: initialFormState.title || "",
+        description: initialFormState.description || "",
+        priority: initialFormState.priority || "MEDIUM",
+        repeat: initialFormState.repeat || "NONE",
+      });
+      // Initialize subtasks if present
+      if (initialFormState.subtasks && initialFormState.subtasks.length > 0) {
+        setSubTasks(
+          initialFormState.subtasks.map((st) => ({
+            title: st.title,
+            description: st.description || "",
+          }))
+        );
+      } else {
+        setSubTasks([]);
+      }
+    } else if (visible && !editMode) {
+      // Reset form when opening in create mode
+      setFormState(DEFAULT_TASK_FORM);
+      setSubTasks([]);
+    }
+  }, [visible, editMode, initialFormState]);
 
   const formatRepeatDisplay = (repeat?: RepeatConfig | null): string => {
     if (!repeat) return "Repeat";
@@ -168,10 +204,10 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     return goal.title;
   };
 
-  const handleCreate = useCallback(() => {
+  const handleSubmit = useCallback(() => {
     if (!formState.title.trim()) return;
 
-    onCreateTask({
+    const taskData: TaskFormState = {
       ...formState,
       dueDate: selectedDate?.toISOString() ?? null,
       dueTime: selectedTime ?? null,
@@ -182,7 +218,13 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
         title: st.title,
         description: st.description,
       })),
-    });
+    };
+
+    if (editMode && onUpdateTask) {
+      onUpdateTask(taskData);
+    } else {
+      onCreateTask(taskData);
+    }
 
     // Reset form
     setFormState(DEFAULT_TASK_FORM);
@@ -196,6 +238,8 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
     selectedGoal,
     subTasks,
     onCreateTask,
+    onUpdateTask,
+    editMode,
     onClose,
   ]);
 
@@ -228,9 +272,9 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Create Task</Text>
+          <Text style={styles.headerTitle}>{editMode ? "Edit Task" : "Create Task"}</Text>
           <TouchableOpacity
-            onPress={handleCreate}
+            onPress={handleSubmit}
             disabled={!formState.title.trim()}
             activeOpacity={0.7}
           >
@@ -240,7 +284,7 @@ export const CreateTaskSheet: React.FC<CreateTaskSheetProps> = ({
                 !formState.title.trim() && styles.createButtonDisabled,
               ]}
             >
-              Create
+              {editMode ? "Save" : "Create"}
             </Text>
           </TouchableOpacity>
         </View>

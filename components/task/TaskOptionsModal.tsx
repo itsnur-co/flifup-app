@@ -34,6 +34,9 @@ export const TaskOptionsModal: React.FC<TaskOptionsModalProps> = ({
 }) => {
   if (!task) return null;
 
+  // Check if user is owner (can delete) - default to true for backwards compatibility
+  const canDelete = task.isOwner !== false;
+
   const options: ModalOption[] = [
     {
       id: "edit",
@@ -53,13 +56,18 @@ export const TaskOptionsModal: React.FC<TaskOptionsModalProps> = ({
       icon: <FocusLineIcon size={20} color="#FFFFFF" />,
       onPress: () => onFocus?.(task),
     },
-    {
-      id: "delete",
-      label: "Delete Task",
-      icon: <DeleteBinIcon size={20} color="#EF4444" />,
-      onPress: () => onDelete?.(task),
-      isDanger: true,
-    },
+    // Only show delete option if user is owner
+    ...(canDelete
+      ? [
+          {
+            id: "delete",
+            label: "Delete Task",
+            icon: <DeleteBinIcon size={20} color="#EF4444" />,
+            onPress: () => onDelete?.(task),
+            isDanger: true,
+          },
+        ]
+      : []),
   ];
 
   return (

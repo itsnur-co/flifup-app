@@ -53,7 +53,7 @@ import type {
   TaskCategory,
   TaskFormState,
 } from "@/types/task";
-import { isTaskCompleted } from "@/types/task";
+import { isTaskCompleted, collaboratorToPerson } from "@/types/task";
 import { formatDateForApi } from "@/utils/dateTime";
 
 // Helper to convert form to API request
@@ -110,6 +110,7 @@ export const TaskListScreen: React.FC = () => {
     isDeleting,
     error,
     createTask,
+    updateTask,
     deleteTask,
     deleteAllTasksByDate,
     toggleTaskStatus,
@@ -197,6 +198,20 @@ export const TaskListScreen: React.FC = () => {
   const [goalFormDate, setGoalFormDate] = useState<Date | null>(null);
   const [goalFormCategory, setGoalFormCategory] = useState<TaskCategory | null>(null);
   const [goalFormLevels, setGoalFormLevels] = useState<string[]>([]);
+
+  // Edit task states
+  const [isEditTaskVisible, setIsEditTaskVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editTaskDueDate, setEditTaskDueDate] = useState<Date | null>(null);
+  const [editTaskDueTime, setEditTaskDueTime] = useState<string | null>(null);
+  const [editTaskRepeat, setEditTaskRepeat] = useState<RepeatConfig | null>(null);
+  const [editTaskCategory, setEditTaskCategory] = useState<TaskCategory | null>(null);
+  const [editTaskAssignedPeople, setEditTaskAssignedPeople] = useState<Person[]>([]);
+  const [editTaskReminder, setEditTaskReminder] = useState<ReminderValue | null>(null);
+  const [editSelectedGoalId, setEditSelectedGoalId] = useState<string | null>(null);
+
+  // Track which sheet context we're in (create vs edit)
+  const [sheetContext, setSheetContext] = useState<'create' | 'edit'>('create');
 
   // Open create task sheet if mode=create (from goal details)
   useEffect(() => {
@@ -357,9 +372,80 @@ export const TaskListScreen: React.FC = () => {
 
   const handleEditTask = useCallback(() => {
     if (!selectedTask) return;
-    // TODO: Open edit task sheet with pre-filled data
-    console.log("Edit task:", selectedTask.title);
+
+    // Set up edit state with existing task data
+    setEditingTask(selectedTask);
+
+    // Pre-fill date
+    if (selectedTask.dueDate) {
+      setEditTaskDueDate(new Date(selectedTask.dueDate));
+    } else {
+      setEditTaskDueDate(null);
+    }
+
+    // Pre-fill time
+    setEditTaskDueTime(selectedTask.dueTime || null);
+
+    // Pre-fill category
+    setEditTaskCategory(selectedTask.category || null);
+
+    // Pre-fill goal
+    setEditSelectedGoalId(selectedTask.goalId || null);
+
+    // Pre-fill collaborators/people
+    if (selectedTask.collaborators && selectedTask.collaborators.length > 0) {
+      setEditTaskAssignedPeople(
+        selectedTask.collaborators.map(collaboratorToPerson)
+      );
+    } else {
+      setEditTaskAssignedPeople([]);
+    }
+
+    // Close options modal and open edit sheet
+    setIsTaskOptionsVisible(false);
+    setSheetContext('edit');
+    setIsEditTaskVisible(true);
   }, [selectedTask]);
+
+  const handleUpdateTask = useCallback(
+    async (formState: TaskFormState) => {
+      if (!editingTask) return;
+
+      const updateData = {
+        title: formState.title,
+        description: formState.description || undefined,
+        priority: formState.priority,
+        dueDate: editTaskDueDate ? formatDateForApi(editTaskDueDate) : undefined,
+        dueTime: editTaskDueTime || undefined,
+        categoryId: editTaskCategory?.id,
+        goalId: editSelectedGoalId || undefined,
+      };
+
+      const result = await updateTask(editingTask.id, updateData);
+
+      if (result) {
+        // Reset edit states
+        setEditingTask(null);
+        setEditTaskDueDate(null);
+        setEditTaskDueTime(null);
+        setEditTaskRepeat(null);
+        setEditTaskCategory(null);
+        setEditTaskAssignedPeople([]);
+        setEditTaskReminder(null);
+        setEditSelectedGoalId(null);
+        setIsEditTaskVisible(false);
+        setSheetContext('create');
+      }
+    },
+    [
+      editingTask,
+      editTaskDueDate,
+      editTaskDueTime,
+      editTaskCategory,
+      editSelectedGoalId,
+      updateTask,
+    ]
+  );
 
   const handleDeleteTask = useCallback(async () => {
     if (!selectedTask) return;
@@ -384,8 +470,12 @@ export const TaskListScreen: React.FC = () => {
   }, [selectedDate, deleteAllTasksByDate]);
 
   const handleSelectDate = useCallback((date: Date | null) => {
-    setTaskDueDate(date);
-  }, []);
+    if (sheetContext === 'edit') {
+      setEditTaskDueDate(date);
+    } else {
+      setTaskDueDate(date);
+    }
+  }, [sheetContext]);
 
   const handleOpenCustomDate = useCallback(() => {
     setIsSelectDateVisible(false);
@@ -393,18 +483,30 @@ export const TaskListScreen: React.FC = () => {
   }, []);
 
   const handleCustomDateSelect = useCallback((date: Date) => {
-    setTaskDueDate(date);
+    if (sheetContext === 'edit') {
+      setEditTaskDueDate(date);
+    } else {
+      setTaskDueDate(date);
+    }
     setIsAddCustomDateVisible(false);
-  }, []);
+  }, [sheetContext]);
 
   const handleAddPeople = useCallback((people: Person[]) => {
-    setTaskAssignedPeople(people);
-  }, []);
+    if (sheetContext === 'edit') {
+      setEditTaskAssignedPeople(people);
+    } else {
+      setTaskAssignedPeople(people);
+    }
+  }, [sheetContext]);
 
   const handleSelectTime = useCallback((time: string) => {
-    setTaskDueTime(time);
+    if (sheetContext === 'edit') {
+      setEditTaskDueTime(time);
+    } else {
+      setTaskDueTime(time);
+    }
     setIsAddTimeVisible(false);
-  }, []);
+  }, [sheetContext]);
 
   const handleSelectCategory = useCallback(
     async (category: TaskCategory) => {
@@ -413,16 +515,24 @@ export const TaskListScreen: React.FC = () => {
       if (!exists) {
         await createCategory(category.name, category.icon, category.color);
       }
-      setTaskCategory(category);
+      if (sheetContext === 'edit') {
+        setEditTaskCategory(category);
+      } else {
+        setTaskCategory(category);
+      }
       setIsAddCategoryVisible(false);
     },
-    [categories, createCategory]
+    [categories, createCategory, sheetContext]
   );
 
   const handleSetReminder = useCallback((reminder: ReminderValue) => {
-    setTaskReminder(reminder);
+    if (sheetContext === 'edit') {
+      setEditTaskReminder(reminder);
+    } else {
+      setTaskReminder(reminder);
+    }
     setIsSetReminderVisible(false);
-  }, []);
+  }, [sheetContext]);
 
   const handleOpenCustomMinutes = useCallback(() => {
     setIsSetReminderVisible(false);
@@ -452,15 +562,23 @@ export const TaskListScreen: React.FC = () => {
   }, []);
 
   const handleSelectRepeat = useCallback((repeat: RepeatConfig) => {
-    setTaskRepeat(repeat);
+    if (sheetContext === 'edit') {
+      setEditTaskRepeat(repeat);
+    } else {
+      setTaskRepeat(repeat);
+    }
     setIsRepeatVisible(false);
-  }, []);
+  }, [sheetContext]);
 
   // Goal selection handlers
   const handleSelectGoal = useCallback((goal: Goal) => {
-    setSelectedGoalId(goal.id);
+    if (sheetContext === 'edit') {
+      setEditSelectedGoalId(goal.id);
+    } else {
+      setSelectedGoalId(goal.id);
+    }
     setIsGoalSelectionVisible(false);
-  }, []);
+  }, [sheetContext]);
 
   const handleCreateNewGoal = useCallback(() => {
     setIsGoalSelectionVisible(false);
@@ -630,13 +748,34 @@ export const TaskListScreen: React.FC = () => {
         visible={isCreateTaskVisible}
         onClose={() => setIsCreateTaskVisible(false)}
         onCreateTask={handleCreateTask}
-        onSelectDate={() => setIsSelectDateVisible(true)}
-        onSelectTime={() => setIsAddTimeVisible(true)}
-        onSelectRepeat={() => setIsRepeatVisible(true)}
-        onSelectCategory={() => setIsAddCategoryVisible(true)}
-        onSelectPeople={() => setIsAddPeopleVisible(true)}
-        onSetReminder={() => setIsSetReminderVisible(true)}
-        onSelectGoal={() => setIsGoalSelectionVisible(true)}
+        onSelectDate={() => {
+          setSheetContext('create');
+          setIsSelectDateVisible(true);
+        }}
+        onSelectTime={() => {
+          setSheetContext('create');
+          setIsAddTimeVisible(true);
+        }}
+        onSelectRepeat={() => {
+          setSheetContext('create');
+          setIsRepeatVisible(true);
+        }}
+        onSelectCategory={() => {
+          setSheetContext('create');
+          setIsAddCategoryVisible(true);
+        }}
+        onSelectPeople={() => {
+          setSheetContext('create');
+          setIsAddPeopleVisible(true);
+        }}
+        onSetReminder={() => {
+          setSheetContext('create');
+          setIsSetReminderVisible(true);
+        }}
+        onSelectGoal={() => {
+          setSheetContext('create');
+          setIsGoalSelectionVisible(true);
+        }}
         selectedDate={taskDueDate}
         selectedTime={taskDueTime}
         selectedRepeat={taskRepeat}
@@ -647,13 +786,70 @@ export const TaskListScreen: React.FC = () => {
         linkedGoalTitle={linkedGoalTitle}
       />
 
+      {/* Edit Task Bottom Sheet */}
+      <CreateTaskSheet
+        visible={isEditTaskVisible}
+        onClose={() => {
+          setIsEditTaskVisible(false);
+          setEditingTask(null);
+          setSheetContext('create');
+        }}
+        onCreateTask={handleUpdateTask}
+        onUpdateTask={handleUpdateTask}
+        editMode={true}
+        initialFormState={editingTask ? {
+          title: editingTask.title,
+          description: editingTask.description || "",
+          priority: editingTask.priority,
+          subtasks: editingTask.subtasks?.map(st => ({
+            title: st.title,
+            description: "",
+          })) || [],
+        } : undefined}
+        onSelectDate={() => {
+          setSheetContext('edit');
+          setIsSelectDateVisible(true);
+        }}
+        onSelectTime={() => {
+          setSheetContext('edit');
+          setIsAddTimeVisible(true);
+        }}
+        onSelectRepeat={() => {
+          setSheetContext('edit');
+          setIsRepeatVisible(true);
+        }}
+        onSelectCategory={() => {
+          setSheetContext('edit');
+          setIsAddCategoryVisible(true);
+        }}
+        onSelectPeople={() => {
+          setSheetContext('edit');
+          setIsAddPeopleVisible(true);
+        }}
+        onSetReminder={() => {
+          setSheetContext('edit');
+          setIsSetReminderVisible(true);
+        }}
+        onSelectGoal={() => {
+          setSheetContext('edit');
+          setIsGoalSelectionVisible(true);
+        }}
+        selectedDate={editTaskDueDate}
+        selectedTime={editTaskDueTime}
+        selectedRepeat={editTaskRepeat}
+        selectedCategory={editTaskCategory}
+        selectedPeople={editTaskAssignedPeople}
+        selectedReminder={editTaskReminder}
+        selectedGoal={editSelectedGoalId ? goals.find(g => g.id === editSelectedGoalId) : null}
+      />
+
       {/* Select Date Bottom Sheet */}
       <SelectDateSheet
         visible={isSelectDateVisible}
         onClose={() => setIsSelectDateVisible(false)}
         onSelectDate={handleSelectDate}
         onOpenCustomDate={handleOpenCustomDate}
-        selectedDate={taskDueDate}
+        selectedDate={sheetContext === 'edit' ? editTaskDueDate : taskDueDate}
       />
 
       {/* Add Custom Date Bottom Sheet */}
@@ -661,7 +857,7 @@ export const TaskListScreen: React.FC = () => {
         visible={isAddCustomDateVisible}
         onClose={() => setIsAddCustomDateVisible(false)}
         onSelectDate={handleCustomDateSelect}
-        selectedDate={taskDueDate}
+        selectedDate={sheetContext === 'edit' ? editTaskDueDate : taskDueDate}
       />
 
       {/* Add Time Bottom Sheet */}
@@ -669,7 +865,7 @@ export const TaskListScreen: React.FC = () => {
         visible={isAddTimeVisible}
         onClose={() => setIsAddTimeVisible(false)}
         onSelectTime={handleSelectTime}
-        initialTime={taskDueTime || undefined}
+        initialTime={(sheetContext === 'edit' ? editTaskDueTime : taskDueTime) || undefined}
       />
 
       {/* Add Category Bottom Sheet */}
@@ -677,7 +873,7 @@ export const TaskListScreen: React.FC = () => {
         visible={isAddCategoryVisible}
         onClose={() => setIsAddCategoryVisible(false)}
         onSelectCategory={handleSelectCategory}
-        selectedCategory={taskCategory}
+        selectedCategory={sheetContext === 'edit' ? editTaskCategory : taskCategory}
       />
 
       {/* Add People Bottom Sheet */}
@@ -685,7 +881,7 @@ export const TaskListScreen: React.FC = () => {
         visible={isAddPeopleVisible}
         onClose={() => setIsAddPeopleVisible(false)}
         onConfirm={handleAddPeople}
-        selectedPeople={taskAssignedPeople}
+        selectedPeople={sheetContext === 'edit' ? editTaskAssignedPeople : taskAssignedPeople}
       />
 
       {/* Repeat Bottom Sheet */}
@@ -693,7 +889,7 @@ export const TaskListScreen: React.FC = () => {
         visible={isRepeatVisible}
         onClose={() => setIsRepeatVisible(false)}
         onConfirm={handleSelectRepeat}
-        initialValue={taskRepeat ?? undefined}
+        initialValue={(sheetContext === 'edit' ? editTaskRepeat : taskRepeat) ?? undefined}
       />
 
       {/* Task Edit Modal */}
@@ -754,7 +950,7 @@ export const TaskListScreen: React.FC = () => {
         onOpenCustomMinutes={handleOpenCustomMinutes}
         onOpenCustomHours={handleOpenCustomHours}
         onOpenCustomDate={handleOpenCustomDateFromReminder}
-        selectedReminder={taskReminder}
+        selectedReminder={sheetContext === 'edit' ? editTaskReminder : taskReminder}
         customMinutes={customMinutes}
         customHours={customHours}
       />
