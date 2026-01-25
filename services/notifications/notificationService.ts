@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { SchedulableTriggerInputTypes } from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
@@ -82,6 +83,7 @@ class NotificationService {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#E6F4FE',
+      sound: 'notification-sound.mp3',
     });
 
     await Notifications.setNotificationChannelAsync('reminders', {
@@ -90,7 +92,16 @@ class NotificationService {
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#E6F4FE',
-      sound: 'default',
+      sound: 'notification-sound.mp3',
+    });
+
+    await Notifications.setNotificationChannelAsync('assignments', {
+      name: 'Task Assignments',
+      description: 'Notifications when someone assigns you a task',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#E6F4FE',
+      sound: 'notification-sound.mp3',
     });
   }
 
@@ -103,9 +114,15 @@ class NotificationService {
       throw new Error('Notification permissions not granted');
     }
 
-    const trigger = options.trigger instanceof Date
-      ? { date: options.trigger }
-      : options.trigger;
+    let trigger: Notifications.NotificationTriggerInput;
+    if (options.trigger instanceof Date) {
+      trigger = {
+        type: SchedulableTriggerInputTypes.DATE,
+        date: options.trigger
+      };
+    } else {
+      trigger = options.trigger;
+    }
 
     const notificationId = await Notifications.scheduleNotificationAsync({
       identifier: options.id,
@@ -113,7 +130,7 @@ class NotificationService {
         title: options.title,
         body: options.body,
         data: options.data || {},
-        sound: 'default',
+        sound: 'notification-sound.mp3',
       },
       trigger,
     });
@@ -136,12 +153,12 @@ class NotificationService {
         title: options.title,
         body: options.body,
         data: options.data || {},
-        sound: 'default',
+        sound: 'notification-sound.mp3',
       },
       trigger: {
+        type: SchedulableTriggerInputTypes.DAILY,
         hour: options.hour,
         minute: options.minute,
-        repeats: true,
       },
     });
 

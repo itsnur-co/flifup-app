@@ -4,7 +4,7 @@
  * Integrated with API services
  */
 
-import { useGoals, useHabits, useSound } from "@/hooks";
+import { useGoals, useHabits, useNotifications, useSound } from "@/hooks";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -160,6 +160,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { playCompletionSound } = useSound();
+  const { scheduleHabitTimeReminder, cancelHabitReminders } = useNotifications();
 
   // Linked goal state (when creating from goal details)
   const [linkedGoalTitle, setLinkedGoalTitle] = useState<string | null>(null);
@@ -324,6 +325,17 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       const result = await createHabit(apiRequest);
 
       if (result) {
+        // Schedule reminder notification if habit has a reminder time
+        if (formState.reminder) {
+          const [hours, minutes] = formState.reminder.split(':').map(Number);
+          await scheduleHabitTimeReminder(
+            result.id,
+            result.name,
+            hours,
+            minutes
+          );
+        }
+
         resetFormState();
         setShowCreateSheet(false);
 
@@ -334,7 +346,7 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
         // Note: No need to refresh - the createHabit hook already updates the state optimistically
       }
     },
-    [createHabit, goalId, router]
+    [createHabit, goalId, router, scheduleHabitTimeReminder]
   );
 
   const resetFormState = () => {
@@ -379,12 +391,16 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
 
   const handleDeleteHabit = useCallback(async () => {
     if (!selectedHabit) return;
+
+    // Cancel any scheduled reminders
+    await cancelHabitReminders(selectedHabit.id);
+
     const success = await deleteHabit(selectedHabit.id);
     if (success) {
       setSelectedHabit(null);
       setShowOptionsSheet(false);
     }
-  }, [selectedHabit, deleteHabit]);
+  }, [selectedHabit, deleteHabit, cancelHabitReminders]);
 
   const handleHabitProgress = useCallback(() => {
     if (!selectedHabit) return;

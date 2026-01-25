@@ -12,6 +12,7 @@ import "react-native-reanimated";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { notificationService } from "@/services/notifications";
+import { notificationApiService } from "@/services/api/notification.service";
 
 // Keep splash screen visible until we're ready
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -34,15 +35,34 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
   const hasRequestedNotificationPermission = useRef(false);
+  const hasRegisteredPushToken = useRef(false);
 
-  // Request notification permissions when user is authenticated
+  // Request notification permissions and register push token when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && !hasRequestedNotificationPermission.current) {
-      hasRequestedNotificationPermission.current = true;
-      notificationService.requestPermissions().catch((err) => {
-        console.warn("Failed to request notification permissions:", err);
-      });
-    }
+    const setupNotifications = async () => {
+      if (isAuthenticated && !hasRequestedNotificationPermission.current) {
+        hasRequestedNotificationPermission.current = true;
+
+        try {
+          const granted = await notificationService.requestPermissions();
+
+          // If permissions granted, get push token and register with backend
+          if (granted && !hasRegisteredPushToken.current) {
+            hasRegisteredPushToken.current = true;
+            const pushToken = await notificationService.getExpoPushToken();
+
+            if (pushToken) {
+              await notificationApiService.registerPushToken(pushToken);
+              console.log('[_layout] Push token registered with backend');
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to setup notifications:", err);
+        }
+      }
+    };
+
+    setupNotifications();
   }, [isAuthenticated]);
 
   // Handle navigation readiness

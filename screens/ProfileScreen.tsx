@@ -5,7 +5,7 @@
  */
 
 import { useRouter } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { authService, User } from "@/services/api/auth.service";
 import { profileService } from "@/services/api/profile.service";
+import { notificationApiService } from "@/services/api/notification.service";
 import { getRefreshToken, getUserData } from "@/utils/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
@@ -49,6 +50,7 @@ interface MenuItem {
   icon: React.ReactNode;
   label: string;
   value?: string;
+  badge?: number;
   onPress: () => void;
   isLogout?: boolean;
 }
@@ -61,11 +63,25 @@ export default function ProfileScreen() {
   const [language, setLanguage] = useState("English");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await notificationApiService.getUnreadCount();
+      if (response.data) {
+        setUnreadNotificationCount(response.data.count);
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+    }
+  }, []);
 
   // Fetch user profile on mount
   useEffect(() => {
     loadUserProfile();
-  }, []);
+    fetchUnreadCount();
+  }, [fetchUnreadCount]);
 
   const loadUserProfile = async () => {
     try {
@@ -150,7 +166,8 @@ export default function ProfileScreen() {
       id: "notifications",
       icon: <NotificationOutlineIcon size={24} color="#FFFFFF" />,
       label: "Notifications",
-      onPress: () => console.log("Notifications"),
+      badge: unreadNotificationCount > 0 ? unreadNotificationCount : undefined,
+      onPress: () => router.push("/notifications"),
     },
   ];
 
@@ -199,7 +216,16 @@ export default function ProfileScreen() {
       onPress={item.onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.gridItemIcon}>{item.icon}</View>
+      <View style={styles.gridItemIcon}>
+        {item.icon}
+        {item.badge !== undefined && item.badge > 0 && (
+          <View style={styles.badgeContainer}>
+            <Text style={styles.badgeText}>
+              {item.badge > 99 ? "99+" : item.badge}
+            </Text>
+          </View>
+        )}
+      </View>
       <Text style={styles.gridItemLabel}>{item.label}</Text>
     </TouchableOpacity>
   );
@@ -241,8 +267,19 @@ export default function ProfileScreen() {
         hideBackButton
         rightIcon={
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              activeOpacity={0.7}
+              onPress={() => router.push("/notifications")}
+            >
               <NotificationFilledIcon size={20} color="#FFFFFF" />
+              {unreadNotificationCount > 0 && (
+                <View style={styles.headerBadge}>
+                  <Text style={styles.headerBadgeText}>
+                    {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.headerButton} activeOpacity={0.7}>
               <DotIcon size={20} color="#FFFFFF" />
@@ -472,5 +509,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FFFFFF",
     fontWeight: "500",
+  },
+  badgeContainer: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  headerBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#FF3B30",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 3,
+  },
+  headerBadgeText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

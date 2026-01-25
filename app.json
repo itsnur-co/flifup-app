@@ -36,7 +36,9 @@
           "icon": "./assets/images/icon.png",
           "color": "#E6F4FE",
           "defaultChannel": "default",
-          "sounds": []
+          "sounds": [
+            "./assets/sounds/notification-sound.mp3"
+          ]
         }
       ],
       [
