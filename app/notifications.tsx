@@ -185,7 +185,7 @@ export default function NotificationsScreen() {
   const hasUnread = notifications.some((n) => !n.isRead);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <ScreenHeader
         title="Notifications"
         onBack={() => router.back()}

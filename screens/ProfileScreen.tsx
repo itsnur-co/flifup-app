@@ -198,13 +198,13 @@ export default function ProfileScreen() {
       id: "legal",
       icon: <ShieldIcon size={24} color="#FFFFFF" />,
       label: "Legal and Policies",
-      onPress: () => console.log("Legal and Policies"),
+      onPress: () => router.push("/legal"),
     },
     {
       id: "help",
       icon: <HelpIcon size={24} color="#FFFFFF" />,
       label: "Help & Support",
-      onPress: () => console.log("Help & Support"),
+      onPress: () => router.push("/help-support"),
     },
   ];
 
