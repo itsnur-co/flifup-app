@@ -218,6 +218,8 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
       name: c.name,
       icon: c.icon || "📌",
       color: c.color || "#9039FF",
+      isDefault: c.isDefault,
+      _count: c._count,
     }));
   }, [apiCategories]);
 
@@ -273,24 +275,21 @@ export const HabitListScreen: React.FC<HabitListScreenProps> = ({
 
   // Category filter data
   const categoryFilters = useMemo(() => {
-    const counts: Record<string, number> = { all: habits.length };
+    // Calculate total count from all categories
+    const totalCount = categories.reduce((sum, cat) => sum + (cat._count?.habits || 0), 0);
 
-    habits.forEach((habit) => {
-      if (habit.category?.name) {
-        counts[habit.category.name] = (counts[habit.category.name] || 0) + 1;
-      }
-    });
+    const filters = [{ id: "all", name: "All Habits", count: totalCount }];
 
-    const filters = [{ id: "all", name: "All Habits", count: counts.all || 0 }];
-
+    // Use _count from API instead of manually counting
     categories.forEach((cat) => {
-      if (counts[cat.name]) {
-        filters.push({ id: cat.id, name: cat.name, count: counts[cat.name] });
+      const count = cat._count?.habits || 0;
+      if (count > 0) {
+        filters.push({ id: cat.id, name: cat.name, count });
       }
     });
 
     return filters;
-  }, [habits, categories]);
+  }, [categories]);
 
   // Filtered habits by category
   const filteredHabits = useMemo(() => {

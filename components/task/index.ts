@@ -2,6 +2,7 @@
  * Task components barrel export
  */
 export { AddCategorySheet, DEFAULT_TASK_CATEGORIES } from "./AddCategorySheet";
+export { TaskCategoryFilter } from "./TaskCategoryFilter";
 export { AddCustomDateSheet } from "./AddCustomDateSheet";
 export { AddPeopleSheet } from "./AddPeopleSheet";
 export { AddSubtaskSheet } from "./AddSubtaskSheet";

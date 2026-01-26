@@ -35,6 +35,7 @@ import {
   CreateTaskSheet,
   DeleteAllTasksConfirmModal,
   SetFocusDurationSheet,
+  TaskCategoryFilter,
   TaskEditModal,
   TaskHeaderOptionsModal,
   TaskSection,
@@ -160,6 +161,7 @@ export const TaskListScreen: React.FC = () => {
 
   // Local state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Modal visibility states
@@ -241,11 +243,15 @@ export const TaskListScreen: React.FC = () => {
 
   // Get tasks to display based on selected date (with fallback for undefined)
   const displayTasks = useMemo(() => {
-    if (isToday) {
-      return todayTasks || [];
+    let tasks = isToday ? (todayTasks || []) : (selectedDateTasks || []);
+
+    // Filter by category if selected
+    if (selectedCategoryId) {
+      tasks = tasks.filter((t) => t.categoryId === selectedCategoryId);
     }
-    return selectedDateTasks || [];
-  }, [isToday, todayTasks, selectedDateTasks]);
+
+    return tasks;
+  }, [isToday, todayTasks, selectedDateTasks, selectedCategoryId]);
 
   // Computed completed/pending tasks based on selected date
   const pendingTasks = useMemo(
@@ -254,15 +260,27 @@ export const TaskListScreen: React.FC = () => {
   );
 
   // Filter upcoming tasks into pending and completed
-  const pendingUpcomingTasks = useMemo(
-    () => upcomingTasks.filter((t) => !isTaskCompleted(t)),
-    [upcomingTasks]
-  );
+  const pendingUpcomingTasks = useMemo(() => {
+    let tasks = upcomingTasks.filter((t) => !isTaskCompleted(t));
 
-  const completedUpcomingTasks = useMemo(
-    () => upcomingTasks.filter((t) => isTaskCompleted(t)),
-    [upcomingTasks]
-  );
+    // Filter by category if selected
+    if (selectedCategoryId) {
+      tasks = tasks.filter((t) => t.categoryId === selectedCategoryId);
+    }
+
+    return tasks;
+  }, [upcomingTasks, selectedCategoryId]);
+
+  const completedUpcomingTasks = useMemo(() => {
+    let tasks = upcomingTasks.filter((t) => isTaskCompleted(t));
+
+    // Filter by category if selected
+    if (selectedCategoryId) {
+      tasks = tasks.filter((t) => t.categoryId === selectedCategoryId);
+    }
+
+    return tasks;
+  }, [upcomingTasks, selectedCategoryId]);
 
   // Combine completed tasks from display tasks and upcoming tasks
   const completedTasks = useMemo(
@@ -673,6 +691,18 @@ export const TaskListScreen: React.FC = () => {
         onDateSelect={handleDateSelect}
         onMonthPress={() => console.log("Month pressed")}
         onTodayPress={() => setSelectedDate(new Date())}
+      />
+
+      {/* Category Filter */}
+      <TaskCategoryFilter
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
+        onSelectCategory={setSelectedCategoryId}
+        onAddCategory={() => {
+          setSheetContext('create');
+          setIsAddCategoryVisible(true);
+        }}
+        totalCount={displayTasks.length + upcomingTasks.length}
       />
 
       {/* Error Message */}

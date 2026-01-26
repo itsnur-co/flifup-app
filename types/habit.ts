@@ -48,7 +48,12 @@ export interface HabitGoal {
 export interface HabitCategory {
   id: string;
   name: string;
+  icon?: string;
   color?: string;
+  isDefault?: boolean;
+  _count?: {
+    habits: number;
+  };
 }
 
 // Main Habit Interface
