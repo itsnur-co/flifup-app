@@ -83,7 +83,7 @@ class NotificationService {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#E6F4FE',
-      sound: 'notification-sound.mp3',
+      sound: 'notification_sound.mp3',
     });
 
     await Notifications.setNotificationChannelAsync('reminders', {
@@ -92,7 +92,7 @@ class NotificationService {
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#E6F4FE',
-      sound: 'notification-sound.mp3',
+      sound: 'notification_sound.mp3',
     });
 
     await Notifications.setNotificationChannelAsync('assignments', {
@@ -101,7 +101,7 @@ class NotificationService {
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#E6F4FE',
-      sound: 'notification-sound.mp3',
+      sound: 'notification_sound.mp3',
     });
   }
 
@@ -130,7 +130,7 @@ class NotificationService {
         title: options.title,
         body: options.body,
         data: options.data || {},
-        sound: 'notification-sound.mp3',
+        sound: 'notification_sound.mp3',
       },
       trigger,
     });
@@ -153,7 +153,7 @@ class NotificationService {
         title: options.title,
         body: options.body,
         data: options.data || {},
-        sound: 'notification-sound.mp3',
+        sound: 'notification_sound.mp3',
       },
       trigger: {
         type: SchedulableTriggerInputTypes.DAILY,

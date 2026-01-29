@@ -37,7 +37,7 @@
           "color": "#E6F4FE",
           "defaultChannel": "default",
           "sounds": [
-            "./assets/sounds/notification-sound.mp3"
+            "./assets/sounds/notification_sound.mp3"
           ]
         }
       ],
